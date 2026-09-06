@@ -1,32 +1,112 @@
-# React + TypeScript + Vite
+# TypeScript Basic Types
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+## 1. STRING
+let name: string = "Anjil";
 
-Currently, two official plugins are available:
+## 2. NUMBER
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+let age: number = 23;
 
-## React Compiler
+## 3. BOOLEAN
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+let isStudent: boolean = true;
 
-## Expanding the Oxlint configuration
+## 4. ARRAY - STRING
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+let names: string[] = ["Ram", "Sita", "Hari"];
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
+## 5. ARRAY - NUMBER
+
+let ages: number[] = [20, 21, 22, 23];
+
+## 6. ARRAY - BOOLEAN
+
+let results: boolean[] = [true, false, true];
+
+## 7. OBJECT
+
+let user: {
+  name: string;
+  age: number;
+} = {
+  name: "Anjil",
+  age: 23
+};
+
+## 8. TYPE - CUSTOM TYPE
+
+type User = {
+  name: string;
+  age: number;
+  role: string;
+};
+
+const user1: User = {
+  name: "Ram",
+  age: 20,
+  role: "student"
+};
+
+## 9. OPTIONAL PROPERTY
+
+type Student = {
+  name: string;
+  age: number;
+  address?: string;
+};
+
+const student: Student = {
+  name: "Sita",
+  age: 21
+};
+
+## 10. UNION TYPE
+
+let id: string | number;
+
+id = 123;
+id = "abc";
+
+## 11. LITERAL TYPE
+
+let role: "student" | "teacher" | "admin";
+
+role = "student";
+role = "teacher";
+role = "admin";
+
+## 12. ANY
+
+let data: any = 10;
+
+data = "hello";
+data = true;
+data = [1, 2, 3];
+
+## 13. UNKNOWN
+
+let value: unknown = "hello";
+
+if (typeof value === "string") {
+  console.log(value.toUpperCase());
 }
-```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## 14. VOID
+
+function greet(): void {
+  console.log("Hello");
+}
+
+## 15. NULL
+
+let emptyValue: null = null;
+
+## 16. UNDEFINED
+
+let notFound: undefined = undefined;
+
+## 17. NEVER
+
+function throwError(): never {
+  throw new Error("Something went wrong");
+}
