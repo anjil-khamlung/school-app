@@ -1,15 +1,14 @@
 import { useState } from "react";
 import { FiBookOpen, FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
-import type { LoginForm } from "../../type/type";
-import InputField from "../../components/InputField";
+import type { ContactForm, LoginForm } from "../../type/type";
+import InputField from "../../components/inputs/InputField";
 import { useSchoolStore } from "../../store/useSchoolStore";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const Login = () => {
-  const users = useSchoolStore((state) => state.users);
-  const login = useSchoolStore((state) => state.login);
-  const navigate=useNavigate()
+  const navigate = useNavigate();
+  const { users, login } = useSchoolStore();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<LoginForm>({
     email: "",
@@ -19,16 +18,25 @@ const Login = () => {
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const foundUser=users.find((user)=>user.email===formData.email && user.password===formData.password)
+    const foundUser = users.find(
+      (user) =>
+        user.email === formData.email && user.password === formData.password,
+    );
 
     if (!foundUser) {
-      toast.error("login failed")
-      return
+      toast.error("Invalid credentials");
+      return;
     }
-toast.success("login successfull")
-    login(foundUser)
+    toast.success("login successfull");
+    login(foundUser);
 
-    navigate("/")
+    navigate(
+      foundUser.role === "admin"
+        ? "/admin"
+        : foundUser.role === "teacher"
+          ? "/teacher"
+          : "/student",
+    );
   };
   return (
     <div className="relative flex h-[calc(100vh-4rem)] items-center justify-center overflow-hidden bg-[#071c1a] px-4">
@@ -113,7 +121,7 @@ toast.success("login successfull")
           {/* Form UI */}
           <form onSubmit={handleSubmit} className="space-y-5 ">
             {/* Email */}
-            <InputField
+            <InputField<ContactForm>
               label="Email address"
               type="email"
               placeholder="you@gmail.com"

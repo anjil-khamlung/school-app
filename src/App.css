@@ -10,3 +10,7 @@
 body {
   background: white;
 }
+
+html{
+  overflow-y: scroll;
+}

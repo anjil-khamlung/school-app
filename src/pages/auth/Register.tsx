@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import InputField from "../../components/InputField";
+import InputField from "../../components/inputs/InputField";
 import {
   FiBookOpen,
   FiUser,
@@ -36,23 +36,19 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const roles = [
-    { name: "Student", value: "student" },
-    { name: "Teacher", value: "teacher" },
-  ];
 
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
       toast.error("Passwords do not match");
-      return
+      return;
     }
 
     const existingUser = users.find((user) => user.email === formData.email);
 
     if (existingUser) {
       toast.warning("User already exists");
-      return
+      return;
     }
 
     const user: User = {
@@ -64,7 +60,7 @@ const Register = () => {
     };
 
     register(user);
-   toast.success("register successfull")
+    toast.success("register successfull");
     navigate("/login");
   };
   return (
@@ -202,32 +198,51 @@ const Register = () => {
                 Account type
               </label>
 
-              <Listbox>
-                <ListboxButton className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-left text-sm font-medium text-slate-900 outline-none transition hover:border-slate-300 focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10 cursor-pointer">
-                  <span>Student</span>
+              <Listbox
+                value={formData.role}
+                onChange={(value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    role: value,
+                  }))
+                }
+              >
+                <div className="relative">
+                  <ListboxButton className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-left text-sm font-medium text-slate-900 outline-none transition hover:border-slate-300 focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10">
+                    <span className="capitalize">{formData.role}</span>
 
-                  <FiChevronDown className="text-slate-400" size={18} />
-                </ListboxButton>
+                    <FiChevronDown className="text-slate-400" size={18} />
+                  </ListboxButton>
 
-                <ListboxOptions
-                  anchor="bottom"
-                  className="z-50 mt-2 w-(--button-width) rounded-xl border border-slate-200 bg-white p-1 shadow-xl outline-none"
-                >
-                  {roles.map((role) => (
+                  <ListboxOptions
+                    anchor="bottom"
+                    className="z-50 mt-2 w-(--button-width) rounded-xl border border-slate-200 bg-white p-1 shadow-xl outline-none"
+                  >
                     <ListboxOption
-                      key={role.name}
-                      value={role.value}
+                      value="student"
                       className="group flex cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 text-sm text-slate-700 data-focus:bg-teal-50 data-focus:text-teal-700"
                     >
-                      <div className="text-sm  text-black">{role.name}</div>
+                      <span>Student</span>
 
                       <FiCheck
                         size={17}
                         className="invisible text-teal-600 group-data-selected:visible"
                       />
                     </ListboxOption>
-                  ))}
-                </ListboxOptions>
+
+                    <ListboxOption
+                      value="teacher"
+                      className="group flex cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 text-sm text-slate-700 data-focus:bg-teal-50 data-focus:text-teal-700"
+                    >
+                      <span>Teacher</span>
+
+                      <FiCheck
+                        size={17}
+                        className="invisible text-teal-600 group-data-selected:visible"
+                      />
+                    </ListboxOption>
+                  </ListboxOptions>
+                </div>
               </Listbox>
             </div>
 

@@ -4,7 +4,7 @@ import { Field, Input, Label } from "@headlessui/react";
 interface InputFieldProps<T> {
   label: string;
   type: string;
-  placeholder: string;
+  placeholder?: string;
   value: string;
   //React.Dispatch : describes the function that receives that state update
   //<React.SetStateAction<T>> : what you can give to <T>.

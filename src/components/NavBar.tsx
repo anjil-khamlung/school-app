@@ -1,13 +1,16 @@
 import { FiBookOpen } from "react-icons/fi";
 import { NavLink } from "react-router-dom";
 import { useSchoolStore } from "../store/useSchoolStore";
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 
 const NavBar = () => {
-  const isAuthenticated=useSchoolStore((state)=>state.isAuthenticated)
-
+  const { currentUser, isAuthenticated, logout } = useSchoolStore();
+  const handleLogout = () => {
+    logout();
+  };
   return (
     <>
-      <div className="shadow-sm">
+      <div className="shadow-sm border-b border-slate-200  ">
         <div className="navbar text-slate-600 text-sm font-semibold  max-w-7xl  mx-auto">
           <div className="navbar-start">
             {/* <div className="dropdown">
@@ -62,21 +65,40 @@ const NavBar = () => {
             </div>
           </div>
           <div className="navbar-center hidden md:flex">
-            <NavLink to="/" className={({isActive})=>`text-sm font-semibold px-3 py-2 ${isActive?"border-b-2 border-teal-600 text-teal-600":"hover:text-teal-700"}`}>
+            <NavLink
+              to="/"
+              className={({ isActive }) =>
+                `text-sm font-semibold px-3 py-2 ${isActive ? "border-b-2 border-teal-600 text-teal-600" : "hover:text-teal-700"}`
+              }
+            >
               Home
             </NavLink>
-        
-          
+            <NavLink
+              to="/about"
+              className={({ isActive }) =>
+                `text-sm font-semibold px-3 py-2 ${isActive ? "border-b-2 border-teal-600 text-teal-600" : "hover:text-teal-700"}`
+              }
+            >
+              About
+            </NavLink>
+            <NavLink
+              to="/contact"
+              className={({ isActive }) =>
+                `text-sm font-semibold px-3 py-2 ${isActive ? "border-b-2 border-teal-600 text-teal-600" : "hover:text-teal-700"}`
+              }
+            >
+              Contacts
+            </NavLink>
           </div>
           {!isAuthenticated && (
             <div className="navbar-end gap-2">
               <NavLink
                 to="/login"
                 className={({ isActive }) =>
-                  `hidden rounded-3xl px-3 py-2 text-sm font-semibold transition sm:px-4 md:block ${
+                  `hidden rounded-3xl border-b-2 px-3 py-2 text-sm font-semibold transition sm:px-4 md:block ${
                     isActive
-                      ? "rounded-none border-b-2 border-teal-600 bg-transparent text-teal-600"
-                      : "bg-teal-500 text-white hover:bg-teal-700"
+                      ? "rounded-none border-teal-600 bg-transparent text-teal-600"
+                      : "border-transparent bg-teal-500 text-white hover:bg-teal-700"
                   }`
                 }
               >
@@ -86,10 +108,10 @@ const NavBar = () => {
               <NavLink
                 to="/register"
                 className={({ isActive }) =>
-                  `hidden rounded-3xl px-3 py-2 text-sm font-semibold transition sm:px-4 md:block ${
+                  `hidden rounded-3xl border-b-2 px-3 py-2 text-sm font-semibold transition sm:px-4 md:block ${
                     isActive
-                      ? "rounded-none border-b-2 border-teal-600 bg-transparent text-teal-600"
-                      : "bg-teal-500 text-white hover:bg-teal-700"
+                      ? "rounded-none border-teal-600 bg-transparent text-teal-600"
+                      : "border-transparent bg-teal-500 text-white hover:bg-teal-700"
                   }`
                 }
               >
@@ -97,10 +119,47 @@ const NavBar = () => {
               </NavLink>
             </div>
           )}
+
+          {isAuthenticated && (
+            <div className="navbar-end">
+              <Menu as="div" className="relative">
+                <MenuButton className="avatar avatar-online avatar-placeholder cursor-pointer ">
+                  <div className="w-10 rounded-full bg-slate-200 text-slate-600">
+                    <span className="text-2xl">
+                      {currentUser?.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                </MenuButton>
+
+                <MenuItems
+                  anchor="bottom end"
+                  className="mt-2 w-auto rounded-lg border border-slate-300 bg-white p-2 shadow-lg"
+                >
+                  <MenuItem>
+                    <NavLink
+                      to={`/${currentUser?.role}`}
+                      className="block rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-200 hover:text-teal-600"
+                    >
+                      Profile
+                    </NavLink>
+                  </MenuItem>
+
+                  <MenuItem>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full rounded-md px-3 py-2 text-left text-sm text-slate-600 hover:bg-red-200 hover:text-red-600 cursor-pointer"
+                    >
+                      Logout
+                    </button>
+                  </MenuItem>
+                </MenuItems>
+              </Menu>
+            </div>
+          )}
         </div>
       </div>
     </>
   );
-}
+};
 
-export default NavBar
+export default NavBar;
