@@ -6,11 +6,11 @@ import {
   FiCheckCircle,
   FiUser,
 } from "react-icons/fi";
-import type { User } from "../../type/type";
+import type { HomeProps,  User } from "../../type/type";
 
 interface HeroProps {
   dashboardPath:string,
-  stats:string,
+  stats:HomeProps[],
   recentUsers:User[],
   users:User[],
   isAuthenticated:boolean,
@@ -22,7 +22,7 @@ const Hero = ({
   recentUsers,
   users,
   isAuthenticated,
-}) => {
+}:HeroProps) => {
   const navigate = useNavigate();
   return (
     <section className="relative overflow-hidden bg-linear-to-br from-teal-50 via-white to-emerald-50">
@@ -59,13 +59,13 @@ const Hero = ({
             {/* Buttons */}
             <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
               {isAuthenticated ? (
-                <button
-                  onClick={() => navigate(dashboardPath)}
-                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-teal-600 px-6 py-3.5 font-semibold text-white shadow-lg shadow-teal-600/20 transition-all duration-200 hover:scale-105  hover:bg-teal-700 sm:w-auto"
-                >
-                  Go to Dashboard
-                  <FiArrowRight />
-                </button>
+                  <button
+                    onClick={() => navigate(dashboardPath)}
+                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-teal-600 px-6 py-3.5 font-semibold text-white shadow-lg shadow-teal-600/20 transition-all duration-200 hover:scale-105  hover:bg-teal-700 sm:w-auto"
+                  >
+                    Go to Dashboard
+                    <FiArrowRight />
+                  </button>
               ) : (
                 <>
                   <button

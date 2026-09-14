@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useNavigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { useSchoolStore } from "../store/useSchoolStore";
 import type { Role } from "../type/type.ts"
 
@@ -13,7 +13,6 @@ const ProtectedRoute = ({ role }: ProtectedRouteProps) => {
   if (!isAuthenticated || !currentUser) {
     return <Navigate to="/login" replace />;
   }
-
   if (role && !role.includes(currentUser.role)) {
     if (currentUser.role === "admin") {
       return <Navigate to="/admin" replace />;

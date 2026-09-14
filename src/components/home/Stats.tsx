@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
-import type { HomeProps, HomeStatsProps } from "../../type/type";
+import type { HomeProps, } from "../../type/type";
 
 interface StatsProps{
-    stats:HomeStatsProps[]
+    stats:HomeProps[]
 ,}
 const Stats = ({ stats }:StatsProps) => {
   return (
@@ -14,7 +14,7 @@ const Stats = ({ stats }:StatsProps) => {
           return (
             <div
               key={stat.label}
-              className="group h-48 perspective-[1000px] sm:h-52"
+              className="group h-48  sm:h-52"
             >
               <motion.div
                 initial={{ opacity: 0, y: 30 }}

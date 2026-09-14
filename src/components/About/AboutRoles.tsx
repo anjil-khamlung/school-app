@@ -2,24 +2,7 @@ import { motion } from "framer-motion";
 import { FiShield, FiUsers } from "react-icons/fi";
 
 const AboutRoles = () => {
-  return (
-    <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
-      <div className="mx-auto max-w-2xl text-center">
-        <p className="text-sm font-bold uppercase tracking-widest text-teal-600">
-          One platform
-        </p>
-
-        <h2 className="mt-3 text-3xl font-extrabold text-slate-900 sm:text-4xl">
-          Designed for every role
-        </h2>
-
-        <p className="mt-4 text-slate-500">
-          Different users, different responsibilities, one connected platform.
-        </p>
-      </div>
-
-      <div className="mt-12 grid gap-6 md:grid-cols-3">
-        {[
+  const roles=[
           {
             title: "Administrators",
             description:
@@ -38,7 +21,25 @@ const AboutRoles = () => {
               "Access classes, monitor attendance, and stay connected with academic activities.",
             icon: FiUsers,
           },
-        ].map((role, index) => {
+        ]
+  return (
+    <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
+      <div className="mx-auto max-w-2xl text-center">
+        <p className="text-sm font-bold uppercase tracking-widest text-teal-600">
+          One platform
+        </p>
+
+        <h2 className="mt-3 text-3xl font-extrabold text-slate-900 sm:text-4xl">
+          Designed for every role
+        </h2>
+
+        <p className="mt-4 text-slate-500">
+          Different users, different responsibilities, one connected platform.
+        </p>
+      </div>
+
+      <div className="mt-12 grid gap-6 md:grid-cols-3">
+        {roles.map((role, index) => {
           const Icon = role.icon;
 
           return (

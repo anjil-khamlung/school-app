@@ -39,7 +39,7 @@ const Students = () => {
           <FiUsers size={18} className="text-teal-600" />
 
           <span className="text-sm font-semibold text-teal-700">
-            {students.length} Students
+            {students.length} {students.length === 1 ? "Student" : "Students"}
           </span>
         </div>
       </div>
@@ -48,7 +48,9 @@ const Students = () => {
       <SearchInput
         placeholder="Search students ..."
         value={search}
-        onChange={(e:React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          setSearch(e.target.value)
+        }
       />
 
       {/* Students */}

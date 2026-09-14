@@ -4,10 +4,9 @@ import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import InputField from "../components/inputs/InputField";
 import TextArea from "../components/inputs/TextArea";
-import type { ContactForm } from "../type/type";
 
 const Contact = () => {
-  const [formData, setFormData] = useState<ContactForm>({
+  const [formData, setFormData] = useState({
     name: "",
     email: "",
     subject: "",
@@ -186,7 +185,7 @@ const Contact = () => {
                     name={"name"}
                     value={formData.name}
                     placeholder={"Enter your name"}
-                    setFormData={(value) => setFormData(value as ContactForm)}
+                    setFormData={setFormData}
                   />
                 </motion.div>
 
@@ -203,7 +202,7 @@ const Contact = () => {
                     name={"email"}
                     value={formData.email}
                     placeholder={"Enter your email"}
-                    setFormData={(value) => setFormData(value as ContactForm)}
+                    setFormData={setFormData}
                   />
                 </motion.div>
 
@@ -221,7 +220,7 @@ const Contact = () => {
                     name={"subject"}
                     value={formData.subject}
                     placeholder={"What is this about?"}
-                    setFormData={(value) => setFormData(value as ContactForm)}
+                    setFormData={setFormData}
                   />
                 </motion.div>
 
@@ -237,7 +236,7 @@ const Contact = () => {
                     label={"Message"}
                     name={"message"}
                     value={formData.message}
-                    setFormData={(value) => setFormData(value as ContactForm)}
+                    setFormData={setFormData}
                     placeholder={"Write your message..."}
                     rows={6}
                   />

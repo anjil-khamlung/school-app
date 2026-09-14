@@ -6,7 +6,6 @@ import {
   FiCalendar,
   FiFilePlus,
 } from "react-icons/fi";
-import type { HomeStatsProps } from "../type/type";
 
 export const features = [
   {
@@ -62,6 +61,12 @@ export const roles = [
   },
 ];
 
+interface HomeStatsProps{
+  students: number,
+  teachers: number,
+  totalClasses: number,
+  totalAssignments:number
+}
 
 
 export const homeStats = ({

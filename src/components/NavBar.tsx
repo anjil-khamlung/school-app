@@ -1,5 +1,5 @@
 import { FiBookOpen } from "react-icons/fi";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useSchoolStore } from "../store/useSchoolStore";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 
@@ -8,6 +8,13 @@ const NavBar = () => {
   const handleLogout = () => {
     logout();
   };
+
+  const location = useLocation();
+
+  const isDashboard =
+    location.pathname.startsWith("/admin") ||
+    location.pathname.startsWith("/teacher") ||
+    location.pathname.startsWith("/student");
   return (
     <>
       <div className="shadow-sm border-b border-slate-200  ">
@@ -64,32 +71,74 @@ const NavBar = () => {
               </span>
             </div>
           </div>
-          <div className="navbar-center hidden md:flex">
-            <NavLink
-              to="/"
-              className={({ isActive }) =>
-                `text-sm font-semibold px-3 py-2 ${isActive ? "border-b-2 border-teal-600 text-teal-600" : "hover:text-teal-700"}`
-              }
-            >
-              Home
-            </NavLink>
-            <NavLink
-              to="/about"
-              className={({ isActive }) =>
-                `text-sm font-semibold px-3 py-2 ${isActive ? "border-b-2 border-teal-600 text-teal-600" : "hover:text-teal-700"}`
-              }
-            >
-              About
-            </NavLink>
-            <NavLink
-              to="/contact"
-              className={({ isActive }) =>
-                `text-sm font-semibold px-3 py-2 ${isActive ? "border-b-2 border-teal-600 text-teal-600" : "hover:text-teal-700"}`
-              }
-            >
-              Contacts
-            </NavLink>
+
+          <div className="navbar-center  md:flex">
+            {!isDashboard && (
+              <>
+                <NavLink
+                  to="/"
+                  className={({ isActive }) =>
+                    `text-sm font-semibold px-3 py-2 ${
+                      isActive
+                        ? "border-b-2 border-teal-600 text-teal-600"
+                        : "hover:text-teal-700"
+                    }`
+                  }
+                >
+                  Home
+                </NavLink>
+
+                <NavLink
+                  to="/about"
+                  className={({ isActive }) =>
+                    `text-sm font-semibold px-3 py-2 ${
+                      isActive
+                        ? "border-b-2 border-teal-600 text-teal-600"
+                        : "hover:text-teal-700"
+                    }`
+                  }
+                >
+                  About
+                </NavLink>
+
+                <NavLink
+                  to="/contact"
+                  className={({ isActive }) =>
+                    `text-sm font-semibold px-3 py-2 ${
+                      isActive
+                        ? "border-b-2 border-teal-600 text-teal-600"
+                        : "hover:text-teal-700"
+                    }`
+                  }
+                >
+                  Contacts
+                </NavLink>
+              </>
+            )}
+
+            {isAuthenticated && isDashboard && (
+              <NavLink
+                onClick={close}
+                to={
+                  currentUser?.role === "admin"
+                    ? "/admin"
+                    : currentUser?.role === "teacher"
+                      ? "/teacher"
+                      : "/student"
+                }
+                className={({ isActive }) =>
+                  `text-sm font-semibold px-3 py-2 ${
+                    isActive
+                      ? "border-b-2 border-teal-600 text-teal-600"
+                      : "hover:text-teal-700"
+                  }`
+                }
+              >
+                Dashboard
+              </NavLink>
+            )}
           </div>
+
           {!isAuthenticated && (
             <div className="navbar-end gap-2">
               <NavLink
@@ -143,6 +192,35 @@ const NavBar = () => {
                       Profile
                     </NavLink>
                   </MenuItem>
+
+                  {isDashboard && (
+                    <>
+                      <MenuItem>
+                        <NavLink
+                          to="/"
+                          className="block rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-200 hover:text-teal-600"
+                        >
+                          Home
+                        </NavLink>
+                      </MenuItem>
+                      <MenuItem>
+                        <NavLink
+                          to="/about"
+                          className="block rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-200 hover:text-teal-600"
+                        >
+                          About
+                        </NavLink>
+                      </MenuItem>
+                      <MenuItem>
+                        <NavLink
+                          to="/contact"
+                          className="block rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-200 hover:text-teal-600"
+                        >
+                          Contact
+                        </NavLink>
+                      </MenuItem>
+                    </>
+                  )}
 
                   <MenuItem>
                     <button

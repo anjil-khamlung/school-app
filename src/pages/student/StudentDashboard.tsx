@@ -6,7 +6,7 @@ import DashboardList from "../../components/DashboardList";
 
 const StudentDashboard = () => {
   const navigate=useNavigate()
-  const { currentUser, users, classes, assignments } = useSchoolStore()
+  const { currentUser,  classes, assignments } = useSchoolStore()
   if(!currentUser)return
 
   const myClasses = classes.filter((item) => item.students.includes(currentUser.id))

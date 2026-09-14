@@ -21,6 +21,8 @@ const Classes = () => {
     time: "",
   });
 
+    if (!currentUser) return;
+
   const isAdmin = currentUser?.role === "admin";
   const isTeacher = currentUser?.role === "teacher";
   const isStudent = currentUser?.role === "student";
@@ -60,7 +62,6 @@ const Classes = () => {
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!currentUser) return;
 
     if (!formData.name || !formData.section || !formData.subject) {
       toast.warning("Please fill all fields");

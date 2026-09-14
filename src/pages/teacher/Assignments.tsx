@@ -17,17 +17,19 @@ const Assignments = () => {
     addAssignment,
     deleteAssignment,
     submitAssignment,
-    } = useSchoolStore();
-    
-    if (!currentUser) return null;
-    
+  } = useSchoolStore();
+
+  if (!currentUser) return null;
+
   const isAdmin = currentUser?.role === "admin";
   const isTeacher = currentUser?.role === "teacher";
   const isStudent = currentUser?.role === "student";
 
-    const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
-  const [selectedAssignmentId, setSelectedAssignmentId] = useState<null|number>(null);
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<
+    null | number
+  >(null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -42,20 +44,21 @@ const Assignments = () => {
   );
 
   const visibleAssignments = isTeacher ? teacherAssignments : assignments;
+
   const filteredAssignments = visibleAssignments.filter((assignment) => {
     const value = search.trim().toLowerCase();
     if (!value) return true;
 
     return (
-      assignment.title?.toLowerCase().includes(value),
-      assignment.subject?.toLowerCase().includes(value),
-      assignment.className?.toLowerCase().includes(value),
-      assignment.description?.toLowerCase().includes(value),
+      assignment.title?.toLowerCase().includes(value) ||
+      assignment.subject?.toLowerCase().includes(value) ||
+      assignment.className?.toLowerCase().includes(value) ||
+      assignment.description?.toLowerCase().includes(value) ||
       assignment.teacher?.toLowerCase().includes(value)
     );
   });
 
-    // create assignment 
+  // create assignment
   const handleCreateAssignment = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -68,70 +71,57 @@ const Assignments = () => {
     ) {
       toast.warning("Please fill all required fields");
       return;
-      }
-      
-      
-      const newAssignment = {
-          id: Date.now(),
-          title: formData.title,
-          className: formData.className,
-          description: formData.description,
-          dueDate: formData.dueDate,
-          subject: formData.subject,
-          teacherId: currentUser.id,
-          teacher: currentUser.name,
-          submittedBy:[],
-      }
+    }
 
-      addAssignment(newAssignment)
-      toast.success("Assignments created successfully")
-
-      setSearch("")
-
-      setShowForm(false)
-      
-  };
-  
-    const handleClick = (assignment:Assignment) => {
-        setSelectedAssignmentId(assignment.id)
-        
+    const newAssignment = {
+      id: Date.now(),
+      title: formData.title,
+      className: formData.className,
+      description: formData.description,
+      dueDate: formData.dueDate,
+      subject: formData.subject,
+      teacherId: currentUser.id,
+      teacher: currentUser.name,
+      submittedBy: [],
     };
-    
-    // delete assignment 
-    const handleDelete = (assignmentId:number) => {
-        deleteAssignment(assignmentId)
-        
+
+    addAssignment(newAssignment);
+    toast.success("Assignments created successfully");
+
+    setSearch("");
+
+    setShowForm(false);
+  };
+
+  const handleDelete = (assignment: Assignment) => {
+    setSelectedAssignmentId(assignment.id);
   };
 
   const confirmDelete = () => {
-      if (selectedAssignmentId === null) return
-      
-      handleDelete(selectedAssignmentId)
-      
-      setSelectedAssignmentId(null);
+    if (selectedAssignmentId === null) return;
 
-      toast.success("Assignment deleted successfully")
-    };
-    
-    // submit assignment 
-    const handleSubmit = (assignmentId: number) => {
-        if (!isStudent) return
-        submitAssignment(assignmentId,currentUser.id)
-     };
-    
-    // check whether student submitted 
-    const isSubmitted = (assignment: Assignment) => {
-   
+    deleteAssignment(selectedAssignmentId);
+    setSelectedAssignmentId(null);
 
-    return  assignment.submittedBy?.includes(currentUser.id)
+    toast.success("Assignment deleted successfully");
   };
 
-    //   Student submitted count 
-    const submittedCount = assignments.filter((assignment)=> {
+  // submit assignment
+  const handleSubmit = (assignmentId: number) => {
+    if (!isStudent) return;
+    submitAssignment(assignmentId, currentUser.id);
+  };
 
-      assignment.submittedBy?.includes(currentUser.id)
-  }).length
-    
+  // check whether student submitted
+  const isSubmitted = (assignment: Assignment) => {
+    return assignment.submittedBy?.includes(currentUser.id);
+  };
+
+  //   Student submitted count
+  const submittedCount = assignments.filter((assignment) => {
+    assignment.submittedBy?.includes(currentUser.id);
+  }).length;
+
   return (
     <div className="mx-auto w-full max-w-7xl p-2 lg:p-4">
       {/* Header */}
@@ -305,7 +295,7 @@ const Assignments = () => {
         isSubmitted={isSubmitted}
         isTeacher={isTeacher}
         isStudent={isStudent}
-        handleClick={handleClick}
+        handleDelete={handleDelete}
         handleSubmit={handleSubmit}
       />
 

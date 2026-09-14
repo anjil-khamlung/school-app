@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { FiLogOut, FiMenu, FiX } from "react-icons/fi";
+import { FiLogOut,  FiX } from "react-icons/fi";
 import SidebarLinks from "./SidebarLinks";
 import { useSchoolStore } from "../store/useSchoolStore";
 import { adminLinks, studentLinks, teacherLinks } from "../data/sidebarLinks";

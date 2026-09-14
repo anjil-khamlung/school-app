@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import { features, homeStats, roles } from "../data/homeData";
 import { useSchoolStore } from "../store/useSchoolStore";
 import Hero from "../components/home/Hero";
@@ -8,12 +7,8 @@ import Roles from "../components/home/Roles";
 import Cta from "../components/home/Cta";
 
 const Home = () => {
-  const navigate = useNavigate();
-  const user = useSchoolStore((state) => state.currentUser);
-  const isAuthenticated = useSchoolStore((state) => state.isAuthenticated);
-  const users = useSchoolStore((state) => state.users);
-  const classes = useSchoolStore((state) => state.classes);
-  const assignments = useSchoolStore((state) => state.assignments);
+  const {currentUser,users,isAuthenticated,classes,assignments}=useSchoolStore()
+  
 
   const students = users.filter((item) => item.role === "student").length;
 
@@ -28,9 +23,9 @@ const Home = () => {
 
   // DASHBOARD PATH
   const dashboardPath =
-    user?.role === "admin"
+    currentUser?.role === "admin"
       ? "/admin"
-      : user?.role === "teacher"
+      : currentUser?.role === "teacher"
         ? "/teacher"
         : "/student";
 

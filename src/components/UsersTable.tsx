@@ -26,7 +26,7 @@ const UsersTable = ({ users, totalUsers }: UsersTableProps) => {
       ) : (
         <>
           {/* Desktop table */}
-          <div className="hidden overflow-x-auto md:block">
+          <div className=" overflow-x-auto md:block">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50">
@@ -93,32 +93,7 @@ const UsersTable = ({ users, totalUsers }: UsersTableProps) => {
             </table>
           </div>
 
-          {/* Mobile cards */}
-          <div className="divide-y divide-base-300 md:hidden">
-            {users.map((user) => (
-              <div key={user.id} className="p-5">
-                <div className="flex items-center gap-3">
-                  <div className="avatar placeholder">
-                    <div className="w-11 rounded-full bg-primary text-primary-content">
-                      <span>{user.name?.charAt(0).toUpperCase() || "U"}</span>
-                    </div>
-                  </div>
-
-                  <div className="min-w-0">
-                    <p className="font-semibold">{user.name}</p>
-
-                    <p className="truncate text-sm opacity-60">{user.email}</p>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex items-center justify-between">
-                  <span className="badge badge-success">{user.role}</span>
-
-                  <span className="text-xs opacity-50">ID: {user.id}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+     
         </>
       )}
     </div>

@@ -7,7 +7,7 @@ interface ClassCardProps{
     isTeacher: boolean,
     handleDelete: (classId: number) => void,
     handleJoinClass: (classId: number) => void,
-    user:User | null,
+    user:User ,
 }
 
 
@@ -23,7 +23,7 @@ const ClassCard = ({
     <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {filteredClasses.map((item) => {
         // Check if THIS student has joined THIS class
-        const studentJoined = isStudent && item.students?.includes(user?.id);
+        const studentJoined = isStudent && item.students?.includes(user.id);
 
         return (
           <div

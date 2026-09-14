@@ -76,10 +76,7 @@ const Roles = ({ roles }:rolesProps) => {
                   </p>
                 </div>
 
-                {/* <div className="relative mt-5 flex items-center gap-2 text-sm font-semibold text-slate-500 transition-all duration-300 group-hover:gap-3 group-hover:text-teal-400 sm:mt-6">
-                    Explore {role.title}
-                    <FiArrowRight size={17} />
-                  </div> */}
+             
               </motion.div>
             );
           })}

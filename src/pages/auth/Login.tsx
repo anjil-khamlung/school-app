@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { FiBookOpen, FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
-import type { ContactForm, LoginForm } from "../../type/type";
 import InputField from "../../components/inputs/InputField";
 import { useSchoolStore } from "../../store/useSchoolStore";
 import { useNavigate } from "react-router-dom";
@@ -10,7 +9,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { users, login } = useSchoolStore();
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState<LoginForm>({
+  const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
@@ -121,7 +120,7 @@ const Login = () => {
           {/* Form UI */}
           <form onSubmit={handleSubmit} className="space-y-5 ">
             {/* Email */}
-            <InputField<ContactForm>
+            <InputField
               label="Email address"
               type="email"
               placeholder="you@gmail.com"

@@ -13,7 +13,7 @@ interface AssignmentCardProps{
   isTeacher: boolean,
   isStudent: boolean,
   handleSubmit: (assignmentId: number) => void,
-  handleClick: (assignment: Assignment) => void,
+  handleDelete: (assignment: Assignment) => void,
   user?:User|null,
 }
 
@@ -21,7 +21,7 @@ const AssignmentCard = ({
   filteredAssignments,
   isSubmitted,
   isTeacher,
-  handleClick,
+  handleDelete,
   isStudent,
   handleSubmit,
   user,
@@ -48,7 +48,7 @@ const AssignmentCard = ({
                   type="button"
                   popoverTarget="delete-modal"
                   popoverTargetAction="show"
-                  onClick={() => handleClick(assignment)}
+                  onClick={() => handleDelete(assignment)}
                   className="cursor-pointer rounded-lg p-2 text-red-500 transition hover:bg-red-50"
                   title="Delete assignment"
                 >

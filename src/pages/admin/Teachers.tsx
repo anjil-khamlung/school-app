@@ -40,7 +40,7 @@ const Teachers = () => {
           <FiUsers size={18} className="text-teal-600" />
 
           <span className="text-sm font-semibold text-teal-700">
-            {teachers.length} Teachers
+            {teachers.length} {teachers.length===1?"Teacher":"Teachers"}
           </span>
         </div>
       </div>

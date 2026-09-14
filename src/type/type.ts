@@ -1,6 +1,6 @@
 import type { IconType } from "react-icons";
 
-export type  Role="admin"|"student"|"teacher"
+export type Role = "admin" | "student" | "teacher";
 
 export interface User {
   id: number;
@@ -10,25 +10,12 @@ export interface User {
   role: Role;
 }
 
-
-export interface RegisterForm{
-    name: string,
-    email: string,
-    password: string,
-    confirmPassword: string,
-   role:Role,
-}
-
-export interface LoginForm{
-    email: string,
-    password:string,
-}
-
-export interface ContactForm{
-  name: string,
-  email: string,
-  subject: string,
-  message:string,
+export interface RegisterForm {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  role: Role;
 }
 
 export interface SidebarLink {
@@ -37,36 +24,35 @@ export interface SidebarLink {
   icon: IconType;
 }
 
-export interface Class{
-  id: number,
-  name: string,
-  section: string,
-  students: number[],
-  subject: string,
-  teacherId: number,
-  teacherName: string,
-  time:string,
-  
+export interface Class {
+  id: number;
+  name: string;
+  section: string;
+  students: number[];
+  subject: string;
+  teacherId: number;
+  teacherName: string;
+  time: string;
 }
 
-export interface Assignment{
-  id: number,
-  title:string,
-  className: string,
-  description: string,
-  dueDate: string,
-  subject: string,
-  teacher: string,
-  teacherId: number,
-  submittedBy:number[],
+export interface Assignment {
+  id: number;
+  title: string;
+  className: string;
+  description: string;
+  dueDate: string;
+  subject: string;
+  teacher: string;
+  teacherId: number;
+  submittedBy: number[];
 }
 
-export interface Announcement{
-  id: number,
-  title: string,
-  message: string,
-  date: Date,
-  createdBy:string,
+export interface Announcement {
+  id: number;
+  title: string;
+  message: string;
+  date: Date;
+  createdBy: string;
 }
 
 export interface SchoolStore {
@@ -76,7 +62,7 @@ export interface SchoolStore {
   classes: Class[];
   announcements: Announcement[];
   assignments: Assignment[];
-  
+
   register: (user: User) => void;
   login: (user: User) => void;
   logout: () => void;
@@ -91,18 +77,13 @@ export interface SchoolStore {
   deleteAnnouncement: (id: number) => void;
 }
 
-export interface HomeProps{
-  title: string,
-  description: string,
-  icon: IconType,
-  gradient: string,
-  bg?: string,
-  iconColor?:string,
-}
-
-export interface HomeStatsProps {
-  students: User[];
-  teachers: User[];
-  totalClasses: number;
-  totalAssignments: number;
+export interface HomeProps {
+  label?: string;
+  value?: number;
+  title?: string;
+  description: string;
+  icon: IconType;
+  gradient?: string;
+  bg?: string;
+  iconColor?: string;
 }

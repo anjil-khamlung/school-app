@@ -13,7 +13,7 @@ const Cta = ({ isAuthenticated, dashboardPath }: CtaProps) => {
     <section className="relative overflow-hidden bg-linear-to-br from-teal-600 via-teal-600 to-emerald-600">
       <div className="absolute -left-20 -top-20 h-56 w-56 rounded-full bg-white/10 blur-3xl sm:h-72 sm:w-72" />
 
-      <div className="absolute -bottom-24 -right-20 h-72 w-72 rounded-full bg-emerald-300/20 blur-3xl sm:h-96 sm:w-96" />
+      <div className="absolute  h-72 w-72 rounded-full bg-emerald-300/20 blur-3xl sm:h-96 sm:w-96" />
 
       <div className="relative mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8 lg:py-24">
         {/* Badge */}
