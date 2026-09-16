@@ -4,25 +4,28 @@ import InputField from "../../components/inputs/InputField";
 import { useSchoolStore } from "../../store/useSchoolStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { supabase } from "../../lib/supabase";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { users, login } = useSchoolStore();
+  const {  login } = useSchoolStore();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const foundUser = users.find(
-      (user) =>
-        user.email === formData.email && user.password === formData.password,
-    );
+    const { data: foundUser, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", formData.email)
+      .eq("password", formData.password)
+      .single();
 
-    if (!foundUser) {
+    if (error || !foundUser) {
       toast.error("Invalid credentials");
       return;
     }

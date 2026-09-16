@@ -1,15 +1,22 @@
 import { FiUsers } from "react-icons/fi";
 import { useSchoolStore } from "../../store/useSchoolStore";
 import SearchInput from "../../components/inputs/SearchInput";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import UsersTable from "../../components/UsersTable";
+import { useUsers } from "../../store/useUsers";
 
 const Teachers = () => {
-    const { currentUser, users } = useSchoolStore()
+  const { currentUser, } = useSchoolStore()
+  const {users,getUsers}=useUsers()
 
     const [search,setSearch]=useState("")
     
-    const isAdmin = currentUser?.role === "admin"
+  const isAdmin = currentUser?.role === "admin"
+  
+  //fetching users
+  useEffect(() => {
+    getUsers()
+  },[getUsers])
 
     const teachers = users.filter((user) => user.role === "teacher")
 

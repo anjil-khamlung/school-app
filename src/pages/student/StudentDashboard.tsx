@@ -3,16 +3,29 @@ import DashboardCard from "../../components/cards/DashboardCard";
 import { useSchoolStore } from "../../store/useSchoolStore";
 import { useNavigate } from "react-router-dom";
 import DashboardList from "../../components/DashboardList";
+import { useClasses } from "../../store/useClasses";
+import { useAssignments } from "../../store/useAssignments";
+import { useEffect } from "react";
 
 const StudentDashboard = () => {
-  const navigate=useNavigate()
-  const { currentUser,  classes, assignments } = useSchoolStore()
-  if(!currentUser)return
+  const navigate = useNavigate();
+  const { currentUser } = useSchoolStore();
+  const { classes, getClasses } = useClasses();
+  const { assignments, getAssignments } = useAssignments();
 
-  const myClasses = classes.filter((item) => item.students.includes(currentUser.id))
-  
-  const recentAssignments=[...assignments].reverse().slice(0,5)
-  
+  useEffect(() => {
+    getClasses();
+    getAssignments();
+  }, [getClasses, getAssignments]);
+
+  if (!currentUser) return 
+
+  const myClasses = classes.filter((item) =>
+    item.students.includes(currentUser.id),
+  );
+
+  const recentAssignments = [...assignments].reverse().slice(0, 5);
+
   return (
     <div className="p-2 lg:p-4">
       {/* Header */}
@@ -75,6 +88,6 @@ const StudentDashboard = () => {
       </div>
     </div>
   );
-}
+};
 
-export default StudentDashboard
+export default StudentDashboard;

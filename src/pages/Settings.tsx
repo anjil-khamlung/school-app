@@ -3,13 +3,15 @@ import { FiUser, FiMail, FiSave } from "react-icons/fi";
 import { useSchoolStore } from "../store/useSchoolStore";
 import { toast } from "react-toastify";
 import type { User } from "../type/type";
+import { useUsers } from "../store/useUsers";
 
 const Settings = () => {
-  const {currentUser,updateUser}=useSchoolStore()
+  const { currentUser, updateUser } = useSchoolStore()
+  // const { updateUser }=useUsers()
 
   const [name, setName] = useState(currentUser?.name || "");
 
-  const handleSubmit = (e:React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async(e:React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!currentUser) return;
@@ -24,7 +26,11 @@ const Settings = () => {
       name: name.trim(),
     };
 
-    updateUser(updatedUser);
+    const success=await updateUser(updatedUser);
+     if(!success)
+     {
+       toast.error("Name update failed")
+     }
 
     toast.success("Name updated successfully");
   };

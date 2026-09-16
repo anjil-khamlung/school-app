@@ -1,10 +1,19 @@
 import { FiClipboard, FiUsers } from "react-icons/fi";
 import DashboardCard from "../../components/cards/DashboardCard";
 import ReportCard from "../../components/cards/ReportCard";
-import { useSchoolStore } from "../../store/useSchoolStore";
+import { useClasses } from "../../store/useClasses";
+import { useUsers } from "../../store/useUsers";
+import { useEffect } from "react";
 
 const Report = () => {
-  const { users, classes } = useSchoolStore();
+  const {  classes,getClasses } = useClasses();
+  const { users, getUsers } = useUsers()
+  
+    //fetching users
+    useEffect(() => {
+      getUsers()
+      getClasses()
+    },[getUsers,getClasses])
 
   const students = users.filter((user) => user.role === "student").length;
 

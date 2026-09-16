@@ -1,14 +1,14 @@
 import type { IconType } from "react-icons";
 import { FiArrowRight } from "react-icons/fi";
 
-interface DashboardCardProps{
-    title: string,
-    value: number,
-    icon: IconType,
-    iconStyle?: string,
-    textStyle?: string,
-    buttonText?:string,
-    onClick?:()=>void,
+interface DashboardCardProps {
+  title: string;
+  value: number;
+  icon: IconType;
+  iconStyle?: string;
+  textStyle?: string;
+  buttonText?: string;
+  onClick?: () => void;
 }
 
 const DashboardCard = ({
@@ -19,7 +19,7 @@ const DashboardCard = ({
   textStyle,
   onClick,
   buttonText,
-}:DashboardCardProps) => {
+}: DashboardCardProps) => {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
       <div className="flex items-center justify-between">

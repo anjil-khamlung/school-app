@@ -55,26 +55,45 @@ export interface Announcement {
   createdBy: string;
 }
 
+export interface ClassesStore {
+  classes: Class[];
+  getClasses: () => Promise<void>;
+  addClass: (newClass: Class) => Promise<boolean>;
+  deleteClass: (classId: number, teacherId: number) => Promise<boolean>;
+  joinClass: (studentId: number, classId: number) => Promise<boolean>;
+}
+
+export interface AssignmentsStore {
+  assignments: Assignment[];
+getAssignments: () => Promise<void>;
+  addAssignment: (newAssignment: Assignment) => Promise<boolean>;
+  deleteAssignment: (
+    assignmentId: number,
+    teacherId: number,
+  ) => Promise<boolean>;
+  submitAssignment: (assignmentId: number, studentId: number) => Promise<boolean>;
+}
+
+export interface AnnouncementsStore {
+  announcements: Announcement[];
+  getAnnouncements: () => Promise<void>
+  addAnnouncement: (announcement: Announcement) => Promise<boolean>;
+  deleteAnnouncement: (id: number) => Promise<boolean>;
+}
+
+export interface UsersStore{
+  users: User[],
+  getUsers:()=>Promise<void>
+  
+}
+
 export interface SchoolStore {
-  users: User[];
   currentUser: User | null;
   isAuthenticated: boolean;
-  classes: Class[];
-  announcements: Announcement[];
-  assignments: Assignment[];
-
-  register: (user: User) => void;
+  register: (user: User) => Promise<void>;
   login: (user: User) => void;
   logout: () => void;
-  updateUser: (updateUser: User) => void;
-  addClass: (newClass: Class) => void;
-  deleteClass: (classId: number, teacherId: number) => void;
-  joinClass: (studentId: number, classId: number) => void;
-  addAssignment: (newAssignment: Assignment) => void;
-  deleteAssignment: (assignmentId: number) => void;
-  submitAssignment: (assignmentId: number, studentId: number) => void;
-  addAnnouncement: (announcement: Announcement) => void;
-  deleteAnnouncement: (id: number) => void;
+  updateUser: (updateUser: User) => Promise<boolean>;
 }
 
 export interface HomeProps {

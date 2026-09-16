@@ -176,6 +176,7 @@ const NavBar = () => {
                   <div className="w-10 rounded-full bg-slate-200 text-slate-600">
                     <span className="text-2xl">
                       {currentUser?.name.charAt(0).toUpperCase()}
+                      
                     </span>
                   </div>
                 </MenuButton>

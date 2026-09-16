@@ -3,15 +3,30 @@ import DashboardCard from "../../components/cards/DashboardCard";
 import { useSchoolStore } from "../../store/useSchoolStore";
 import { useNavigate } from "react-router-dom";
 import DashboardList from "../../components/DashboardList";
+import { useClasses } from "../../store/useClasses";
+import { useAssignments } from "../../store/useAssignments";
+import { useUsers } from "../../store/useUsers";
+import { useEffect } from "react";
 
 const TeacherDashboard = () => {
-  const {currentUser,users,classes,assignments}=useSchoolStore()
-  const navigate = useNavigate()
-  
-  const students = users.filter((user) => user.role === "student")
-  
-  const myClasses = classes.filter((item)=>item.teacherId===currentUser?.id)
- 
+  const { currentUser } = useSchoolStore();
+  const { classes, getClasses } = useClasses();
+  const { assignments, getAssignments } = useAssignments();
+  const { users, getUsers } = useUsers();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    getClasses();
+    getAssignments();
+    getUsers();
+  }, [getClasses, getAssignments, getUsers]);
+
+  const students = users.filter((user) => user.role === "student");
+
+  const myClasses = classes.filter(
+    (item) => item.teacherId === currentUser?.id,
+  );
+
   return (
     <div className="p-2 lg:p-4">
       {/* Header */}
@@ -109,6 +124,6 @@ const TeacherDashboard = () => {
       </div>
     </div>
   );
-}
+};
 
-export default TeacherDashboard
+export default TeacherDashboard;

@@ -3,12 +3,19 @@ import InputField from "../../components/inputs/InputField";
 import TextArea from "../../components/inputs/TextArea";
 import ConfirmModal from "../../components/ConfirmModal";
 import { useSchoolStore } from "../../store/useSchoolStore";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import type { Announcement } from "../../type/type";
+import { useAnnouncements } from "../../store/useAnnouncements";
 
-const Announcement = () => {
-  const { currentUser, announcements, addAnnouncement, deleteAnnouncement } =
-    useSchoolStore();
+const Announcements = () => {
+  const { currentUser, } = useSchoolStore();
+  const {
+    announcements,
+    getAnnouncements,
+    addAnnouncement,
+    deleteAnnouncement,
+  }=useAnnouncements()
 
   const [showForm, setShowForm] = useState(false);
   const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<
@@ -22,19 +29,27 @@ const Announcement = () => {
     message: "",
   });
 
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!formData.title.trim() || !formData.message.trim()) {
       return;
     }
-    addAnnouncement({
+
+    const newAnnouncement: Announcement = {
       id: Date.now(),
       title: formData.title,
       message: formData.message,
       createdBy: currentUser!.name,
       date: new Date(),
-    });
+    };
+
+    const success = await addAnnouncement(newAnnouncement);
+
+    if (!success) {
+      toast.error("Failed to add announcement");
+      return;
+    }
 
     setFormData({
       title: "",
@@ -42,18 +57,28 @@ const Announcement = () => {
     });
 
     setShowForm(false);
+
     toast.success("Announcement created successfully");
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!selectedAnnouncementId) return;
 
-    deleteAnnouncement(selectedAnnouncementId);
+    const success = await deleteAnnouncement(selectedAnnouncementId);
 
+    if (!success) {
+      toast.error("Failed to delete Announcement");
+      return;
+    }
     setSelectedAnnouncementId(null);
-
+ 
     toast.success("Announcement deleted successfully");
   };
+
+  //fetch announcements
+    useEffect(() => {
+      getAnnouncements();
+    }, [getAnnouncements]);
 
   return (
     <div className="mx-auto w-full max-w-7xl p-2 lg:p-4">
@@ -233,4 +258,4 @@ const Announcement = () => {
   );
 };
 
-export default Announcement;
+export default Announcements;

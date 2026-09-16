@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSchoolStore } from "../../store/useSchoolStore";
 import { FiBookOpen, FiPlus, FiX } from "react-icons/fi";
 import InputField from "../../components/inputs/InputField";
@@ -7,21 +7,25 @@ import type { Class } from "../../type/type";
 import SearchInput from "../../components/inputs/SearchInput";
 import ClassCard from "../../components/cards/ClassCard";
 import ConfirmModal from "../../components/ConfirmModal";
+import { useClasses } from "../../store/useClasses";
 
 const Classes = () => {
-  const { currentUser, classes, addClass, joinClass, deleteClass } =
-    useSchoolStore();
+  const { currentUser } = useSchoolStore();
+  const {classes,getClasses, addClass, joinClass, deleteClass } = useClasses();
+
+  // const [classes, setClasses] = useState<Class[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
-  const [formData, setFormData] = useState({
+  const initial = {
     name: "",
     section: "",
     subject: "",
     time: "",
-  });
+  };
+  const [formData, setFormData] = useState(initial);
 
-    if (!currentUser) return;
+  if (!currentUser) return;
 
   const isAdmin = currentUser?.role === "admin";
   const isTeacher = currentUser?.role === "teacher";
@@ -59,9 +63,8 @@ const Classes = () => {
   });
 
   // create class
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-
 
     if (!formData.name || !formData.section || !formData.subject) {
       toast.warning("Please fill all fields");
@@ -79,10 +82,19 @@ const Classes = () => {
       teacherName: currentUser.name,
     };
 
-    addClass(newClass);
+    const success = await addClass(newClass);
 
+    if (!success) {
+      toast.error("Failed to create a class");
+      return;
+    }
+    toast.success("Class created successfully");
+
+    setFormData(initial);
     setSearch("");
+
     setShowForm(false);
+    // setClasses((prev) => [...prev, newClass]);
   };
 
   // Delete class
@@ -91,10 +103,18 @@ const Classes = () => {
     setSelectedClassId(classId);
   };
 
-  const handleConfirmDelete = () => {
-    if (!selectedClassId || !currentUser) return;
+  const handleConfirmDelete = async () => {
+    if (selectedClassId === null || !currentUser) return;
 
-    deleteClass(selectedClassId, currentUser.id);
+    const success = await deleteClass(selectedClassId, currentUser.id);
+
+    if (!success) {
+      toast.error("Failed to delete class");
+      return;
+    }
+
+    // Remove it from the UI immediately
+    // setClasses((prev) => prev.filter((item) => item.id !== selectedClassId));
 
     setSelectedClassId(null);
 
@@ -103,11 +123,36 @@ const Classes = () => {
 
   // Join class
 
-  const handleJoinClass = (classId: number) => {
+  const handleJoinClass = async (classId: number) => {
     if (!currentUser?.id) return;
 
-    joinClass(currentUser.id, classId);
+    const success = await joinClass(currentUser.id, classId);
+
+    if (!success) {
+      toast.error("Failed to join class");
+      return;
+    }
+
+    toast.success("Class joined successfully");
   };
+
+  useEffect(() => {
+    getClasses();
+  }, [getClasses]);
+
+  //fetching data
+  // useEffect(() => {
+  //   const getClasses = async () => {
+  //     const { data, error } = await supabase.from("classes").select("*");
+
+  //     if (error) {
+  //       console.log("error=", error);
+  //       return;
+  //     }
+  //     setClasses(data);
+  //   };
+  //   getClasses();
+  // }, []);
 
   return (
     <div className="mx-auto w-full max-w-7xl p-2 lg:p-4">
@@ -283,6 +328,6 @@ const Classes = () => {
       )}
     </div>
   );
-};;
+};
 
 export default Classes;

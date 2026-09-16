@@ -22,7 +22,7 @@ const ErrorPage = () => {
           to="/"
           className="mt-8 inline-block rounded-lg bg-black px-6 py-3 font-medium text-white transition hover:bg-gray-800"
         >
-          Back to Home
+          Back to Home 
         </NavLink>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSchoolStore } from "../../store/useSchoolStore";
 import { FiCalendar, FiFileText, FiPlus, FiX } from "react-icons/fi";
 import InputField from "../../components/inputs/InputField";
@@ -9,16 +9,17 @@ import AssignmentCard from "../../components/cards/AssignmentsCard";
 import ConfirmModal from "../../components/ConfirmModal";
 import { toast } from "react-toastify";
 import type { Assignment } from "../../type/type";
+import { useAssignments } from "../../store/useAssignments";
 
 const Assignments = () => {
+  const { currentUser } = useSchoolStore();
   const {
-    currentUser,
     assignments,
+    getAssignments,
     addAssignment,
     deleteAssignment,
     submitAssignment,
-  } = useSchoolStore();
-
+  } = useAssignments();
   if (!currentUser) return null;
 
   const isAdmin = currentUser?.role === "admin";
@@ -30,14 +31,19 @@ const Assignments = () => {
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<
     null | number
   >(null);
-
-  const [formData, setFormData] = useState({
+  const initial = {
     title: "",
     className: "",
     description: "",
     dueDate: "",
     subject: "",
-  });
+  };
+  const [formData, setFormData] = useState(initial);
+
+  //fetching assignemnts
+  useEffect(() => {
+    getAssignments();
+  }, [getAssignments]);
 
   const teacherAssignments = assignments.filter(
     (assignments) => assignments.teacherId === currentUser.id,
@@ -59,7 +65,9 @@ const Assignments = () => {
   });
 
   // create assignment
-  const handleCreateAssignment = (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleCreateAssignment = async (
+    e: React.SubmitEvent<HTMLFormElement>,
+  ) => {
     e.preventDefault();
 
     if (
@@ -85,11 +93,16 @@ const Assignments = () => {
       submittedBy: [],
     };
 
-    addAssignment(newAssignment);
+    const success = await addAssignment(newAssignment);
+
+    if (!success) {
+      toast.error("Failed to create assignments");
+      return;
+    }
     toast.success("Assignments created successfully");
 
     setSearch("");
-
+    setFormData(initial);
     setShowForm(false);
   };
 
@@ -97,19 +110,34 @@ const Assignments = () => {
     setSelectedAssignmentId(assignment.id);
   };
 
-  const confirmDelete = () => {
-    if (selectedAssignmentId === null) return;
+  //delete assignment
+  const confirmDelete = async () => {
+    if (selectedAssignmentId === null || !currentUser) return;
 
-    deleteAssignment(selectedAssignmentId);
+    const success = await deleteAssignment(
+      selectedAssignmentId,
+      currentUser.id,
+    );
+
+    if (!success) {
+      toast.error("Failed to create Assignment");
+      return;
+    }
+
     setSelectedAssignmentId(null);
 
     toast.success("Assignment deleted successfully");
   };
 
   // submit assignment
-  const handleSubmit = (assignmentId: number) => {
+  const handleSubmit = async(assignmentId: number) => {
     if (!isStudent) return;
-    submitAssignment(assignmentId, currentUser.id);
+   const success= await submitAssignment(assignmentId, currentUser.id);
+   if(!success)
+   {
+     toast.error("Failed to submit Assignment")
+   }
+    toast.success("Assignments submitted successfully")
   };
 
   // check whether student submitted
@@ -117,10 +145,12 @@ const Assignments = () => {
     return assignment.submittedBy?.includes(currentUser.id);
   };
 
-  //   Student submitted count
-  const submittedCount = assignments.filter((assignment) => {
-    assignment.submittedBy?.includes(currentUser.id);
-  }).length;
+
+  //   Student assignments submitted count
+  const submittedCount = assignments.filter((assignment) => 
+    assignment.submittedBy?.includes(currentUser.id)
+  ).length;
+
 
   return (
     <div className="mx-auto w-full max-w-7xl p-2 lg:p-4">
@@ -328,6 +358,6 @@ const Assignments = () => {
       />
     </div>
   );
-};
+};;
 
 export default Assignments;

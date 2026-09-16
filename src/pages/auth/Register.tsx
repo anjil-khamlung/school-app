@@ -16,15 +16,16 @@ import {
   ListboxOption,
   ListboxOptions,
 } from "@headlessui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { RegisterForm, User } from "../../type/type";
 import { useSchoolStore } from "../../store/useSchoolStore";
 import { toast } from "react-toastify";
+import { useUsers } from "../../store/useUsers";
 
 const Register = () => {
   const navigate = useNavigate();
-  const users = useSchoolStore((state) => state.users);
-  const register = useSchoolStore((state) => state.register);
+const {register}=useSchoolStore()
+const{users,getUsers}=useUsers()
   const [formData, setFormData] = useState<RegisterForm>({
     name: "",
     email: "",
@@ -36,8 +37,12 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  //Fetching users
+  useEffect(() => {
+    getUsers()
+  },[getUsers])
 
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit =async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
       toast.error("Passwords do not match");
@@ -59,7 +64,7 @@ const Register = () => {
       role: formData.role,
     };
 
-    register(user);
+   await register(user);
     toast.success("register successfull");
     navigate("/login");
   };
@@ -299,7 +304,8 @@ const Register = () => {
             <div className="flex items-start gap-2 pt-1">
               <input
                 type="checkbox"
-                className="mt-0.5 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                required
+                className=" mt-0.5 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
               />
 
               <p className="text-xs leading-5 text-slate-500">

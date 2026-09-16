@@ -12,13 +12,13 @@ import TeacherDashboard from "../pages/teacher/TeacherDashboard";
 import StudentDashboard from "../pages/student/StudentDashboard";
 import Settings from "../pages/Settings";
 import Report from "../pages/admin/Report";
-import Announcement from "../pages/admin/Announcement";
 import Teachers from "../pages/admin/Teachers";
 import Students from "../pages/Students";
 import Classes from "../pages/teacher/Classes";
 import Assignments from "../pages/teacher/Assignments";
 import About from "../pages/About";
 import Contact from "../pages/Contact";
+import Announcements from "../pages/admin/Announcements";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -67,7 +67,7 @@ const router = createBrowserRouter([
               },
               {
                 path: "announcements",
-                element: <Announcement />,
+                element: <Announcements />,
               },
               {
                 path: "reports",
@@ -107,7 +107,7 @@ const router = createBrowserRouter([
               },
               {
                 path: "announcements",
-                element: <Announcement />,
+                element: <Announcements />,
               },
               {
                 path: "settings",
@@ -151,7 +151,7 @@ const router = createBrowserRouter([
               },
               {
                 path: "announcements",
-                element: <Announcement />,
+                element: <Announcements />,
               },
               {
                 path: "classes",

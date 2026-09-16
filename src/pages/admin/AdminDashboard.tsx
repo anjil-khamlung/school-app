@@ -3,10 +3,27 @@ import DashboardCard from "../../components/cards/DashboardCard";
 import { useSchoolStore } from "../../store/useSchoolStore";
 import { useNavigate } from "react-router-dom";
 import DashboardList from "../../components/DashboardList";
+import { useUsers } from "../../store/useUsers";
+import { useClasses } from "../../store/useClasses";
+import { useAssignments } from "../../store/useAssignments";
+import { useEffect } from "react";
 
 const AdminDashboard = () => {
   const navigate=useNavigate()
-  const { currentUser,users, classes, assignments } = useSchoolStore()
+  const { currentUser, } = useSchoolStore()
+    const {users,getUsers}=useUsers()
+    const {classes,getClasses}=useClasses()
+  const { assignments, getAssignments } = useAssignments()
+  
+   useEffect(
+     () => {
+       getUsers();
+       getClasses();
+       getAssignments();
+     },
+     [getUsers, getAssignments,getClasses],
+     
+   );
   
   const students = users.filter((user) => 
   user.role==="student"
@@ -78,6 +95,7 @@ const AdminDashboard = () => {
           onClick={() => navigate("/admin/assignments")}
         />
       </div>
+      
 
       {/* Recently Registered Users */}
       <DashboardList

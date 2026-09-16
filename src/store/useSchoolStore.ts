@@ -1,35 +1,33 @@
 import { create } from "zustand";
-import type { SchoolStore, User } from "../type/type";
+import type { SchoolStore } from "../type/type";
 import { persist } from "zustand/middleware";
-
-const initialUsers: User[] = [
-  {
-    id: 1,
-    name: "Admin",
-    email: "admin@gmail.com",
-    password: "admin123",
-    role: "admin",
-  },
-];
+import { supabase } from "../lib/supabase";
 
 export const useSchoolStore = create<SchoolStore>()(
   persist(
     (set) => ({
-      users: initialUsers,
       currentUser: null,
       isAuthenticated: false,
-      classes: [],
-      assignments: [],
-      announcements: [],
 
-      register: (user) =>
-        set((state) => ({
-          users: [...state.users, user],
-        })),
+      register: async (user) => {
+        const { error } = await supabase.from("users").insert({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          password: user.password,
+          role: user.role,
+        });
+
+        if (error) {
+          console.log(error);
+          return;
+        }
+      },
 
       login: (user) =>
         set(() => ({
           currentUser: user,
+          // need refactor
           isAuthenticated: true,
         })),
 
@@ -39,86 +37,222 @@ export const useSchoolStore = create<SchoolStore>()(
           isAuthenticated: false,
         })),
 
-      updateUser: (updateUser) =>
-        set((state) => ({
-          currentUser: updateUser,
-          users: state.users.map((user) =>
-            user.id === updateUser.id ? updateUser : user,
-          ),
-        })),
+      updateUser: async (updateUser) => {
+        const { error } = await supabase
+          .from("users")
+          .update({
+            name: updateUser.name,
+          })
+          .eq("id", updateUser.id);
 
-      addClass: (newClass) =>
-        set((state) => ({
-          classes: [...state.classes, newClass],
-        })),
-      deleteClass: (classId, teacherId) =>
-        set((state) => ({
-          classes: state.classes.filter(
-            (classItem) =>
-              !(classItem.id === classId && classItem.teacherId === teacherId),
-          ),
-        })),
+        if (error) {
+          console.log("error=", error);
+          return false;
+        }
 
-      joinClass: (studentId, classId) =>
-        set((state) => ({
-          classes: state.classes.map((item) => {
-            if (item.id !== classId) {
-              return item;
-            }
+        set({ currentUser: updateUser });
+        return true;
+      },
 
-            const students = item.students || [];
+      // updateUser: async (updateUser) =>
+      // {
+      //   const { error } = await supabase.from("users").update({
+      //     name:updateUser.name
+      //   }).eq("id", updateUser.id)
 
-            if (students.includes(studentId)) {
-              return item;
-            }
+      //   if(error)
+      //   {
+      //     console.log("error=",error)
+      //     return false
+      //   }
 
-            return {
-              ...item,
-              students: [...students, studentId],
-            };
-          }),
-        })),
+      //   return true
+      //   // set((state) => ({
+      //   //   currentUser: updateUser,
+      //   //   users: state.users.map((user) =>
+      //   //     user.id === updateUser.id ? updateUser : user,
+      //   //   ),
+      //   // })),
+      // },
 
-      addAssignment: (newAssignment) =>
-        set((state) => ({
-          assignments: [...state.assignments, newAssignment],
-        })),
-      deleteAssignment: (assignmentId) =>
-        set((state) => ({
-          assignments: state.assignments.filter(
-            (assignment) => assignment.id !== assignmentId,
-          ),
-        })),
+      // addClass: async (newClass) => {
+      //   const { error } = await supabase.from("classes").insert({
+      //     id: newClass.id,
+      //     name: newClass.name,
+      //     section: newClass.section,
+      //     students: newClass.students,
+      //     subject: newClass.subject,
+      //     teacherId: newClass.teacherId,
+      //     teacherName: newClass.teacherName,
+      //     time: newClass.time,
+      //   });
 
-      submitAssignment: (assignmentId, studentId) =>
-        set((state) => ({
-          assignments: state.assignments.map((assignment) => {
-            if (assignment.id !== assignmentId) {
-              return assignment;
-            }
+      //   if (error) {
+      //     console.log("error=", error);
+      //     return false;
+      //   }
+      //    await useSchoolStore.getState().
+      //   return true;
 
-            const submittedBy = assignment.submittedBy || [];
+      //   // set((state) => ({
+      //   //   classes: [...state.classes, newClass],
+      //   // }))
 
-            if (submittedBy.includes(studentId)) {
-              return assignment;
-            }
+      // },
 
-            return {
-              ...assignment,
-              submittedBy: [...submittedBy, studentId],
-            };
-          }),
-        })),
+      // deleteClass: async (classId, teacherId) => {
+      //   const { error } = await supabase
+      //     .from("classes")
+      //     .delete()
+      //     .eq("id", classId)
+      //     // .eq("teacherId", teacherId);
 
-      addAnnouncement: (announcement) =>
-        set((state) => ({
-          announcements: [announcement, ...state.announcements],
-        })),
+      //   if (error) {
+      //     console.log("error=", error);
+      //     return false;
+      //   }
+      //   return true;
+      //   // set((state) => ({
+      //   //   classes: state.classes.filter(
+      //   //     (classItem) =>
+      //   //       !(classItem.id === classId && classItem.teacherId === teacherId),
+      //   //   ),
+      //   // })),
+      // },
 
-      deleteAnnouncement: (id) =>
-        set((state) => ({
-          announcements: state.announcements.filter((item) => item.id !== id),
-        })),
+      // joinClass: async(studentId, classId) =>
+
+      // {
+      //     const { error } = await supabase
+      //       .from("classes")
+      //       .update({
+      //         students: [studentId],
+      //       })
+      //     .eq("id", classId);
+
+      //   if (error) {
+      //     console.log("error=",error)
+      //     return false
+      //   }
+
+      //   return true
+      //   // set((state) => ({
+      //   //   classes: state.classes.map((item) => {
+      //   //     if (item.id !== classId) {
+      //   //       return item;
+      //   //     }
+
+      //   //     const students = item.students || [];
+
+      //   //     if (students.includes(studentId)) {
+      //   //       return item;
+      //   //     }
+
+      //   //     return {
+      //   //       ...item,
+      //   //       students: [...students, studentId],
+      //   //     };
+      //   //   }),
+      //   // })),
+      // },
+
+      // addAssignment: async (newAssignment) => {
+      //   const { error } = await supabase.from("assignments").insert({
+      //     id: newAssignment.id,
+      //     title: newAssignment.title,
+      //     className: newAssignment.className,
+      //     description: newAssignment.description,
+      //     dueDate: newAssignment.dueDate,
+      //     subject: newAssignment.subject,
+      //     teacher: newAssignment.teacher,
+      //     teacherId: newAssignment.teacherId,
+      //     submittedBy: newAssignment.submittedBy,
+      //   })
+
+      //   if (error) {
+      //     console.log("error=", error);
+      //     return false;
+      //   }
+
+      //   return true;
+
+      //   //   set((state) => ({
+      //   //     assignments: [...state.assignments, newAssignment],
+      //   //   })),
+      // },
+
+      // deleteAssignment: async(assignmentId,teacherId) =>
+      // {
+      //   const { error } = await supabase.from("assignments").delete().eq("id", assignmentId).eq("teacherId", teacherId)
+
+      //   if (error) {
+      //     console.log("error=",error)
+      //     return false
+      //   }
+
+      //   return true
+      //   // set((state) => ({
+      //   //   assignments: state.assignments.filter(
+      //   //     (assignment) => assignment.id !== assignmentId,
+      //   //   ),
+      //   // })),
+      // },
+
+      // submitAssignment: (assignmentId, studentId) =>
+      //   set((state) => ({
+      //     assignments: state.assignments.map((assignment) => {
+      //       if (assignment.id !== assignmentId) {
+      //         return assignment;
+      //       }
+
+      //       const submittedBy = assignment.submittedBy || [];
+
+      //       if (submittedBy.includes(studentId)) {
+      //         return assignment;
+      //       }
+
+      //       return {
+      //         ...assignment,
+      //         submittedBy: [...submittedBy, studentId],
+      //       };
+      //     }),
+      //   })),
+
+      //       addAnnouncement: async(announcement) =>
+      //       {
+      //         const { error } = await supabase.from("announcement").insert({
+      //           id:announcement.id,
+      //           title:announcement.title,
+      //           message:announcement.message,
+      //           date:announcement.date,
+      //           createdBy:announcement.createdBy,
+      //         })
+
+      //         if (error) {
+      //           console.log("error=",error)
+      //           return false
+      //         }
+
+      //         return true
+      //         // set((state) => ({
+      //         //   announcements: [announcement, ...state.announcements],
+      //         // })),
+      //       },
+
+      //       deleteAnnouncement: async(id) =>
+      //       {
+      // const {error}=await supabase.from("announcement").delete().eq("id",id)
+
+      //         if (error) {
+      //           console.log("error=",error)
+      //           return false
+      //         }
+
+      //         return true
+      //         // set((state) => ({
+      //         //   announcements: state.announcements.filter((item) => item.id !== id),
+      //         // })),
+      //       }
     }),
     {
       name: "school-store-2",

@@ -5,10 +5,24 @@ import Stats from "../components/home/Stats";
 import Features from "../components/home/Features";
 import Roles from "../components/home/Roles";
 import Cta from "../components/home/Cta";
+import { useUsers } from "../store/useUsers";
+import { useClasses } from "../store/useClasses";
+import { useAssignments } from "../store/useAssignments";
+import { useEffect } from "react";
 
 const Home = () => {
-  const {currentUser,users,isAuthenticated,classes,assignments}=useSchoolStore()
+  const {currentUser,isAuthenticated,}=useSchoolStore()
   
+  const{users,getUsers}=useUsers()
+  const{classes,getClasses}=useClasses()
+  const { assignments, getAssignments } = useAssignments()
+  
+  //Fetch users, classes , assignments
+  useEffect(() => {
+    getUsers()
+    getClasses()
+    getAssignments()
+  },[getUsers,getClasses,getAssignments])
 
   const students = users.filter((item) => item.role === "student").length;
 
