@@ -7,25 +7,21 @@ import {
   FiLock,
   FiEye,
   FiEyeOff,
-  FiCheck,
-  FiChevronDown,
+
 } from "react-icons/fi";
-import {
-  Listbox,
-  ListboxButton,
-  ListboxOption,
-  ListboxOptions,
-} from "@headlessui/react";
+
 import { useEffect, useState } from "react";
 import type { RegisterForm, User } from "../../type/type";
 import { useSchoolStore } from "../../store/useSchoolStore";
 import { toast } from "react-toastify";
 import { useUsers } from "../../store/useUsers";
+import SelectField from "../../components/inputs/SelectField";
 
 const Register = () => {
   const navigate = useNavigate();
 const {register}=useSchoolStore()
-const{users,getUsers}=useUsers()
+  const { users, getUsers } = useUsers()
+  const [loading,setLoading]=useState(false)
   const [formData, setFormData] = useState<RegisterForm>({
     name: "",
     email: "",
@@ -36,7 +32,7 @@ const{users,getUsers}=useUsers()
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
+const roles = ["student", "teacher",];
   //Fetching users
   useEffect(() => {
     getUsers()
@@ -64,9 +60,15 @@ const{users,getUsers}=useUsers()
       role: formData.role,
     };
 
-   await register(user);
-    toast.success("register successfull");
-    navigate("/login");
+    setLoading(true)
+    try {
+  
+      await register(user);
+       toast.success("register successfull");
+       navigate("/login");
+    } finally {
+      setLoading(false)
+}
   };
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#071c1a] px-4 py-8">
@@ -151,10 +153,10 @@ const{users,getUsers}=useUsers()
               <FiBookOpen size={22} />
             </div>
 
-            {/* <span className="text-xl font-bold text-slate-900">
+            <span className="text-xl font-bold text-slate-900">
               School<span className="text-teal-600">Management</span>
               <span className="text-orange-400">System</span>
-            </span> */}
+            </span>
           </div>
 
           {/* Heading */}
@@ -198,58 +200,17 @@ const{users,getUsers}=useUsers()
             />
 
             {/* Role */}
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Account type
-              </label>
-
-              <Listbox
-                value={formData.role}
-                onChange={(value) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    role: value,
-                  }))
-                }
-              >
-                <div className="relative">
-                  <ListboxButton className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-left text-sm font-medium text-slate-900 outline-none transition hover:border-slate-300 focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10">
-                    <span className="capitalize">{formData.role}</span>
-
-                    <FiChevronDown className="text-slate-400" size={18} />
-                  </ListboxButton>
-
-                  <ListboxOptions
-                    anchor="bottom"
-                    className="z-50 mt-2 w-(--button-width) rounded-xl border border-slate-200 bg-white p-1 shadow-xl outline-none"
-                  >
-                    <ListboxOption
-                      value="student"
-                      className="group flex cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 text-sm text-slate-700 data-focus:bg-teal-50 data-focus:text-teal-700"
-                    >
-                      <span>Student</span>
-
-                      <FiCheck
-                        size={17}
-                        className="invisible text-teal-600 group-data-selected:visible"
-                      />
-                    </ListboxOption>
-
-                    <ListboxOption
-                      value="teacher"
-                      className="group flex cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 text-sm text-slate-700 data-focus:bg-teal-50 data-focus:text-teal-700"
-                    >
-                      <span>Teacher</span>
-
-                      <FiCheck
-                        size={17}
-                        className="invisible text-teal-600 group-data-selected:visible"
-                      />
-                    </ListboxOption>
-                  </ListboxOptions>
-                </div>
-              </Listbox>
-            </div>
+            <SelectField
+              label="Account type"
+              value={formData.role}
+              options={roles}
+              onChange={(value) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  role: value as "student" | "teacher",
+                }))
+              }
+            />
 
             {/* Password */}
             <div className="relative">
@@ -323,8 +284,12 @@ const{users,getUsers}=useUsers()
             {/* Register button */}
             <button
               type="submit"
-              className="w-full cursor-pointer rounded-xl bg-linear-to-r from-teal-600 to-emerald-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-teal-600/20 transition duration-200 hover:-translate-y-0.5 hover:from-teal-700 hover:to-emerald-700 hover:shadow-xl"
+              disabled={loading}
+              className="flex justify-center w-full cursor-pointer rounded-xl bg-linear-to-r from-teal-600 to-emerald-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-teal-600/20 transition duration-200 hover:-translate-y-0.5 hover:from-teal-700 hover:to-emerald-700 hover:shadow-xl"
             >
+              {loading && (
+                <span className="loading loading-spinner text-success pr-10"></span>
+              )}
               Create Account
             </button>
           </form>

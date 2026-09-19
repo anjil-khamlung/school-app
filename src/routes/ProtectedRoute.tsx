@@ -13,7 +13,7 @@ const ProtectedRoute = ({ role }: ProtectedRouteProps) => {
   if (!isAuthenticated || !currentUser) {
     return <Navigate to="/login" replace />;
   }
-  if (role && !role.includes(currentUser.role)) {
+  if ( !role.includes(currentUser.role)) {
     if (currentUser.role === "admin") {
       return <Navigate to="/admin" replace />;
     }

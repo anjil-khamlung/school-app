@@ -8,7 +8,8 @@ import { supabase } from "../../lib/supabase";
 
 const Login = () => {
   const navigate = useNavigate();
-  const {  login } = useSchoolStore();
+  const { login } = useSchoolStore();
+  const[loading,setLoading]=useState(false)
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -18,27 +19,35 @@ const Login = () => {
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const { data: foundUser, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("email", formData.email)
-      .eq("password", formData.password)
-      .single();
+    setLoading(true)
 
-    if (error || !foundUser) {
-      toast.error("Invalid credentials");
-      return;
+    try {
+        const { data: foundUser, error } = await supabase
+          .from("users")
+          .select("*")
+          .eq("email", formData.email)
+          .eq("password", formData.password)
+          .single();
+
+        if (error || !foundUser) {
+          toast.error("Invalid credentials");
+          return;
+        }
+        toast.success("login successfull");
+        login(foundUser);
+
+        navigate(
+          foundUser.role === "admin"
+            ? "/admin"
+            : foundUser.role === "teacher"
+              ? "/teacher"
+              : "/student",
+        );
+    } finally {
+      setLoading(false)
     }
-    toast.success("login successfull");
-    login(foundUser);
-
-    navigate(
-      foundUser.role === "admin"
-        ? "/admin"
-        : foundUser.role === "teacher"
-          ? "/teacher"
-          : "/student",
-    );
+    
+  
   };
   return (
     <div className="relative flex h-[calc(100vh-4rem)] items-center justify-center overflow-hidden bg-[#071c1a] px-4">
@@ -179,10 +188,15 @@ const Login = () => {
             </div>
 
             {/* Submit */}
+
             <button
               type="submit"
-              className="w-full cursor-pointer rounded-xl bg-linear-to-r from-teal-600 to-emerald-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-teal-600/20 transition duration-200 hover:-translate-y-0.5 hover:from-teal-700 hover:to-emerald-700 hover:shadow-xl"
+              disabled={loading}
+              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-linear-to-r from-teal-600 to-emerald-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-teal-600/20 transition duration-200 hover:-translate-y-0.5 hover:from-teal-700 hover:to-emerald-700 hover:shadow-xl"
             >
+              {loading && (
+                <span className="loading loading-spinner loading-sm pr-10"></span>
+              )}
               Sign In
             </button>
           </form>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSchoolStore } from "../../store/useSchoolStore";
-import { FiBookOpen, FiPlus, FiX } from "react-icons/fi";
+import { FiBookOpen, FiEdit2, FiPlus, FiX } from "react-icons/fi";
 import InputField from "../../components/inputs/InputField";
 import { toast } from "react-toastify";
 import type { Class } from "../../type/type";
@@ -8,20 +8,22 @@ import SearchInput from "../../components/inputs/SearchInput";
 import ClassCard from "../../components/cards/ClassCard";
 import ConfirmModal from "../../components/ConfirmModal";
 import { useClasses } from "../../store/useClasses";
+import SelectField from "../../components/inputs/SelectField";
+import { className, section, time } from "../../data/classOptions";
 
 const Classes = () => {
   const { currentUser } = useSchoolStore();
-  const {classes,getClasses, addClass, joinClass, deleteClass } = useClasses();
+  const {classes,getClasses,updateClass, addClass, joinClass, deleteClass } = useClasses();
 
-  // const [classes, setClasses] = useState<Class[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
+  const [editingClassId, setEditingClassId] = useState<number | null>(null);
   const initial = {
-    name: "",
-    section: "",
+    className: "Class 10",
+    section: "Section A",
     subject: "",
-    time: "",
+    time: "10 AM to 11 AM",
   };
   const [formData, setFormData] = useState(initial);
 
@@ -31,8 +33,11 @@ const Classes = () => {
   const isTeacher = currentUser?.role === "teacher";
   const isStudent = currentUser?.role === "student";
 
-  // Classes visible to each role
+      useEffect(() => {
+        getClasses();
+      }, [getClasses]);
 
+  // Classes visible to each role
   let visibleClasses = classes;
 
   if (isTeacher) {
@@ -46,8 +51,12 @@ const Classes = () => {
   }
 
   // Search
-
   const filteredClasses = visibleClasses.filter((item) => {
+    // Hide the class currently being edited
+    if (editingClassId !== null && item.id === editingClassId) {
+      return false;
+    }
+
     const value = search.trim().toLowerCase();
 
     if (!value) {
@@ -55,7 +64,7 @@ const Classes = () => {
     }
 
     return (
-      item.name?.toLowerCase().includes(value) ||
+      item.className?.toLowerCase().includes(value) ||
       item.section?.toLowerCase().includes(value) ||
       item.subject?.toLowerCase().includes(value) ||
       item.teacherName?.toLowerCase().includes(value)
@@ -66,14 +75,37 @@ const Classes = () => {
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.section || !formData.subject) {
+    if (!formData.className || !formData.section || !formData.subject) {
       toast.warning("Please fill all fields");
       return;
     }
 
+    // EDIT
+    if (editingClassId !== null) {
+      const success = await updateClass(editingClassId, {
+        className: formData.className,
+        section: formData.section,
+        subject: formData.subject,
+        time: formData.time,
+      });
+
+      if (!success) {
+        toast.error("Failed to update class");
+        return;
+      }
+
+      toast.success("Class updated successfully");
+
+      setEditingClassId(null);
+      setFormData(initial);
+      setShowForm(false);
+      return;
+    }
+
+    // CREATE 
     const newClass: Class = {
       id: Date.now(),
-      name: formData.name,
+      className: formData.className,
       section: formData.section,
       subject: formData.subject,
       time: formData.time,
@@ -94,8 +126,25 @@ const Classes = () => {
     setSearch("");
 
     setShowForm(false);
-    // setClasses((prev) => [...prev, newClass]);
-  };
+  };;
+
+  //Edit class
+const handleEdit = (classId: number) => {
+  const selectedClass = classes.find((item) => item.id === classId);
+
+  if (!selectedClass) return;
+
+  setEditingClassId(classId);
+
+  setFormData({
+    className: selectedClass.className,
+    section: selectedClass.section,
+    subject: selectedClass.subject,
+    time: selectedClass.time,
+  });
+
+  setShowForm(true);
+};
 
   // Delete class
 
@@ -113,8 +162,6 @@ const Classes = () => {
       return;
     }
 
-    // Remove it from the UI immediately
-    // setClasses((prev) => prev.filter((item) => item.id !== selectedClassId));
 
     setSelectedClassId(null);
 
@@ -136,23 +183,22 @@ const Classes = () => {
     toast.success("Class joined successfully");
   };
 
-  useEffect(() => {
-    getClasses();
-  }, [getClasses]);
+  //Form toggle
+const handleFormToggle = () => {
+  if (showForm) {
+    // Cancel
+    setFormData(initial);
+    setEditingClassId(null);
+    setShowForm(false);
+  } else {
+    // Open create form
+    setFormData(initial);
+    setEditingClassId(null);
+    setShowForm(true);
+  }
+};
 
-  //fetching data
-  // useEffect(() => {
-  //   const getClasses = async () => {
-  //     const { data, error } = await supabase.from("classes").select("*");
 
-  //     if (error) {
-  //       console.log("error=", error);
-  //       return;
-  //     }
-  //     setClasses(data);
-  //   };
-  //   getClasses();
-  // }, []);
 
   return (
     <div className="mx-auto w-full max-w-7xl p-2 lg:p-4">
@@ -183,8 +229,8 @@ const Classes = () => {
         {/* Create / Cancel Class */}
         {isTeacher && (
           <button
-            onClick={() => setShowForm(!showForm)}
-            className={`flex w-fit cursor-pointer items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white transition ${
+            onClick={handleFormToggle}
+            className={`flex mt-auto w-fit cursor-pointer items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white transition ${
               showForm
                 ? "bg-red-500 hover:bg-red-600"
                 : "bg-teal-600 hover:bg-teal-700"
@@ -198,41 +244,47 @@ const Classes = () => {
             ) : (
               <>
                 <FiPlus size={18} />
-                Create Class
+                Create 
               </>
             )}
           </button>
         )}
       </div>
+
       {/* Create Class Form */}
       {isTeacher && showForm && (
         <form
           onSubmit={handleSubmit}
-          className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+          className="mt-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
         >
           <h2 className="text-lg font-bold text-slate-900">Create New Class</h2>
 
           <div className="mt-5 grid gap-5 sm:grid-cols-2">
             {/* Class Name */}
 
-            <InputField
-              label="ClassName"
-              type="text"
-              placeholder="e.g. CLass 10"
-              setFormData={setFormData}
-              value={formData.name}
-              name="name"
+            <SelectField
+              label="Class"
+              value={formData.className}
+              options={className}
+              onChange={(value) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  name: value,
+                }))
+              }
             />
 
             {/* Section */}
-
-            <InputField
+            <SelectField
               label="Section"
-              type="text"
-              placeholder="e.g. A"
-              setFormData={setFormData}
               value={formData.section}
-              name="section"
+              options={section}
+              onChange={(value) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  section: value,
+                }))
+              }
             />
 
             {/* Subject */}
@@ -247,14 +299,16 @@ const Classes = () => {
             />
 
             {/* Class Time */}
-
-            <InputField
+            <SelectField
               label="Time"
-              type="text"
-              placeholder="e.g. 10 AM to 11 AM"
-              setFormData={setFormData}
               value={formData.time}
-              name="time"
+              options={time}
+              onChange={(value) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  time: value,
+                }))
+              }
             />
           </div>
 
@@ -262,10 +316,23 @@ const Classes = () => {
           <div className="mt-6">
             <button
               type="submit"
-              className="flex cursor-pointer items-center gap-2 rounded-xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-700"
+              className={`flex  cursor-pointer items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white transition ${
+                editingClassId !== null
+                  ? "bg-orange-500 hover:bg-orange-600"
+                  : "bg-teal-600 hover:bg-teal-700"
+              }`}
             >
-              <FiPlus size={17} />
-              Create Class
+              {editingClassId !== null ? (
+                <>
+                  <FiEdit2 size={17} />
+                  Edit 
+                </>
+              ) : (
+                <>
+                  <FiPlus size={17} />
+                  Create 
+                </>
+              )}
             </button>
           </div>
         </form>
@@ -292,8 +359,7 @@ const Classes = () => {
       <ClassCard
         user={currentUser}
         filteredClasses={filteredClasses}
-        isStudent={isStudent}
-        isTeacher={isTeacher}
+        handleEdit={handleEdit}
         handleDelete={handleDelete}
         handleJoinClass={handleJoinClass}
       />

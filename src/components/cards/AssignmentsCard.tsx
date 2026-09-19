@@ -1,31 +1,33 @@
 import {
   FiCalendar,
   FiCheck,
+  FiEdit2,
   FiFileText,
   FiTrash2,
   FiUser,
 } from "react-icons/fi";
 import type { Assignment, User } from "../../type/type";
 
-interface AssignmentCardProps{
-  filteredAssignments: Assignment[],
-  isSubmitted: (assignment:Assignment)=>boolean,
-  isTeacher: boolean,
-  isStudent: boolean,
-  handleSubmit: (assignmentId: number) => void,
-  handleDelete: (assignment: Assignment) => void,
-  user?:User|null,
+interface AssignmentCardProps {
+  filteredAssignments: Assignment[];
+  isSubmitted: (assignment: Assignment) => boolean;
+  handleSubmit: (assignmentId: number) => void;
+  handleDelete: (assignment: number) => void;
+  handleEdit: (assignmentId: number) => void;
+  user?: User | null;
 }
 
 const AssignmentCard = ({
   filteredAssignments,
   isSubmitted,
-  isTeacher,
   handleDelete,
-  isStudent,
+  handleEdit,
   handleSubmit,
   user,
-}:AssignmentCardProps) => {
+}: AssignmentCardProps) => {
+  const isTeacher = user?.role === "teacher";
+  const isStudent = user?.role === "student";
+
   return (
     <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {filteredAssignments.map((assignment) => {
@@ -42,20 +44,6 @@ const AssignmentCard = ({
                 <FiFileText size={23} />
               </div>
 
-              {/* Teacher Delete */}
-              {isTeacher && assignment.teacherId === user?.id && (
-                <button
-                  type="button"
-                  popoverTarget="delete-modal"
-                  popoverTargetAction="show"
-                  onClick={() => handleDelete(assignment)}
-                  className="cursor-pointer rounded-lg p-2 text-red-500 transition hover:bg-red-50"
-                  title="Delete assignment"
-                >
-                  <FiTrash2 size={17} />
-                </button>
-              )}
-
               {/* Teacher Submission Count */}
               {isTeacher && (
                 <div className="rounded-xl bg-emerald-50 p-2">
@@ -71,7 +59,7 @@ const AssignmentCard = ({
             </div>
 
             {/* Title */}
-            <h2 className="mt-5 min-h-7 text-xl font-bold text-slate-900 line-clamp-1">
+            <h2 className="mt-5 min-h-7 line-clamp-1 text-xl font-bold text-slate-900">
               {assignment.title}
             </h2>
 
@@ -92,7 +80,7 @@ const AssignmentCard = ({
             </div>
 
             {/* Teacher */}
-            <div className="mt-3 flex min-h-5 items-center gap-2 text-sm text-slate-500">
+            <div className="mt-3 flex min-h-5 items-center gap-2 text-sm text-teal-500">
               <FiUser size={16} />
               <span>{assignment.teacher}</span>
             </div>
@@ -105,20 +93,44 @@ const AssignmentCard = ({
               </span>
             </div>
 
+            {/* Teacher Edit + Delete */}
+            {isTeacher && assignment.teacherId === user?.id && (
+              <div className="mt-5 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleEdit(assignment.id)}
+                  className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-600 transition hover:bg-orange-100"
+                >
+                  <FiEdit2 size={16} />
+                  Edit
+                </button>
+
+                <button
+                  type="button"
+                  popoverTarget="delete-modal"
+                  popoverTargetAction="show"
+                  onClick={() => handleDelete(assignment.id)}
+                  className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-100"
+                >
+                  <FiTrash2 size={16} />
+                  Delete
+                </button>
+              </div>
+            )}
+
             {/* Student Submit */}
             {isStudent && (
               <button
                 type="button"
                 onClick={() => handleSubmit(assignment.id)}
                 disabled={submitted}
-                className={`mt-5 cursor-pointer flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                className={`mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
                   submitted
                     ? "cursor-not-allowed bg-emerald-50 text-emerald-600"
                     : "bg-teal-600 text-white hover:bg-teal-700"
                 }`}
               >
                 <FiCheck size={17} />
-
                 {submitted ? "Submitted" : "Submit Assignment"}
               </button>
             )}

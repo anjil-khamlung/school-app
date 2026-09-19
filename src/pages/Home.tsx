@@ -52,6 +52,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-slate-50">
+   
       {/*  HERO */}
       <Hero
         dashboardPath={dashboardPath}

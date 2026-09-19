@@ -27,22 +27,22 @@ const UsersTable = ({ users, totalUsers }: UsersTableProps) => {
         <>
           {/* Desktop table */}
           <div className=" overflow-x-auto md:block">
-            <table className="w-full">
+            <table className="w-full table-fixed">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50">
-                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                  <th className=" pl-10 text-left py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
                     User
                   </th>
 
-                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                  <th className="pl-10 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
                     Email
                   </th>
 
-                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                  <th className="pl-10 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
                     Role
                   </th>
 
-                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                  <th className="pl-10 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
                     ID
                   </th>
                 </tr>
@@ -63,7 +63,6 @@ const UsersTable = ({ users, totalUsers }: UsersTableProps) => {
                             {user.name}
                           </p>
 
-                          <p className="text-xs text-slate-400">User</p>
                         </div>
                       </div>
                     </td>

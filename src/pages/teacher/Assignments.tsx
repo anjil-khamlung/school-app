@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSchoolStore } from "../../store/useSchoolStore";
-import { FiCalendar, FiFileText, FiPlus, FiX } from "react-icons/fi";
+import { FiCalendar, FiEdit2, FiFileText, FiPlus, FiX } from "react-icons/fi";
 import InputField from "../../components/inputs/InputField";
 import TextArea from "../../components/inputs/TextArea";
 import DashboardCard from "../../components/cards/DashboardCard";
@@ -10,12 +10,15 @@ import ConfirmModal from "../../components/ConfirmModal";
 import { toast } from "react-toastify";
 import type { Assignment } from "../../type/type";
 import { useAssignments } from "../../store/useAssignments";
+import SelectField from "../../components/inputs/SelectField";
+import { className } from "../../data/classOptions";
 
 const Assignments = () => {
   const { currentUser } = useSchoolStore();
   const {
     assignments,
     getAssignments,
+    updateAssignment,
     addAssignment,
     deleteAssignment,
     submitAssignment,
@@ -31,9 +34,12 @@ const Assignments = () => {
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<
     null | number
   >(null);
+  const [editingAssignmentId, setEditingAssignmentId] = useState<number | null>(
+    null,
+  );
   const initial = {
     title: "",
-    className: "",
+    className: "Class 10",
     description: "",
     dueDate: "",
     subject: "",
@@ -51,7 +57,13 @@ const Assignments = () => {
 
   const visibleAssignments = isTeacher ? teacherAssignments : assignments;
 
+  //Search
   const filteredAssignments = visibleAssignments.filter((assignment) => {
+    // Hide the assignment currently being edited
+    if (editingAssignmentId !== null && assignment.id === editingAssignmentId) {
+      return false;
+    }
+
     const value = search.trim().toLowerCase();
     if (!value) return true;
 
@@ -81,6 +93,30 @@ const Assignments = () => {
       return;
     }
 
+    // EDIT
+    if (editingAssignmentId !== null) {
+      const success = await updateAssignment(editingAssignmentId, {
+        className: formData.className,
+        title: formData.title,
+        subject: formData.subject,
+        dueDate: formData.dueDate,
+        description: formData.description,
+      });
+
+      if (!success) {
+        toast.error("Failed to update class");
+        return;
+      }
+
+      toast.success("Class updated successfully");
+
+      setEditingAssignmentId(null);
+      setFormData(initial);
+      setShowForm(false);
+      return;
+    }
+
+    //CREATE
     const newAssignment = {
       id: Date.now(),
       title: formData.title,
@@ -106,8 +142,29 @@ const Assignments = () => {
     setShowForm(false);
   };
 
-  const handleDelete = (assignment: Assignment) => {
-    setSelectedAssignmentId(assignment.id);
+  const handleDelete = (assignmentId: number) => {
+    setSelectedAssignmentId(assignmentId);
+  };
+
+  //Edit class
+  const handleEdit = (assignmentId: number) => {
+    const selectedAssignment = assignments.find(
+      (item) => item.id === assignmentId,
+    );
+
+    if (!selectedAssignment) return;
+
+    setEditingAssignmentId(assignmentId);
+
+    setFormData({
+      className: selectedAssignment.className,
+      title: selectedAssignment.title,
+      subject: selectedAssignment.subject,
+      dueDate: selectedAssignment.dueDate,
+      description: selectedAssignment.description,
+    });
+
+    setShowForm(true);
   };
 
   //delete assignment
@@ -130,14 +187,14 @@ const Assignments = () => {
   };
 
   // submit assignment
-  const handleSubmit = async(assignmentId: number) => {
+  const handleSubmit = async (assignmentId: number) => {
     if (!isStudent) return;
-   const success= await submitAssignment(assignmentId, currentUser.id);
-   if(!success)
-   {
-     toast.error("Failed to submit Assignment")
-   }
-    toast.success("Assignments submitted successfully")
+    const success = await submitAssignment(assignmentId, currentUser.id);
+    if (!success) {
+      toast.error("Failed to submit Assignment");
+      return;
+    }
+    toast.success("Assignments submitted successfully");
   };
 
   // check whether student submitted
@@ -145,12 +202,25 @@ const Assignments = () => {
     return assignment.submittedBy?.includes(currentUser.id);
   };
 
-
   //   Student assignments submitted count
-  const submittedCount = assignments.filter((assignment) => 
-    assignment.submittedBy?.includes(currentUser.id)
+  const submittedCount = assignments.filter((assignment) =>
+    assignment.submittedBy?.includes(currentUser.id),
   ).length;
 
+  //Form toggle
+  const handleFormToggle = () => {
+    if (showForm) {
+      // Cancel
+      setFormData(initial);
+      setEditingAssignmentId(null);
+      setShowForm(false);
+    } else {
+      // Open create form
+      setFormData(initial);
+      setEditingAssignmentId(null);
+      setShowForm(true);
+    }
+  };
 
   return (
     <div className="mx-auto w-full max-w-7xl p-2 lg:p-4">
@@ -178,11 +248,11 @@ const Assignments = () => {
           </p>
         </div>
 
-        {/* Teacher Create Button */}
+        {/* Teacher Create /Cancel Button */}
         {isTeacher && (
           <button
-            onClick={() => setShowForm(!showForm)}
-            className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white transition ${
+            onClick={handleFormToggle}
+            className={`flex mt-auto cursor-pointer items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white transition ${
               showForm
                 ? "bg-red-500 hover:bg-red-600"
                 : "bg-teal-600 hover:bg-teal-700"
@@ -196,7 +266,7 @@ const Assignments = () => {
             ) : (
               <>
                 <FiPlus size={17} />
-                Create Assignment
+                Create 
               </>
             )}
           </button>
@@ -207,7 +277,7 @@ const Assignments = () => {
       {isTeacher && showForm && (
         <form
           onSubmit={handleCreateAssignment}
-          className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+          className="mt-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
         >
           <h2 className="text-lg font-bold text-slate-900">
             Create Assignment
@@ -223,6 +293,8 @@ const Assignments = () => {
               setFormData={setFormData}
               placeholder="e.g. importance of education"
             />
+
+            {/* Subject  */}
             <InputField
               label="Subject"
               type="text"
@@ -231,13 +303,18 @@ const Assignments = () => {
               setFormData={setFormData}
               placeholder="e.g. Social Studies"
             />
-            <InputField
+
+            {/* Class  */}
+            <SelectField
               label="Class"
-              type="text"
-              name="className"
               value={formData.className}
-              setFormData={setFormData}
-              placeholder="e.g. Class 10"
+              options={className}
+              onChange={(value) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  className: value,
+                }))
+              }
             />
 
             {/* Due Date */}
@@ -267,12 +344,29 @@ const Assignments = () => {
             />
           </div>
 
-          <button
-            type="submit"
-            className="mt-5 cursor-pointer rounded-xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-700"
-          >
-            Create Assignment
-          </button>
+          {/* Actions */}
+          <div className="mt-6">
+            <button
+              type="submit"
+              className={`flex cursor-pointer items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white transition ${
+                editingAssignmentId !== null
+                  ? "bg-orange-500 hover:bg-orange-600"
+                  : "bg-teal-600 hover:bg-teal-700"
+              }`}
+            >
+              {editingAssignmentId !== null ? (
+                <>
+                  <FiEdit2 size={17} />
+                  Edit 
+                </>
+              ) : (
+                <>
+                  <FiPlus size={17} />
+                  Create 
+                </>
+              )}
+            </button>
+          </div>
         </form>
       )}
 
@@ -323,8 +417,7 @@ const Assignments = () => {
         user={currentUser}
         filteredAssignments={filteredAssignments}
         isSubmitted={isSubmitted}
-        isTeacher={isTeacher}
-        isStudent={isStudent}
+        handleEdit={handleEdit}
         handleDelete={handleDelete}
         handleSubmit={handleSubmit}
       />
@@ -358,6 +451,6 @@ const Assignments = () => {
       />
     </div>
   );
-};;
+};;;
 
 export default Assignments;

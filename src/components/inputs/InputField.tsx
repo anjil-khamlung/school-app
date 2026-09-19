@@ -59,8 +59,8 @@ const InputField =<T,> ({
           minLength={minLength}
           className={`w-full ${
             style || "pl-4"
-          } rounded-xl border border-slate-200 bg-slate-50 py-3.5 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10`}
-        />
+            } rounded-xl border border-slate-200 bg-slate-50 py-3.5 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10`}
+          />
       </div>
     </Field>
   );

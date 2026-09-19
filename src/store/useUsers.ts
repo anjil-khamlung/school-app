@@ -13,7 +13,6 @@ export const useUsers = create<UsersStore>((set) => ({
         return
         
       }
-      
       set({users:data})
   },
 

@@ -34,7 +34,7 @@ const DashboardSidebar = ({ open, setOpen }: DashboardSidebarProps) => {
 
   return (
     <aside
-      className={`fixed left-0 top-16 z-50 flex h-[calc(100vh-4rem)] w-70 flex-col
+      className={`fixed left-0 top-16 z-50 border-t flex h-[calc(100vh-4rem)] w-70 flex-col
     overflow-y-auto
     border-r border-slate-200 bg-white shadow-xl
     transition-transform duration-300
@@ -51,7 +51,7 @@ const DashboardSidebar = ({ open, setOpen }: DashboardSidebarProps) => {
       </button>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-4 py-4">
+      <nav className="flex-1  overflow-y-auto px-4 py-4">
         {/* Main Menu */}
         <p className="mb-4 px-3 text-sm font-bold uppercase tracking-widest text-slate-400">
           Main Menu

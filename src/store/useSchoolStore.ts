@@ -38,19 +38,19 @@ export const useSchoolStore = create<SchoolStore>()(
         })),
 
       updateUser: async (updateUser) => {
-        const { error } = await supabase
+        const { data,error } = await supabase
           .from("users")
           .update({
             name: updateUser.name,
           })
-          .eq("id", updateUser.id);
-
+          .eq("id", updateUser.id).select().single()
+        
         if (error) {
           console.log("error=", error);
           return false;
         }
 
-        set({ currentUser: updateUser });
+        set({ currentUser: data });
         return true;
       },
 

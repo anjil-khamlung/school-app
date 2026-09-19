@@ -104,7 +104,7 @@ const Announcements = () => {
         {isAdmin && (
           <button
             onClick={() => setShowForm(!showForm)}
-            className={`flex w-fit cursor-pointer items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white transition ${
+            className={`flex mt-auto w-fit cursor-pointer items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white transition ${
               showForm
                 ? "bg-red-500 hover:bg-red-600"
                 : "bg-teal-600 hover:bg-teal-700"

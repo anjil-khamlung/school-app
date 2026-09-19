@@ -1,30 +1,29 @@
-import { FiBookOpen, FiTrash2, FiUser, FiUsers } from "react-icons/fi";
+import { FiBookOpen, FiEdit2, FiTrash2, FiUser, FiUsers } from "react-icons/fi";
 import type { Class, User } from "../../type/type";
 
-interface ClassCardProps{
-    filteredClasses: Class[],
-    isStudent: boolean,
-    isTeacher: boolean,
-    handleDelete: (classId: number) => void,
-    handleJoinClass: (classId: number) => void,
-    user:User ,
+interface ClassCardProps {
+  filteredClasses: Class[];
+  handleEdit: (classId: number) => void;
+  handleDelete: (classId: number) => void;
+  handleJoinClass: (classId: number) => void;
+  user: User;
 }
-
 
 const ClassCard = ({
   filteredClasses,
-  isStudent,
-  isTeacher,
+  handleEdit,
   handleDelete,
   handleJoinClass,
   user,
-}:ClassCardProps) => {
+}: ClassCardProps) => {
+  const isTeacher = user?.role === "teacher";
+  const isStudent = user?.role === "student";
   return (
     <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {filteredClasses.map((item) => {
         // Check if THIS student has joined THIS class
-        const studentJoined = isStudent && item.students?.includes(user.id);
 
+        const studentJoined = isStudent && item.students?.includes(user.id);
         return (
           <div
             key={item.id}
@@ -37,13 +36,13 @@ const ClassCard = ({
               </div>
 
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                Section {item.section}
+                {item.section}
               </span>
             </div>
 
             {/* Name */}
             <h2 className="mt-5 text-xl font-bold text-slate-900">
-              {item.name}
+              {item.className}
             </h2>
 
             {/* Subject */}
@@ -58,7 +57,7 @@ const ClassCard = ({
             <p className="mt-2 text-sm text-slate-500">{item.time}</p>
 
             {/* Students */}
-            <div className="mt-5 flex items-center gap-2 border-t border-slate-100 pt-4 text-sm text-slate-500">
+            <div className="mt-5 flex items-center gap-2 border-t border-slate-100 pt-4 text-sm text-teal-500">
               <FiUsers size={16} />
 
               <span>
@@ -67,20 +66,28 @@ const ClassCard = ({
               </span>
             </div>
 
-            {/* Teacher controls */}
+            {/* Teacher Edit + Delete */}
             {isTeacher && (
-              <button
-                popoverTarget="delete-modal"
-                popoverTargetAction="show"
-                onClick={() => handleDelete(item.id)}
-                className="mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-100"
-              >
-                <FiTrash2 size={16} />
-                Delete Class
-              </button>
-            )}
+              <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+                <button
+                  onClick={() => handleEdit(item.id)}
+                  className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-600 transition hover:bg-orange-200"
+                >
+                  <FiEdit2 size={16} />
+                  Edit 
+                </button>
 
-            
+                <button
+                  popoverTarget="delete-modal"
+                  popoverTargetAction="show"
+                  onClick={() => handleDelete(item.id)}
+                  className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-200"
+                >
+                  <FiTrash2 size={16} />
+                  Delete
+                </button>
+              </div>
+            )}
 
             {/* Student controls */}
             {isStudent && (

@@ -20,7 +20,7 @@ export const useClasses = create<ClassesStore>((set) => ({
   addClass: async (newClass) => {
     const { error } = await supabase.from("classes").insert({
       id: newClass.id,
-      name: newClass.name,
+      className: newClass.className,
       section: newClass.section,
       students: newClass.students,
       subject: newClass.subject,
@@ -32,36 +32,78 @@ export const useClasses = create<ClassesStore>((set) => ({
     if (error) {
       console.log("error=", error);
       return false;
-      }
-      
-      await useClasses.getState().getClasses()
-    return true;
+    }
 
- 
+    await useClasses.getState().getClasses();
+    return true;
+  },
+
+  //Edit class
+  updateClass: async (classId, updatedData) => {
+    const {  error } = await supabase
+      .from("classes")
+      .update({
+        className: updatedData.className,
+        section: updatedData.section,
+        subject: updatedData.subject,
+        time: updatedData.time,
+      })
+      .eq("id", classId)
+      
+
+    if (error) {
+      console.log("Update class error:", error);
+      return false;
+    }
+
+       await useClasses.getState().getClasses();
+
+
+    return true;
   },
 
   //Delete class
   deleteClass: async (classId, teacherId) => {
-    const { error } = await supabase.from("classes").delete().eq("id", classId)
-    .eq("teacherId", teacherId);
+    const { error } = await supabase
+      .from("classes")
+      .delete()
+      .eq("id", classId)
+      .eq("teacherId", teacherId);
 
     if (error) {
       console.log("error=", error);
       return false;
-      }
-      await useClasses.getState().getClasses();
-      
+    }
+    await useClasses.getState().getClasses();
 
     return true;
-
   },
 
   //Join class
   joinClass: async (studentId, classId) => {
+    // Get the current class
+    const { data: classData, error: fetchError } = await supabase
+      .from("classes")
+      .select("students")
+      .eq("id", classId)
+      .single();
+
+    if (fetchError) {
+      console.log("error=", fetchError);
+      return false;
+    }
+
+    const students = classData.students || [];
+
+    // Prevent joining twice
+    if (students.includes(studentId)) {
+      return true;
+    }
+
     const { error } = await supabase
       .from("classes")
       .update({
-        students: [studentId],
+        students: [...students, studentId],
       })
       .eq("id", classId);
 
@@ -69,9 +111,9 @@ export const useClasses = create<ClassesStore>((set) => ({
       console.log("error=", error);
       return false;
     }
-      await useClasses.getState().getClasses();
+
+    await useClasses.getState().getClasses();
 
     return true;
-
   },
 }));

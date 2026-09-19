@@ -3,11 +3,9 @@ import { FiUser, FiMail, FiSave } from "react-icons/fi";
 import { useSchoolStore } from "../store/useSchoolStore";
 import { toast } from "react-toastify";
 import type { User } from "../type/type";
-import { useUsers } from "../store/useUsers";
 
 const Settings = () => {
   const { currentUser, updateUser } = useSchoolStore()
-  // const { updateUser }=useUsers()
 
   const [name, setName] = useState(currentUser?.name || "");
 
