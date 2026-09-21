@@ -100,6 +100,13 @@ export interface AnnouncementsStore {
   announcements: Announcement[];
   getAnnouncements: () => Promise<void>;
   addAnnouncement: (announcement: Announcement) => Promise<boolean>;
+  updateAnnouncement: (
+    announcementId: number,
+    updatedData: {
+      title: string;
+      message: string;
+    },
+  ) => Promise<boolean>;
   deleteAnnouncement: (id: number) => Promise<boolean>;
 }
 

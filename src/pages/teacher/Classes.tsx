@@ -10,20 +10,24 @@ import ConfirmModal from "../../components/ConfirmModal";
 import { useClasses } from "../../store/useClasses";
 import SelectField from "../../components/inputs/SelectField";
 import { className, section, time } from "../../data/classOptions";
+import type { ClassFormErrors } from "../../type/classType";
+import { validateClass } from "../../lib/utils/validateClass";
 
 const Classes = () => {
   const { currentUser } = useSchoolStore();
-  const {classes,getClasses,updateClass, addClass, joinClass, deleteClass } = useClasses();
+  const { classes, getClasses, updateClass, addClass, joinClass, deleteClass } =
+    useClasses();
 
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
   const [editingClassId, setEditingClassId] = useState<number | null>(null);
+  const [errors, setErrors] = useState<ClassFormErrors>({});
   const initial = {
-    className: "Class 10",
-    section: "Section A",
+    className: "",
+    section: "",
     subject: "",
-    time: "10 AM to 11 AM",
+    time: "",
   };
   const [formData, setFormData] = useState(initial);
 
@@ -33,9 +37,9 @@ const Classes = () => {
   const isTeacher = currentUser?.role === "teacher";
   const isStudent = currentUser?.role === "student";
 
-      useEffect(() => {
-        getClasses();
-      }, [getClasses]);
+  useEffect(() => {
+    getClasses();
+  }, [getClasses]);
 
   // Classes visible to each role
   let visibleClasses = classes;
@@ -75,8 +79,11 @@ const Classes = () => {
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!formData.className || !formData.section || !formData.subject) {
-      toast.warning("Please fill all fields");
+    // Validation
+    const validationErrors = validateClass(formData);
+    setErrors(validationErrors);
+    // Stop if there are errors
+    if (Object.keys(validationErrors).length > 0) {
       return;
     }
 
@@ -102,7 +109,7 @@ const Classes = () => {
       return;
     }
 
-    // CREATE 
+    // CREATE
     const newClass: Class = {
       id: Date.now(),
       className: formData.className,
@@ -126,25 +133,25 @@ const Classes = () => {
     setSearch("");
 
     setShowForm(false);
-  };;
+  };
 
   //Edit class
-const handleEdit = (classId: number) => {
-  const selectedClass = classes.find((item) => item.id === classId);
+  const handleEdit = (classId: number) => {
+    const selectedClass = classes.find((item) => item.id === classId);
 
-  if (!selectedClass) return;
+    if (!selectedClass) return;
 
-  setEditingClassId(classId);
+    setEditingClassId(classId);
 
-  setFormData({
-    className: selectedClass.className,
-    section: selectedClass.section,
-    subject: selectedClass.subject,
-    time: selectedClass.time,
-  });
+    setFormData({
+      className: selectedClass.className,
+      section: selectedClass.section,
+      subject: selectedClass.subject,
+      time: selectedClass.time,
+    });
 
-  setShowForm(true);
-};
+    setShowForm(true);
+  };
 
   // Delete class
 
@@ -161,7 +168,6 @@ const handleEdit = (classId: number) => {
       toast.error("Failed to delete class");
       return;
     }
-
 
     setSelectedClassId(null);
 
@@ -184,21 +190,19 @@ const handleEdit = (classId: number) => {
   };
 
   //Form toggle
-const handleFormToggle = () => {
-  if (showForm) {
-    // Cancel
-    setFormData(initial);
-    setEditingClassId(null);
-    setShowForm(false);
-  } else {
-    // Open create form
-    setFormData(initial);
-    setEditingClassId(null);
-    setShowForm(true);
-  }
-};
-
-
+  const handleFormToggle = () => {
+    if (showForm) {
+      // Cancel
+      setFormData(initial);
+      setEditingClassId(null);
+      setShowForm(false);
+    } else {
+      // Open create form
+      setFormData(initial);
+      setEditingClassId(null);
+      setShowForm(true);
+    }
+  };
 
   return (
     <div className="mx-auto w-full max-w-7xl p-2 lg:p-4">
@@ -244,7 +248,7 @@ const handleFormToggle = () => {
             ) : (
               <>
                 <FiPlus size={18} />
-                Create 
+                Create
               </>
             )}
           </button>
@@ -264,12 +268,14 @@ const handleFormToggle = () => {
 
             <SelectField
               label="Class"
+              placeholder="Select Class"
               value={formData.className}
               options={className}
+              error={errors.className}
               onChange={(value) =>
                 setFormData((prev) => ({
                   ...prev,
-                  name: value,
+                  className: value,
                 }))
               }
             />
@@ -277,8 +283,10 @@ const handleFormToggle = () => {
             {/* Section */}
             <SelectField
               label="Section"
+              placeholder="Select Section"
               value={formData.section}
               options={section}
+              error={errors.section}
               onChange={(value) =>
                 setFormData((prev) => ({
                   ...prev,
@@ -296,13 +304,16 @@ const handleFormToggle = () => {
               setFormData={setFormData}
               value={formData.subject}
               name="subject"
+              error={errors.subject}
             />
 
             {/* Class Time */}
             <SelectField
               label="Time"
+              placeholder="Select Time"
               value={formData.time}
               options={time}
+              error={errors.time}
               onChange={(value) =>
                 setFormData((prev) => ({
                   ...prev,
@@ -325,12 +336,12 @@ const handleFormToggle = () => {
               {editingClassId !== null ? (
                 <>
                   <FiEdit2 size={17} />
-                  Edit 
+                  Edit
                 </>
               ) : (
                 <>
                   <FiPlus size={17} />
-                  Create 
+                  Create
                 </>
               )}
             </button>

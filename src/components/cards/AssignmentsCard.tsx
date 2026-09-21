@@ -95,11 +95,11 @@ const AssignmentCard = ({
 
             {/* Teacher Edit + Delete */}
             {isTeacher && assignment.teacherId === user?.id && (
-              <div className="mt-5 flex gap-2">
+              <div className="mt-5 flex gap-2 ">
                 <button
                   type="button"
                   onClick={() => handleEdit(assignment.id)}
-                  className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-600 transition hover:bg-orange-100"
+                  className="flex  min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-orange-50 px-2 py-3 text-sm font-semibold text-orange-600 transition hover:bg-orange-100"
                 >
                   <FiEdit2 size={16} />
                   Edit
@@ -110,7 +110,7 @@ const AssignmentCard = ({
                   popoverTarget="delete-modal"
                   popoverTargetAction="show"
                   onClick={() => handleDelete(assignment.id)}
-                  className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-100"
+                  className="flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-red-50 px-2 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-100"
                 >
                   <FiTrash2 size={16} />
                   Delete

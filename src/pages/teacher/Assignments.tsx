@@ -12,6 +12,8 @@ import type { Assignment } from "../../type/type";
 import { useAssignments } from "../../store/useAssignments";
 import SelectField from "../../components/inputs/SelectField";
 import { className } from "../../data/classOptions";
+import type{ AssignmentFormErrors } from "../../type/AssignmentType";
+import { validateAssignment } from "../../lib/utils/validateAssignment";
 
 const Assignments = () => {
   const { currentUser } = useSchoolStore();
@@ -37,9 +39,10 @@ const Assignments = () => {
   const [editingAssignmentId, setEditingAssignmentId] = useState<number | null>(
     null,
   );
+  const[errors,setErrors]=useState<AssignmentFormErrors>({})
   const initial = {
     title: "",
-    className: "Class 10",
+    className: "",
     description: "",
     dueDate: "",
     subject: "",
@@ -82,16 +85,13 @@ const Assignments = () => {
   ) => {
     e.preventDefault();
 
-    if (
-      !formData.title ||
-      !formData.className ||
-      !formData.description ||
-      !formData.dueDate ||
-      !formData.subject
-    ) {
-      toast.warning("Please fill all required fields");
-      return;
-    }
+     // Validation
+       const validationErrors = validateAssignment(formData);
+       setErrors(validationErrors);
+       // Stop if there are errors
+       if (Object.keys(validationErrors).length > 0) {
+         return;
+       }
 
     // EDIT
     if (editingAssignmentId !== null) {
@@ -266,7 +266,7 @@ const Assignments = () => {
             ) : (
               <>
                 <FiPlus size={17} />
-                Create 
+                Create
               </>
             )}
           </button>
@@ -283,7 +283,7 @@ const Assignments = () => {
             Create Assignment
           </h2>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <div className="mt-5 grid items-start gap-4 sm:grid-cols-2">
             {/* Title */}
             <InputField
               label="Assignment title"
@@ -292,6 +292,7 @@ const Assignments = () => {
               value={formData.title}
               setFormData={setFormData}
               placeholder="e.g. importance of education"
+              error={errors.title}
             />
 
             {/* Subject  */}
@@ -302,13 +303,16 @@ const Assignments = () => {
               value={formData.subject}
               setFormData={setFormData}
               placeholder="e.g. Social Studies"
+              error={errors.subject}
             />
 
             {/* Class  */}
             <SelectField
               label="Class"
+              placeholder="Select Class"
               value={formData.className}
               options={className}
+              error={errors.className}
               onChange={(value) =>
                 setFormData((prev) => ({
                   ...prev,
@@ -325,6 +329,7 @@ const Assignments = () => {
                 name="dueDate"
                 value={formData.dueDate}
                 setFormData={setFormData}
+                error={errors.dueDate}
               />
 
               <FiCalendar
@@ -341,6 +346,7 @@ const Assignments = () => {
               setFormData={setFormData}
               placeholder={"Assignment description"}
               rows={4}
+              error={errors.description}
             />
           </div>
 
@@ -357,12 +363,12 @@ const Assignments = () => {
               {editingAssignmentId !== null ? (
                 <>
                   <FiEdit2 size={17} />
-                  Edit 
+                  Edit
                 </>
               ) : (
                 <>
                   <FiPlus size={17} />
-                  Create 
+                  Create
                 </>
               )}
             </button>

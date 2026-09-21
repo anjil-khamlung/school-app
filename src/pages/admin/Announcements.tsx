@@ -1,4 +1,4 @@
-import { FiBell, FiCalendar, FiPlus, FiTrash2, FiX } from "react-icons/fi";
+import { FiBell, FiEdit2, FiPlus, FiX } from "react-icons/fi";
 import InputField from "../../components/inputs/InputField";
 import TextArea from "../../components/inputs/TextArea";
 import ConfirmModal from "../../components/ConfirmModal";
@@ -7,35 +7,76 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import type { Announcement } from "../../type/type";
 import { useAnnouncements } from "../../store/useAnnouncements";
+import AnnouncementCard from "../../components/cards/AnnouncementCard";
+import type { AnnouncementFormErrors } from "../../type/AnnouncementType";
+import { validateAnnouncement } from "../../lib/utils/validateAnnouncement";
 
 const Announcements = () => {
-  const { currentUser, } = useSchoolStore();
+  const { currentUser } = useSchoolStore();
   const {
     announcements,
     getAnnouncements,
     addAnnouncement,
+    updateAnnouncement,
     deleteAnnouncement,
-  }=useAnnouncements()
+  } = useAnnouncements();
 
   const [showForm, setShowForm] = useState(false);
   const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<
     number | null
   >(null);
+  const [editingAnnouncementId, setEditingAnnouncementId] = useState<
+    number | null
+    >(null);
+  const[errors,setErrors]=useState<AnnouncementFormErrors>({})
 
   const isAdmin = currentUser?.role === "admin";
 
-  const [formData, setFormData] = useState({
+  const initial = {
     title: "",
     message: "",
-  });
+  };
+
+  const [formData, setFormData] = useState(initial);
+
+  //fetch announcements
+  useEffect(() => {
+    getAnnouncements();
+  }, [getAnnouncements]);
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!formData.title.trim() || !formData.message.trim()) {
+//Validation
+   const validationErrors = validateAnnouncement(formData);
+   setErrors(validationErrors);
+   if (Object.keys(validationErrors).length > 0) {
+     return;
+   }
+
+    // EDIT
+    if (editingAnnouncementId !== null) {
+      const success = await updateAnnouncement(editingAnnouncementId, {
+        title: formData.title,
+        message: formData.message,
+      });
+
+      if (!success) {
+        toast.error("Failed to update announcement");
+        return;
+      }
+
+      toast.success("Announcement updated successfully");
+
+      setFormData(initial);
+
+      setEditingAnnouncementId(null);
+      setShowForm(false);
+
       return;
     }
 
+    // CREATE
     const newAnnouncement: Announcement = {
       id: Date.now(),
       title: formData.title,
@@ -61,6 +102,23 @@ const Announcements = () => {
     toast.success("Announcement created successfully");
   };
 
+  const handleEdit = (announcementId: number) => {
+    const announcement = announcements.find(
+      (item) => item.id === announcementId,
+    );
+
+    if (!announcement) return;
+
+    setEditingAnnouncementId(announcementId);
+
+    setFormData({
+      title: announcement.title,
+      message: announcement.message,
+    });
+
+    setShowForm(true);
+  };
+
   const confirmDelete = async () => {
     if (!selectedAnnouncementId) return;
 
@@ -71,14 +129,24 @@ const Announcements = () => {
       return;
     }
     setSelectedAnnouncementId(null);
- 
+
     toast.success("Announcement deleted successfully");
   };
 
-  //fetch announcements
-    useEffect(() => {
-      getAnnouncements();
-    }, [getAnnouncements]);
+  //Form toggle
+  const handleFormToggle = () => {
+    if (showForm) {
+      // Cancel
+      setFormData(initial);
+      setEditingAnnouncementId(null);
+      setShowForm(false);
+    } else {
+      // Open create form
+      setFormData(initial);
+      setEditingAnnouncementId(null);
+      setShowForm(true);
+    }
+  };
 
   return (
     <div className="mx-auto w-full max-w-7xl p-2 lg:p-4">
@@ -103,8 +171,9 @@ const Announcements = () => {
         {/* Admin only */}
         {isAdmin && (
           <button
-            onClick={() => setShowForm(!showForm)}
-            className={`flex mt-auto w-fit cursor-pointer items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white transition ${
+            type="button"
+            onClick={handleFormToggle}
+            className={`flex cursor-pointer items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white transition ${
               showForm
                 ? "bg-red-500 hover:bg-red-600"
                 : "bg-teal-600 hover:bg-teal-700"
@@ -145,6 +214,7 @@ const Announcements = () => {
               value={formData.title}
               setFormData={setFormData}
               placeholder={"Enter announcement title"}
+              error={errors.title}
             />
 
             {/* Message */}
@@ -155,13 +225,29 @@ const Announcements = () => {
               setFormData={setFormData}
               placeholder={"Write your announcement..."}
               rows={5}
+              error={errors.message}
             />
 
+            {/* Actions  */}
             <button
               type="submit"
-              className="rounded-xl cursor-pointer bg-teal-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-700"
+              className={`flex cursor-pointer items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white ${
+                editingAnnouncementId !== null
+                  ? "bg-orange-500 hover:bg-orange-600"
+                  : "bg-teal-600 hover:bg-teal-700"
+              }`}
             >
-              Publish Announcement
+              {editingAnnouncementId !== null ? (
+                <>
+                  <FiEdit2 size={17} />
+                  Update Announcement
+                </>
+              ) : (
+                <>
+                  <FiPlus size={17} />
+                  Publish Announcement
+                </>
+              )}
             </button>
           </form>
         </div>
@@ -182,66 +268,19 @@ const Announcements = () => {
             </p>
           </div>
         ) : (
-          announcements.map((announcement) => (
-            <div
-              key={announcement.id}
-              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md"
-            >
-              <div className="flex items-start gap-4">
-                {/* Icon */}
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-600">
-                  <FiBell size={20} />
-                </div>
-
-                {/* Content */}
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <h2 className="font-bold text-slate-900">
-                        {announcement.title}
-                      </h2>
-
-                      <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
-                        <FiCalendar size={13} />
-                        <span>
-                          {new Date(announcement.date).toLocaleString("en-US", {
-                            dateStyle: "medium",
-                            timeStyle: "short",
-                          })}
-                        </span>
-                        {announcement.createdBy && (
-                          <>
-                            <span>•</span>
-                            <span>By {announcement.createdBy}</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Admin can delete */}
-                    {isAdmin && (
-                      <button
-                        type="button"
-                        popoverTarget="delete-modal"
-                        popoverTargetAction="show"
-                        onClick={() => {
-                          setSelectedAnnouncementId(announcement.id);
-                        }}
-                        className="flex w-fit cursor-pointer items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-red-500 transition hover:bg-red-50"
-                      >
-                        <FiTrash2 size={14} />
-                        Delete
-                      </button>
-                    )}
-                  </div>
-
-                  <p className="mt-4 text-sm leading-6 text-slate-600 whitespace-pre-wrap">
-                    {announcement.message}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))
+          announcements
+            .filter((announcement) => announcement.id !== editingAnnouncementId)
+            .map((announcement) => (
+              <AnnouncementCard
+                key={announcement.id}
+                announcement={announcement}
+                isAdmin={isAdmin}
+                handleEdit={handleEdit}
+                handleDelete={(announcementId) => {
+                  setSelectedAnnouncementId(announcementId);
+                }}
+              />
+            ))
         )}
       </div>
 
@@ -256,6 +295,6 @@ const Announcements = () => {
       />
     </div>
   );
-};
+};;
 
 export default Announcements;

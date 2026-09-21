@@ -5,50 +5,79 @@ import { useSchoolStore } from "../../store/useSchoolStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { supabase } from "../../lib/supabase";
+import { validateLogin, type LoginFormErrors } from "../../lib/utils/validateLogin";
 
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useSchoolStore();
   const[loading,setLoading]=useState(false)
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<LoginFormErrors>({});
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
-  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
+const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+  e.preventDefault();
 
-    setLoading(true)
+  // Validation
+  const validationErrors = validateLogin(formData);
+  setErrors(validationErrors);
 
-    try {
-        const { data: foundUser, error } = await supabase
-          .from("users")
-          .select("*")
-          .eq("email", formData.email)
-          .eq("password", formData.password)
-          .single();
+  if (Object.keys(validationErrors).length > 0) {
+    return;
+  }
 
-        if (error || !foundUser) {
-          toast.error("Invalid credentials");
-          return;
-        }
-        toast.success("login successfull");
-        login(foundUser);
+  setLoading(true);
 
-        navigate(
-          foundUser.role === "admin"
-            ? "/admin"
-            : foundUser.role === "teacher"
-              ? "/teacher"
-              : "/student",
-        );
-    } finally {
-      setLoading(false)
+  try {
+    // 1. Login through Supabase Auth
+    const { data: authData, error: authError } =
+      await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+    if (authError) {
+      toast.error("Invalid credentials");
+      return;
     }
-    
-  
-  };
+
+    if (!authData.user) {
+      toast.error("User not found");
+      return;
+    }
+
+    // 2. Get user's profile from public.users
+    const { data: foundUser, error: userError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", authData.user.id)
+      .single();
+
+    if (userError || !foundUser) {
+      toast.error("User profile not found");
+      return;
+    }
+
+    // 3. Store user in Zustand
+    login(foundUser);
+
+    toast.success("Login successful");
+
+    // 4. Navigate according to role
+    navigate(
+      foundUser.role === "admin"
+        ? "/admin"
+        : foundUser.role === "teacher"
+          ? "/teacher"
+          : "/student",
+    );
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div className="relative flex h-[calc(100vh-4rem)] items-center justify-center overflow-hidden bg-[#071c1a] px-4">
       {/* Background decorations */}
@@ -141,6 +170,7 @@ const Login = () => {
               name="email"
               style="pl-11"
               icon={FiMail}
+              error={errors.email}
             />
 
             {/* Password */}
@@ -156,22 +186,18 @@ const Login = () => {
             <div className="relative">
               <InputField
                 label="Password"
-                type={showPassword ? "text" : "password"}
+                type={"password"}
                 placeholder="Enter your password"
                 value={formData.password}
                 setFormData={setFormData}
                 name="password"
                 style="pl-11"
                 icon={FiLock}
+                error={errors.password}
+                setShowPassword={setShowPassword}
+                showPassword={showPassword}
+                showPasswordToggle
               />
-
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-2/3 -translate-y-1/2 text-slate-400 transaction hover:text-teal-600 cursor-pointer"
-              >
-                {showPassword ? <FiEyeOff size={19} /> : <FiEye size={19} />}
-              </button>
             </div>
 
             {/* Remember me */}
@@ -195,7 +221,7 @@ const Login = () => {
               className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-linear-to-r from-teal-600 to-emerald-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-teal-600/20 transition duration-200 hover:-translate-y-0.5 hover:from-teal-700 hover:to-emerald-700 hover:shadow-xl"
             >
               {loading && (
-                <span className="loading loading-spinner loading-sm pr-10"></span>
+                <span className="loading loading-spinner  loading-sm "></span>
               )}
               Sign In
             </button>

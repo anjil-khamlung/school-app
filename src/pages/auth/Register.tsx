@@ -5,23 +5,24 @@ import {
   FiUser,
   FiMail,
   FiLock,
-  FiEye,
-  FiEyeOff,
+
 
 } from "react-icons/fi";
 
 import { useEffect, useState } from "react";
-import type { RegisterForm, User } from "../../type/type";
-import { useSchoolStore } from "../../store/useSchoolStore";
+import type { RegisterForm, } from "../../type/type";
 import { toast } from "react-toastify";
 import { useUsers } from "../../store/useUsers";
 import SelectField from "../../components/inputs/SelectField";
+import type { RegisterFormErrors } from "../../type/registerType";
+import { validateRegister } from "../../lib/utils/validateRegister";
+import { supabase } from "../../lib/supabase";
 
 const Register = () => {
   const navigate = useNavigate();
-const {register}=useSchoolStore()
   const { users, getUsers } = useUsers()
-  const [loading,setLoading]=useState(false)
+  const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState<RegisterFormErrors>({});
   const [formData, setFormData] = useState<RegisterForm>({
     name: "",
     email: "",
@@ -38,38 +39,62 @@ const roles = ["student", "teacher",];
     getUsers()
   },[getUsers])
 
-  const handleSubmit =async (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
+ const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+   e.preventDefault();
 
-    const existingUser = users.find((user) => user.email === formData.email);
+   // Validation
+   const validationErrors = validateRegister(formData);
+   setErrors(validationErrors);
 
-    if (existingUser) {
-      toast.warning("User already exists");
-      return;
-    }
+   if (Object.keys(validationErrors).length > 0) {
+     return;
+   }
+   const existingUser = users.find((user) => user.email === formData.email);
 
-    const user: User = {
-      id: Date.now(),
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      role: formData.role,
-    };
+   if (existingUser) {
+     toast.warning("User already exists");
+     return;
+   }
 
-    setLoading(true)
-    try {
-  
-      await register(user);
-       toast.success("register successfull");
-       navigate("/login");
-    } finally {
-      setLoading(false)
-}
-  };
+   setLoading(true);
+
+   try {
+     // 1. Create authentication user
+     const { data, error } = await supabase.auth.signUp({
+       email: formData.email,
+       password: formData.password,
+     });
+
+     if (error) {
+       toast.error(error.message);
+       return;
+     }
+
+     // 2. Make sure Supabase returned a user
+     if (!data.user) {
+       toast.error("Registration failed");
+       return;
+     }
+
+     // 3. Insert profile/application data
+     const { error: profileError } = await supabase.from("users").insert({
+       id: data.user.id,
+       name: formData.name,
+       email: formData.email,
+       role: formData.role,
+     });
+
+     if (profileError) {
+       toast.error(profileError.message);
+       return;
+     }
+
+     toast.success("Registration successful");
+     navigate("/login");
+   } finally {
+     setLoading(false);
+   }
+ };
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#071c1a] px-4 py-8">
       {/* Background decorations */}
@@ -185,6 +210,7 @@ const roles = ["student", "teacher",];
               placeholder="Enter your full name"
               style="pl-11"
               icon={FiUser}
+              error={errors.name}
             />
 
             {/* Email */}
@@ -197,6 +223,7 @@ const roles = ["student", "teacher",];
               placeholder="you@gmail.com"
               style="pl-11"
               icon={FiMail}
+              error={errors.email}
             />
 
             {/* Role */}
@@ -221,18 +248,15 @@ const roles = ["student", "teacher",];
                 value={formData.password}
                 setFormData={setFormData}
                 placeholder="Create a password"
-                minLength={6}
                 style="pl-11"
                 icon={FiLock}
+                error={errors.password}
+                showPassword={showPassword}
+                setShowPassword={setShowPassword}
+                showPasswordToggle
               />
 
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-2/3 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-teal-600"
-              >
-                {showPassword ? <FiEye size={19} /> : <FiEyeOff size={19} />}
-              </button>
+          
             </div>
 
             {/* Confirm password */}
@@ -246,19 +270,11 @@ const roles = ["student", "teacher",];
                 placeholder="Confirm your password"
                 style="pl-11"
                 icon={FiLock}
+                error={errors.confirmPassword}
+                showPassword={showConfirmPassword}
+                setShowPassword={setShowConfirmPassword}
+                showPasswordToggle
               />
-
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-4 top-2/3 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-teal-600"
-              >
-                {showConfirmPassword ? (
-                  <FiEye size={19} />
-                ) : (
-                  <FiEyeOff size={19} />
-                )}
-              </button>
             </div>
 
             {/* Terms */}
@@ -288,7 +304,7 @@ const roles = ["student", "teacher",];
               className="flex justify-center w-full cursor-pointer rounded-xl bg-linear-to-r from-teal-600 to-emerald-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-teal-600/20 transition duration-200 hover:-translate-y-0.5 hover:from-teal-700 hover:to-emerald-700 hover:shadow-xl"
             >
               {loading && (
-                <span className="loading loading-spinner text-success pr-10"></span>
+                <span className="loading loading-spinner text-success "></span>
               )}
               Create Account
             </button>

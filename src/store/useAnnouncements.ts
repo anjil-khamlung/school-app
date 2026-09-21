@@ -30,23 +30,45 @@ export const useAnnouncements = create<AnnouncementsStore>((set) => ({
       console.log("error=", error);
       return false;
     }
-      await useAnnouncements.getState().getAnnouncements()
+    await useAnnouncements.getState().getAnnouncements();
 
     return true;
+  },
 
+  updateAnnouncement: async (announcementId, updatedData) => {
+    const {  error } = await supabase
+      .from("announcements")
+      .update({
+        title: updatedData.title,
+        message: updatedData.message,
+      })
+      .eq("id", announcementId)
+      .select()
+      .single();
+
+    if (error) {
+      console.log("Update announcement error:", error);
+      return false;
+    }
+
+      await useAnnouncements.getState().getAnnouncements();
+
+    return true;
   },
 
   //Delete announcement
   deleteAnnouncement: async (id) => {
-    const { error } = await supabase.from("announcements").delete().eq("id", id);
+    const { error } = await supabase
+      .from("announcements")
+      .delete()
+      .eq("id", id);
 
     if (error) {
       console.log("error=", error);
       return false;
     }
-      await useAnnouncements.getState().getAnnouncements()
+    await useAnnouncements.getState().getAnnouncements();
 
     return true;
-   
   },
 }));
