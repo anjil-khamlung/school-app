@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { AnnouncementsStore } from "../type/type";
+import type { AnnouncementsStore } from "../type/AnnouncementType";
 import { supabase } from "../lib/supabase";
 
 export const useAnnouncements = create<AnnouncementsStore>((set) => ({
@@ -19,7 +19,6 @@ export const useAnnouncements = create<AnnouncementsStore>((set) => ({
   //Add announcement
   addAnnouncement: async (announcement) => {
     const { error } = await supabase.from("announcements").insert({
-      id: announcement.id,
       title: announcement.title,
       message: announcement.message,
       date: announcement.date,

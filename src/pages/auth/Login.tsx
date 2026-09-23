@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { FiBookOpen, FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
+import { FiBookOpen, FiMail, FiLock,  } from "react-icons/fi";
 import InputField from "../../components/inputs/InputField";
 import { useSchoolStore } from "../../store/useSchoolStore";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { supabase } from "../../lib/supabase";
 import { validateLogin, type LoginFormErrors } from "../../lib/utils/validateLogin";
@@ -241,9 +241,12 @@ const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
           {/* Register */}
           <p className="text-center text-sm text-slate-500">
             Don't have an account?{" "}
-            <span className="cursor-pointer font-bold text-teal-600 transition hover:text-emerald-600">
+            <NavLink
+              to="/register"
+              className="font-bold text-teal-600 transition-all duration-300 hover:text-emerald-400 "
+            >
               Create an account
-            </span>
+            </NavLink>
           </p>
         </div>
       </div>

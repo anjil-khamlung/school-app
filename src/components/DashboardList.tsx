@@ -1,7 +1,9 @@
 import { FiArrowRight } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import type { Assignment, Class, User } from "../type/type";
+import type {   User } from "../type/type";
 import type { IconType } from "react-icons";
+import type { Assignment } from "../type/AssignmentType";
+import type { Class } from "../type/classType";
 
 interface DashboardListProps{
     title: string,

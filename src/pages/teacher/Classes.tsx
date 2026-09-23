@@ -3,14 +3,13 @@ import { useSchoolStore } from "../../store/useSchoolStore";
 import { FiBookOpen, FiEdit2, FiPlus, FiX } from "react-icons/fi";
 import InputField from "../../components/inputs/InputField";
 import { toast } from "react-toastify";
-import type { Class } from "../../type/type";
 import SearchInput from "../../components/inputs/SearchInput";
 import ClassCard from "../../components/cards/ClassCard";
 import ConfirmModal from "../../components/ConfirmModal";
 import { useClasses } from "../../store/useClasses";
 import SelectField from "../../components/inputs/SelectField";
 import { className, section, time } from "../../data/classOptions";
-import type { ClassFormErrors } from "../../type/classType";
+import type {  ClassFormErrors, CreateClass } from "../../type/classType";
 import { validateClass } from "../../lib/utils/validateClass";
 
 const Classes = () => {
@@ -20,8 +19,8 @@ const Classes = () => {
 
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
-  const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
-  const [editingClassId, setEditingClassId] = useState<number | null>(null);
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+  const [editingClassId, setEditingClassId] = useState<string | null>(null);
   const [errors, setErrors] = useState<ClassFormErrors>({});
   const initial = {
     className: "",
@@ -110,8 +109,7 @@ const Classes = () => {
     }
 
     // CREATE
-    const newClass: Class = {
-      id: Date.now(),
+    const newClass: CreateClass = {
       className: formData.className,
       section: formData.section,
       subject: formData.subject,
@@ -136,7 +134,7 @@ const Classes = () => {
   };
 
   //Edit class
-  const handleEdit = (classId: number) => {
+  const handleEdit = (classId: string) => {
     const selectedClass = classes.find((item) => item.id === classId);
 
     if (!selectedClass) return;
@@ -155,7 +153,7 @@ const Classes = () => {
 
   // Delete class
 
-  const handleDelete = (classId: number) => {
+  const handleDelete = (classId: string) => {
     setSelectedClassId(classId);
   };
 
@@ -176,7 +174,7 @@ const Classes = () => {
 
   // Join class
 
-  const handleJoinClass = async (classId: number) => {
+  const handleJoinClass = async (classId: string) => {
     if (!currentUser?.id) return;
 
     const success = await joinClass(currentUser.id, classId);
@@ -366,15 +364,6 @@ const Classes = () => {
         </span>
       </div>
 
-      {/* Classes */}
-      <ClassCard
-        user={currentUser}
-        filteredClasses={filteredClasses}
-        handleEdit={handleEdit}
-        handleDelete={handleDelete}
-        handleJoinClass={handleJoinClass}
-      />
-
       {/* Delete confirmation modal */}
       <ConfirmModal
         title="Delete class?"
@@ -385,8 +374,21 @@ const Classes = () => {
         onConfirm={handleConfirmDelete}
       />
 
-      {/* Empty */}
-      {filteredClasses.length === 0 && (
+      {/* Classes */}
+      {filteredClasses.length > 0 ? (
+        <div className="mt-4 grid gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+          {filteredClasses.map((item) => (
+            <ClassCard
+              key={item.id}
+              item={item}
+              handleEdit={handleEdit}
+              handleDelete={handleDelete}
+              handleJoinClass={handleJoinClass}
+              user={currentUser}
+            />
+          ))}
+        </div>
+      ) : (
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
             <FiBookOpen size={24} />

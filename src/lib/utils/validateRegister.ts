@@ -1,5 +1,5 @@
 import type { RegisterFormErrors } from "../../type/registerType";
-import type { RegisterForm } from "../../type/type";
+import type { RegisterForm } from "../../type/registerType";
 
 
 export const validateRegister = (
@@ -24,11 +24,19 @@ export const validateRegister = (
   }
 
   // Password
-  if (!formData.password) {
-    errors.password = "Password is required";
-  } else if (formData.password.length < 6) {
-    errors.password = "Password must be at least 6 characters";
-  }
+ if (!formData.password) {
+   errors.password = "Password is required";
+ } else if (formData.password.length < 8) {
+   errors.password = "Password must be at least 8 characters";
+ } else if (!/[A-Z]/.test(formData.password)) {
+   errors.password = "Password must contain an uppercase letter";
+ } else if (!/[a-z]/.test(formData.password)) {
+   errors.password = "Password must contain a lowercase letter";
+ } else if (!/[0-9]/.test(formData.password)) {
+   errors.password = "Password must contain a number";
+ } else if (!/[!@#$%^&*(),.?":{}|<>_\-\\[\]\/'`~+=;]/.test(formData.password)) {
+   errors.password = "Password must contain a special character";
+ }
 
   // Confirm password
   if (!formData.confirmPassword) {

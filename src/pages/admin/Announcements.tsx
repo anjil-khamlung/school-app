@@ -5,10 +5,9 @@ import ConfirmModal from "../../components/ConfirmModal";
 import { useSchoolStore } from "../../store/useSchoolStore";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import type { Announcement } from "../../type/type";
 import { useAnnouncements } from "../../store/useAnnouncements";
 import AnnouncementCard from "../../components/cards/AnnouncementCard";
-import type { AnnouncementFormErrors } from "../../type/AnnouncementType";
+import type { AnnouncementFormErrors, CreateAnnouncement } from "../../type/AnnouncementType";
 import { validateAnnouncement } from "../../lib/utils/validateAnnouncement";
 
 const Announcements = () => {
@@ -23,10 +22,10 @@ const Announcements = () => {
 
   const [showForm, setShowForm] = useState(false);
   const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<
-    number | null
+    string | null
   >(null);
   const [editingAnnouncementId, setEditingAnnouncementId] = useState<
-    number | null
+    string | null
     >(null);
   const[errors,setErrors]=useState<AnnouncementFormErrors>({})
 
@@ -77,8 +76,7 @@ const Announcements = () => {
     }
 
     // CREATE
-    const newAnnouncement: Announcement = {
-      id: Date.now(),
+    const newAnnouncement: CreateAnnouncement = {
       title: formData.title,
       message: formData.message,
       createdBy: currentUser!.name,
@@ -102,7 +100,7 @@ const Announcements = () => {
     toast.success("Announcement created successfully");
   };
 
-  const handleEdit = (announcementId: number) => {
+  const handleEdit = (announcementId: string) => {
     const announcement = announcements.find(
       (item) => item.id === announcementId,
     );

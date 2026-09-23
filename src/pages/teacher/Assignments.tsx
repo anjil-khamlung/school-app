@@ -8,15 +8,16 @@ import SearchInput from "../../components/inputs/SearchInput";
 import AssignmentCard from "../../components/cards/AssignmentsCard";
 import ConfirmModal from "../../components/ConfirmModal";
 import { toast } from "react-toastify";
-import type { Assignment } from "../../type/type";
 import { useAssignments } from "../../store/useAssignments";
 import SelectField from "../../components/inputs/SelectField";
 import { className } from "../../data/classOptions";
-import type{ AssignmentFormErrors } from "../../type/AssignmentType";
+import type { AssignmentFormErrors } from "../../type/AssignmentType";
 import { validateAssignment } from "../../lib/utils/validateAssignment";
+import { useNavigate } from "react-router-dom";
 
 const Assignments = () => {
   const { currentUser } = useSchoolStore();
+
   const {
     assignments,
     getAssignments,
@@ -24,6 +25,8 @@ const Assignments = () => {
     addAssignment,
     deleteAssignment,
     submitAssignment,
+    getSubmittedAssignments,
+    getSubmissionCounts,
   } = useAssignments();
   if (!currentUser) return null;
 
@@ -34,12 +37,20 @@ const Assignments = () => {
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<
-    null | number
+    null | string
   >(null);
-  const [editingAssignmentId, setEditingAssignmentId] = useState<number | null>(
+  const [editingAssignmentId, setEditingAssignmentId] = useState<string | null>(
     null,
   );
-  const[errors,setErrors]=useState<AssignmentFormErrors>({})
+  const [submittedAssignmentIds, setSubmittedAssignmentIds] = useState<
+    string[]
+  >([]);
+  const [submissionCounts, setSubmissionCounts] = useState<
+    Record<string, number>
+  >({});
+  const [totalSubmissions, setTotalSubmissions] = useState(0);
+
+  const [errors, setErrors] = useState<AssignmentFormErrors>({});
   const initial = {
     title: "",
     className: "",
@@ -49,10 +60,39 @@ const Assignments = () => {
   };
   const [formData, setFormData] = useState(initial);
 
-  //fetching assignemnts
+  const navigate=useNavigate()
+
+  //fetching assignemnts and submitted assignments
   useEffect(() => {
-    getAssignments();
-  }, [getAssignments]);
+    const loadData = async () => {
+      await getAssignments();
+
+      if (!currentUser) return;
+
+      if (currentUser.role === "student") {
+        const submittedIds = await getSubmittedAssignments(currentUser.id);
+        setSubmittedAssignmentIds(submittedIds);
+      }
+
+      if (currentUser.role === "teacher") {
+        const counts = await getSubmissionCounts();
+        setSubmissionCounts(counts);
+
+        const totalSubmissions = Object.values(counts).reduce(
+          (total, count) => total + count,
+          0,
+        );
+        setTotalSubmissions(totalSubmissions);
+      }
+    };
+
+    loadData();
+  }, [
+    currentUser,
+    getAssignments,
+    getSubmittedAssignments,
+    getSubmissionCounts,
+  ]);
 
   const teacherAssignments = assignments.filter(
     (assignments) => assignments.teacherId === currentUser.id,
@@ -85,13 +125,13 @@ const Assignments = () => {
   ) => {
     e.preventDefault();
 
-     // Validation
-       const validationErrors = validateAssignment(formData);
-       setErrors(validationErrors);
-       // Stop if there are errors
-       if (Object.keys(validationErrors).length > 0) {
-         return;
-       }
+    // Validation
+    const validationErrors = validateAssignment(formData);
+    setErrors(validationErrors);
+    // Stop if there are errors
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
 
     // EDIT
     if (editingAssignmentId !== null) {
@@ -118,7 +158,6 @@ const Assignments = () => {
 
     //CREATE
     const newAssignment = {
-      id: Date.now(),
       title: formData.title,
       className: formData.className,
       description: formData.description,
@@ -126,7 +165,6 @@ const Assignments = () => {
       subject: formData.subject,
       teacherId: currentUser.id,
       teacher: currentUser.name,
-      submittedBy: [],
     };
 
     const success = await addAssignment(newAssignment);
@@ -142,12 +180,12 @@ const Assignments = () => {
     setShowForm(false);
   };
 
-  const handleDelete = (assignmentId: number) => {
+  const handleDelete = (assignmentId: string) => {
     setSelectedAssignmentId(assignmentId);
   };
 
   //Edit class
-  const handleEdit = (assignmentId: number) => {
+  const handleEdit = (assignmentId: string) => {
     const selectedAssignment = assignments.find(
       (item) => item.id === assignmentId,
     );
@@ -187,24 +225,40 @@ const Assignments = () => {
   };
 
   // submit assignment
-  const handleSubmit = async (assignmentId: number) => {
-    if (!isStudent) return;
-    const success = await submitAssignment(assignmentId, currentUser.id);
-    if (!success) {
-      toast.error("Failed to submit Assignment");
-      return;
+  const handleSubmit = async (
+    assignmentId: string,
+    submissionContent: string,
+  ) => {
+    if (!currentUser) return false;
+
+    const assignment = assignments.find(
+      (assignment) => assignment.id === assignmentId,
+    );
+
+    if (!assignment) return false;
+
+    const success = await submitAssignment(
+      assignmentId,
+      currentUser.id,
+      submissionContent,
+      assignment.title,
+      new Date(),
+    );
+
+    if (success) {
+      toast.success("Assignment submitted successfully");
+    } else {
+      toast.error("Failed to submit assignment");
     }
-    toast.success("Assignments submitted successfully");
+
+    setSubmittedAssignmentIds(await getSubmittedAssignments(currentUser.id));
+
+    return success;
   };
 
-  // check whether student submitted
-  const isSubmitted = (assignment: Assignment) => {
-    return assignment.submittedBy?.includes(currentUser.id);
-  };
-
-  //   Student assignments submitted count
+  //Total assignments submitted by a student(currentUser)
   const submittedCount = assignments.filter((assignment) =>
-    assignment.submittedBy?.includes(currentUser.id),
+    submittedAssignmentIds.includes(assignment.id),
   ).length;
 
   //Form toggle
@@ -378,16 +432,10 @@ const Assignments = () => {
 
       {/* Statistics */}
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        <DashboardCard
-          title="Total Assignments"
-          icon={FiFileText}
-          iconStyle="bg-teal-50 text-teal-600"
-          textStyle="text-teal-600 hover:text-teal-700"
-          value={isTeacher ? teacherAssignments.length : assignments.length}
-        />
+      
 
         <DashboardCard
-          title={isStudent ? "Submitted Assignments" : "Available"}
+          title={isStudent || isTeacher ? "Submitted Assignments" : "Available"}
           icon={FiFileText}
           iconStyle="bg-teal-50 text-teal-600"
           textStyle="text-teal-600 hover:text-teal-700"
@@ -395,9 +443,11 @@ const Assignments = () => {
             isStudent
               ? submittedCount
               : isTeacher
-                ? teacherAssignments.length
+                ? totalSubmissions
                 : assignments.length
           }
+          buttonText="See assignments"
+          onClick={()=>navigate("/teacher/submittedAssignments")}
         />
       </div>
 
@@ -418,18 +468,23 @@ const Assignments = () => {
         </span>
       </div>
 
-      {/* Assignment Cards */}
-      <AssignmentCard
-        user={currentUser}
-        filteredAssignments={filteredAssignments}
-        isSubmitted={isSubmitted}
-        handleEdit={handleEdit}
-        handleDelete={handleDelete}
-        handleSubmit={handleSubmit}
-      />
-
-      {/* Empty */}
-      {filteredAssignments.length === 0 && (
+      {/* Assignment Card */}
+      {filteredAssignments.length > 0 ? (
+        <div className="mt-4 grid gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+          {filteredAssignments.map((assignment) => (
+            <AssignmentCard
+              key={assignment.id}
+              assignment={assignment}
+              isSubmitted={submittedAssignmentIds.includes(assignment.id)}
+              submittedCount={submissionCounts[assignment.id] || 0}
+              handleSubmit={handleSubmit}
+              handleDelete={handleDelete}
+              handleEdit={handleEdit}
+              user={currentUser}
+            />
+          ))}
+        </div>
+      ) : (
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
             <FiFileText size={24} />
@@ -457,6 +512,6 @@ const Assignments = () => {
       />
     </div>
   );
-};;;
+};
 
 export default Assignments;

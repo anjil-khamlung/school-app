@@ -14,7 +14,6 @@ export const useSchoolStore = create<SchoolStore>()(
           id: user.id,
           name: user.name,
           email: user.email,
-          password: user.password,
           role: user.role,
         });
 
@@ -27,7 +26,7 @@ export const useSchoolStore = create<SchoolStore>()(
       login: (user) =>
         set(() => ({
           currentUser: user,
-          // need refactor
+         
           isAuthenticated: true,
         })),
 

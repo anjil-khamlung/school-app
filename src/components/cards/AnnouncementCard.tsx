@@ -1,12 +1,12 @@
 import { FiBell, FiCalendar, FiEdit2, FiTrash2 } from "react-icons/fi";
 
-import type { Announcement } from "../../type/type";
+import type { Announcement } from "../../type/AnnouncementType";
 
 interface AnnouncementCardProps {
   announcement: Announcement;
     isAdmin: boolean;
-    handleEdit:(AnnouncementId:number)=>void
-  handleDelete: (announcementId: number) => void;
+    handleEdit:(AnnouncementId:string)=>void
+  handleDelete: (announcementId: string) => void;
 }
 
 const AnnouncementCard = ({

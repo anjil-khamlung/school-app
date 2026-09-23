@@ -10,11 +10,10 @@ import {
 } from "react-icons/fi";
 
 import { useEffect, useState } from "react";
-import type { RegisterForm, } from "../../type/type";
 import { toast } from "react-toastify";
 import { useUsers } from "../../store/useUsers";
 import SelectField from "../../components/inputs/SelectField";
-import type { RegisterFormErrors } from "../../type/registerType";
+import type { RegisterForm, RegisterFormErrors } from "../../type/registerType";
 import { validateRegister } from "../../lib/utils/validateRegister";
 import { supabase } from "../../lib/supabase";
 
@@ -64,7 +63,7 @@ const roles = ["student", "teacher",];
        email: formData.email,
        password: formData.password,
      });
-
+     
      if (error) {
        toast.error(error.message);
        return;
@@ -311,11 +310,11 @@ const roles = ["student", "teacher",];
           </form>
 
           {/* Login */}
-          <p className="mt-6 text-center text-sm text-slate-500">
+          <p className="mt-3 text-center text-sm text-slate-500">
             Already have an account?{" "}
             <Link
               to="/login"
-              className="font-bold text-teal-600 transition hover:text-emerald-600"
+              className="font-bold text-teal-600 transition hover:text-emerald-400"
             >
               Sign in
             </Link>

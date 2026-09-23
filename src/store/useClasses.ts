@@ -1,6 +1,7 @@
 import { create } from "zustand";
-import type { ClassesStore } from "../type/type";
+
 import { supabase } from "../lib/supabase";
+import type { ClassesStore } from "../type/classType";
 
 export const useClasses = create<ClassesStore>((set) => ({
   classes: [],
@@ -19,7 +20,6 @@ export const useClasses = create<ClassesStore>((set) => ({
   //Add class
   addClass: async (newClass) => {
     const { error } = await supabase.from("classes").insert({
-      id: newClass.id,
       className: newClass.className,
       section: newClass.section,
       students: newClass.students,
