@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo,  useState } from "react";
 import { useSchoolStore } from "../../store/useSchoolStore";
 import { FiCalendar, FiEdit2, FiFileText, FiPlus, FiX } from "react-icons/fi";
 import InputField from "../../components/inputs/InputField";
@@ -10,13 +10,14 @@ import ConfirmModal from "../../components/ConfirmModal";
 import { toast } from "react-toastify";
 import { useAssignments } from "../../store/useAssignments";
 import SelectField from "../../components/inputs/SelectField";
-import { className } from "../../data/classOptions";
 import type { AssignmentFormErrors } from "../../type/AssignmentType";
 import { validateAssignment } from "../../lib/utils/validateAssignment";
 import { useNavigate } from "react-router-dom";
+import { useClasses } from "../../store/useClasses";
 
 const Assignments = () => {
   const { currentUser } = useSchoolStore();
+  const{classes,getClasses}=useClasses()
 
   const {
     assignments,
@@ -48,41 +49,37 @@ const Assignments = () => {
   const [submissionCounts, setSubmissionCounts] = useState<
     Record<string, number>
   >({});
-  const [totalSubmissions, setTotalSubmissions] = useState(0);
 
   const [errors, setErrors] = useState<AssignmentFormErrors>({});
   const initial = {
     title: "",
-    className: "",
+    classId: "",
     description: "",
     dueDate: "",
-    subject: "",
   };
   const [formData, setFormData] = useState(initial);
 
-  const navigate=useNavigate()
+
+  const navigate = useNavigate();
 
   //fetching assignemnts and submitted assignments
   useEffect(() => {
     const loadData = async () => {
       await getAssignments();
+      await getClasses();
 
       if (!currentUser) return;
 
       if (currentUser.role === "student") {
         const submittedIds = await getSubmittedAssignments(currentUser.id);
+
         setSubmittedAssignmentIds(submittedIds);
       }
 
       if (currentUser.role === "teacher") {
         const counts = await getSubmissionCounts();
-        setSubmissionCounts(counts);
 
-        const totalSubmissions = Object.values(counts).reduce(
-          (total, count) => total + count,
-          0,
-        );
-        setTotalSubmissions(totalSubmissions);
+        setSubmissionCounts(counts);
       }
     };
 
@@ -93,6 +90,23 @@ const Assignments = () => {
     getSubmittedAssignments,
     getSubmissionCounts,
   ]);
+
+
+  // Calculate total submissions for the current teacher
+  const totalSubmissions = useMemo(() => {
+    if (!currentUser || currentUser.role !== "teacher") {
+      return 0;
+    }
+
+    const myAssignmentIds = assignments
+      .filter((assignment) => assignment.teacherId === currentUser.id)
+      .map((assignment) => assignment.id);
+
+    return myAssignmentIds.reduce(
+      (total, id) => total + (submissionCounts[id] || 0),
+      0,
+    );
+  }, [assignments, submissionCounts, currentUser]);
 
   const teacherAssignments = assignments.filter(
     (assignments) => assignments.teacherId === currentUser.id,
@@ -112,8 +126,6 @@ const Assignments = () => {
 
     return (
       assignment.title?.toLowerCase().includes(value) ||
-      assignment.subject?.toLowerCase().includes(value) ||
-      assignment.className?.toLowerCase().includes(value) ||
       assignment.description?.toLowerCase().includes(value) ||
       assignment.teacher?.toLowerCase().includes(value)
     );
@@ -136,9 +148,8 @@ const Assignments = () => {
     // EDIT
     if (editingAssignmentId !== null) {
       const success = await updateAssignment(editingAssignmentId, {
-        className: formData.className,
         title: formData.title,
-        subject: formData.subject,
+        classId: formData.classId,
         dueDate: formData.dueDate,
         description: formData.description,
       });
@@ -159,10 +170,9 @@ const Assignments = () => {
     //CREATE
     const newAssignment = {
       title: formData.title,
-      className: formData.className,
+      classId: formData.classId,
       description: formData.description,
       dueDate: formData.dueDate,
-      subject: formData.subject,
       teacherId: currentUser.id,
       teacher: currentUser.name,
     };
@@ -195,9 +205,8 @@ const Assignments = () => {
     setEditingAssignmentId(assignmentId);
 
     setFormData({
-      className: selectedAssignment.className,
+      classId: selectedAssignment.classId,
       title: selectedAssignment.title,
-      subject: selectedAssignment.subject,
       dueDate: selectedAssignment.dueDate,
       description: selectedAssignment.description,
     });
@@ -241,7 +250,6 @@ const Assignments = () => {
       assignmentId,
       currentUser.id,
       submissionContent,
-      assignment.title,
       new Date(),
     );
 
@@ -276,6 +284,14 @@ const Assignments = () => {
     }
   };
 
+  //Class options for selecting
+const classOptions = classes
+  .filter((item) => item.teacherId === currentUser?.id)
+  .map((item) => ({
+    value: item.id,
+    label: `${item.class} - ${item.subject}`,
+  }));
+
   return (
     <div className="mx-auto w-full max-w-7xl p-2 lg:p-4">
       {/* Header */}
@@ -301,6 +317,7 @@ const Assignments = () => {
                 : "View and submit your assigned coursework."}
           </p>
         </div>
+  
 
         {/* Teacher Create /Cancel Button */}
         {isTeacher && (
@@ -349,28 +366,17 @@ const Assignments = () => {
               error={errors.title}
             />
 
-            {/* Subject  */}
-            <InputField
-              label="Subject"
-              type="text"
-              name="subject"
-              value={formData.subject}
-              setFormData={setFormData}
-              placeholder="e.g. Social Studies"
-              error={errors.subject}
-            />
-
             {/* Class  */}
             <SelectField
               label="Class"
-              placeholder="Select Class"
-              value={formData.className}
-              options={className}
-              error={errors.className}
+              placeholder="Select class"
+              value={formData.classId}
+              options={classOptions}
+              error={errors.classId}
               onChange={(value) =>
                 setFormData((prev) => ({
                   ...prev,
-                  className: value,
+                  classId: value,
                 }))
               }
             />
@@ -387,7 +393,7 @@ const Assignments = () => {
               />
 
               <FiCalendar
-                className="pointer-events-none  absolute right-4 top-2/3 -translate-y-1/2 text-slate-400"
+                className="pointer-events-none absolute right-12 top-2/3 -translate-y-1/2 text-slate-400"
                 size={18}
               />
             </div>
@@ -432,7 +438,13 @@ const Assignments = () => {
 
       {/* Statistics */}
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
-      
+        <DashboardCard
+          title="Total Assignments"
+          icon={FiFileText}
+          iconStyle="bg-teal-50 text-teal-600"
+          textStyle="text-teal-600 hover:text-teal-700"
+          value={isTeacher ? teacherAssignments.length : assignments.length}
+        />
 
         <DashboardCard
           title={isStudent || isTeacher ? "Submitted Assignments" : "Available"}
@@ -446,8 +458,8 @@ const Assignments = () => {
                 ? totalSubmissions
                 : assignments.length
           }
-          buttonText="See assignments"
-          onClick={()=>navigate("/teacher/submittedAssignments")}
+          buttonText={isTeacher ? "See assignments" : ""}
+          onClick={() => navigate("/teacher/submittedAssignments")}
         />
       </div>
 
@@ -475,6 +487,7 @@ const Assignments = () => {
             <AssignmentCard
               key={assignment.id}
               assignment={assignment}
+              classes={classes}
               isSubmitted={submittedAssignmentIds.includes(assignment.id)}
               submittedCount={submissionCounts[assignment.id] || 0}
               handleSubmit={handleSubmit}

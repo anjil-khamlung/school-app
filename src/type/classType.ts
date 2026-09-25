@@ -1,12 +1,12 @@
 export interface ClassFormData {
-  className: string;
+  class: string;
   section: string;
   subject: string;
   time: string;
 }
 
 export interface ClassFormErrors {
-  className?: string;
+  class?: string;
   section?: string;
   subject?: string;
   time?: string;
@@ -14,7 +14,7 @@ export interface ClassFormErrors {
 
 export interface Class {
   id: string;
-  className: string;
+  class: string;
   section: string;
   students: string[];
   subject: string;
@@ -31,7 +31,7 @@ export interface ClassesStore {
   updateClass: (
     classId: string,
     updatedData: {
-      className: string;
+      class: string;
       section: string;
       subject: string;
       time: string;

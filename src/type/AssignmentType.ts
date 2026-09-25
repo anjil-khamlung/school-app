@@ -1,26 +1,23 @@
 export interface AssignmentFormData {
   title: string;
-  className: string;
+  classId: string;
   description: string;
   dueDate: string;
-  subject: string;
 }
 
 export interface AssignmentFormErrors {
   title?: string;
-  className?: string;
+  classId?: string;
   description?: string;
   dueDate?: string;
-  subject?: string;
 }
 
 export interface Assignment {
   id: string;
   title: string;
-  className: string;
+  classId: string;
   description: string;
   dueDate: string;
-  subject: string;
   teacher: string;
   teacherId: string;
 }
@@ -30,10 +27,11 @@ export interface SubmittedAssignment {
   id: string;
   assignmentId: string;
   studentId: string;
-  studentName:string,
+  studentName: string,
+  className:string,
   content: string;
-  title?: string;
-  date?: Date;
+  assignmentTitle: string;
+  date: Date;
 }
 
 
@@ -44,8 +42,7 @@ export interface AssignmentsStore {
   updateAssignment: (
     assignmentId: string,
     updatedData: {
-      className: string;
-      subject: string;
+      classId: string;
       title: string;
       dueDate: string;
       description: string;
@@ -63,7 +60,6 @@ export interface AssignmentsStore {
     assignmentId: string,
     studentId: string,
     content: string,
-    title: string,
     date: Date,
   ) => Promise<boolean>;
 

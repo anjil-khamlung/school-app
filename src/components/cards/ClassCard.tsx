@@ -37,20 +37,20 @@ handleDelete,
 
       {/* Name */}
       <h2 className="mt-5 text-xl font-bold text-slate-900">
-        {item.className}
+        {item.class}
       </h2>
 
       {/* Subject */}
-      <p className="mt-2 text-sm text-slate-500">{item.subject}</p>
+      <p className="mt-2 text-sm text-teal-500">{item.subject}</p>
 
       {/* Teacher */}
-      <div className="mt-3 flex items-center gap-2 text-sm text-slate-500">
+      <div className="mt-3 flex items-center gap-2 text-sm text-orange-500">
         <FiUser size={16} />
         <span>{item.teacherName || "Teacher not assigned"}</span>
       </div>
 
       {/* Time */}
-      <p className="mt-2 text-sm text-slate-500">{item.time}</p>
+      <p className="mt-2 text-sm font-bold text-slate-500">{item.time}</p>
 
       {/* Students */}
       <div className="mt-5 flex items-center gap-2 border-t border-slate-100 pt-4 text-sm text-teal-500">

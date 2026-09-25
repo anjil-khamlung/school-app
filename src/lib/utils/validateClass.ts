@@ -3,8 +3,8 @@ import type { ClassFormData, ClassFormErrors } from "../../type/classType";
 export const validateClass = (formData: ClassFormData): ClassFormErrors => {
   const errors: ClassFormErrors = {};
 
-  if (!formData.className.trim()) {
-    errors.className = "Class is required";
+  if (!formData.class.trim()) {
+    errors.class = "Class is required";
   }
 
   if (!formData.section.trim()) {

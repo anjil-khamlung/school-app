@@ -20,6 +20,7 @@ import About from "../pages/About";
 import Contact from "../pages/Contact";
 import Announcements from "../pages/admin/Announcements";
 import SubmittedAssignments from "../pages/teacher/SubmittedAssignments";
+import SubmittedAssignmentClasses from "../pages/teacher/SubmittedAssignmentsClasses";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -131,8 +132,12 @@ const router = createBrowserRouter([
                 element: <Assignments />,
               },
               {
-                path: "submittedAssignments",
+                path: "submittedAssignments/:classId",
                 element: <SubmittedAssignments />,
+              },
+              {
+                path: "submittedAssignments",
+                element: <SubmittedAssignmentClasses />,
               },
             ],
           },

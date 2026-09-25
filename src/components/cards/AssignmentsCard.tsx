@@ -10,9 +10,11 @@ import type {  User } from "../../type/type";
 import type { Assignment } from "../../type/AssignmentType";
 import { useState } from "react";
 import SubmitAssignmentModal from "../SubmitAssignmentsModal";
+import type { Class } from "../../type/classType";
 
 interface AssignmentCardProps {
   assignment: Assignment;
+  classes:Class[],
   isSubmitted: boolean;
   handleSubmit: (
     assignmentId: string,
@@ -26,6 +28,7 @@ interface AssignmentCardProps {
 
 const AssignmentCard = ({
   assignment,
+  classes,
   isSubmitted,
   submittedCount,
   handleDelete,
@@ -45,7 +48,7 @@ const AssignmentCard = ({
 
   const submitted = isSubmitted;
 
-
+const selectedClass = classes.find((item) => item.id === assignment.classId);
 
   return (
     <>
@@ -75,18 +78,18 @@ const AssignmentCard = ({
 
         {/* Subject */}
         <p className="mt-1 min-h-5 text-sm font-medium text-teal-600">
-          {assignment.subject}
+          {selectedClass?.subject || "Unknown Subject"}
         </p>
 
         {/* Description */}
-        <p className="mt-3 min-h-10 line-clamp-2 text-sm leading-6 text-slate-500">
+        <p className="mt-3 min-h-10 line-clamp-2 text-sm leading-6 text-slate-600">
           {assignment.description}
         </p>
 
         {/* Class */}
-        <div className="mt-5 flex min-h-5 items-center gap-2 text-sm text-slate-500">
+        <div className="mt-5 flex min-h-5 items-center gap-2 text-sm text-orange-500">
           <FiFileText size={16} />
-          <span>{assignment.className}</span>
+          <span>{selectedClass?.class || "Unknown Class"}</span>
         </div>
 
         {/* Teacher */}
@@ -96,7 +99,7 @@ const AssignmentCard = ({
         </div>
 
         {/* Due Date */}
-        <div className="mt-4 flex min-h-6 items-center gap-2 border-t border-slate-100 pt-4 text-sm text-slate-500">
+        <div className="mt-4 flex min-h-6 items-center gap-2 border-t border-slate-100 pt-4 text-sm font-bold text-slate-500">
           <FiCalendar size={16} />
           <span>Due: {new Date(assignment.dueDate).toLocaleDateString()}</span>
         </div>

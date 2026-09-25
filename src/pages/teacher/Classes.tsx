@@ -9,7 +9,7 @@ import ConfirmModal from "../../components/ConfirmModal";
 import { useClasses } from "../../store/useClasses";
 import SelectField from "../../components/inputs/SelectField";
 import { className, section, time } from "../../data/classOptions";
-import type {  ClassFormErrors, CreateClass } from "../../type/classType";
+import type { ClassFormErrors, CreateClass } from "../../type/classType";
 import { validateClass } from "../../lib/utils/validateClass";
 
 const Classes = () => {
@@ -23,7 +23,7 @@ const Classes = () => {
   const [editingClassId, setEditingClassId] = useState<string | null>(null);
   const [errors, setErrors] = useState<ClassFormErrors>({});
   const initial = {
-    className: "",
+    class: "",
     section: "",
     subject: "",
     time: "",
@@ -67,7 +67,7 @@ const Classes = () => {
     }
 
     return (
-      item.className?.toLowerCase().includes(value) ||
+      item.class?.toLowerCase().includes(value) ||
       item.section?.toLowerCase().includes(value) ||
       item.subject?.toLowerCase().includes(value) ||
       item.teacherName?.toLowerCase().includes(value)
@@ -89,7 +89,7 @@ const Classes = () => {
     // EDIT
     if (editingClassId !== null) {
       const success = await updateClass(editingClassId, {
-        className: formData.className,
+        class: formData.class,
         section: formData.section,
         subject: formData.subject,
         time: formData.time,
@@ -110,7 +110,7 @@ const Classes = () => {
 
     // CREATE
     const newClass: CreateClass = {
-      className: formData.className,
+      class: formData.class,
       section: formData.section,
       subject: formData.subject,
       time: formData.time,
@@ -142,7 +142,7 @@ const Classes = () => {
     setEditingClassId(classId);
 
     setFormData({
-      className: selectedClass.className,
+      class: selectedClass.class,
       section: selectedClass.section,
       subject: selectedClass.subject,
       time: selectedClass.time,
@@ -267,13 +267,13 @@ const Classes = () => {
             <SelectField
               label="Class"
               placeholder="Select Class"
-              value={formData.className}
+              value={formData.class}
               options={className}
-              error={errors.className}
+              error={errors.class}
               onChange={(value) =>
                 setFormData((prev) => ({
                   ...prev,
-                  className: value,
+                  class: value,
                 }))
               }
             />

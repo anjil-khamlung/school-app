@@ -1,41 +1,62 @@
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { FiCalendar, FiFileText, FiUser } from "react-icons/fi";
+
 import { useAssignments } from "../../store/useAssignments";
 import { useSchoolStore } from "../../store/useSchoolStore";
+
 import type { SubmittedAssignment } from "../../type/AssignmentType";
 import SubmitAssignmentModal from "../../components/SubmitAssignmentsModal";
 
 const SubmittedAssignments = () => {
-    const { getSubmittedAssignmentsForTeacher } = useAssignments();
-    const{currentUser}=useSchoolStore()
-const [selectedSubmission, setSelectedSubmission] =
-  useState<SubmittedAssignment | null>(null);
-  const [submissions, setSubmissions] = useState<any[]>([]);
+  const { classId } = useParams();
 
-useEffect(() => {
-  const loadSubmissions = async () => {
-    if (!currentUser) return;
+  const { assignments, getSubmittedAssignmentsForTeacher } = useAssignments();
 
-    const data = await getSubmittedAssignmentsForTeacher(currentUser.id);
+  const { currentUser } = useSchoolStore();
 
-    setSubmissions(data);
-  };
+  const [selectedSubmission, setSelectedSubmission] =
+    useState<SubmittedAssignment | null>(null);
 
-  loadSubmissions();
-}, [currentUser, getSubmittedAssignmentsForTeacher]);
+  const [submissions, setSubmissions] = useState<SubmittedAssignment[]>([]);
+
+  useEffect(() => {
+    const loadSubmissions = async () => {
+      if (!currentUser || !classId) return;
+
+      // Get all submissions of this teacher
+      const data = await getSubmittedAssignmentsForTeacher(currentUser.id);
+
+      // Get assignment IDs that belong to the selected class
+      const classAssignmentIds = assignments
+        .filter((assignment) => assignment.classId === classId)
+        .map((assignment) => assignment.id);
+
+      // Only keep submissions for those assignments
+      const filteredSubmissions = data.filter((submission) =>
+        classAssignmentIds.includes(submission.assignmentId),
+      );
+
+      setSubmissions(filteredSubmissions);
+
+    };
+    loadSubmissions();
+  }, [currentUser, classId, assignments, getSubmittedAssignmentsForTeacher]);
 
   return (
     <div className="p-6">
+      {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">
+        <h1 className="text-2xl font-bold text-teal-600">
           Submitted Assignments
         </h1>
 
         <p className="mt-1 text-sm text-slate-500">
-          View assignments submitted by students.
+          View assignments submitted by students for this class.
         </p>
       </div>
 
+      {/* Submissions */}
       {submissions.length === 0 ? (
         <div className="flex min-h-87.5 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-teal-50">
@@ -47,7 +68,7 @@ useEffect(() => {
           </h2>
 
           <p className="mt-2 max-w-md text-sm text-slate-500">
-            Students have not submitted any of your assignments yet.
+            Students have not submitted any assignments for this class yet.
           </p>
         </div>
       ) : (
@@ -60,13 +81,18 @@ useEffect(() => {
               <div className="flex items-start justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-slate-900">
-                    {submission.title}
+                    {submission.assignmentTitle}
                   </h2>
 
                   <div className="mt-2 flex gap-4 text-sm text-slate-500">
                     <span className="flex items-center gap-1">
                       <FiUser />
                       {submission.studentName}
+                    </span>
+
+                    <span className="flex items-center gap-1">
+                      <FiFileText />
+                      {submission.className}
                     </span>
 
                     <span className="flex items-center gap-1">
@@ -100,11 +126,13 @@ useEffect(() => {
         </div>
       )}
 
+      {/* View submission modal */}
       {selectedSubmission && (
         <SubmitAssignmentModal
           mode="view"
-          title={selectedSubmission.title}
+          title={selectedSubmission.assignmentTitle}
           studentName={selectedSubmission.studentName}
+          className={selectedSubmission.className}
           date={selectedSubmission.date}
           submissionContent={selectedSubmission.content}
           onCancel={() => setSelectedSubmission(null)}
@@ -115,7 +143,3 @@ useEffect(() => {
 };
 
 export default SubmittedAssignments;
-
-
-
-

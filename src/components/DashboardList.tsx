@@ -66,18 +66,20 @@ const DashboardList = ({
               <h3 className="font-semibold text-slate-900">
                 {/* If item has title, use item.title; otherwise if it has name,
                 use item.name; otherwise use item.id. */}
-                {"title" in item
-                  ? item.title
-                  : "name" in item
-                    ? item.name
-                    : item.id}
+                {"title" in item && ` ${item.title}`}
+                {"subject" in item
+                  ? `${item.subject} `
+                  : "email" in item
+                    ? item.email
+                    : ""}
+
                 {"section" in item && `-${item.section}`}
               </h3>
 
-              <p className="mt-1 text-sm text-slate-500">
-                {"subject" in item ? item.subject : item.email}
-                {"teacherName" in item && ` · ${item.teacherName}`}
-                {"teacher" in item && ` · ${item.teacher}`}
+              <p className="mt-1 text-sm  text-slate-500">
+            
+                {"teacherName" in item && `  ${item.teacherName}`}
+                {"teacher" in item && `  ${item.teacher}`}
               </p>
             </div>
           </div>

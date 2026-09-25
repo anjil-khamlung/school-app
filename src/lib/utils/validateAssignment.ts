@@ -20,8 +20,8 @@ export const validateAssignment = (
   }
 
   // Class
-  if (!formData.className.trim()) {
-    errors.className = "Class is required";
+  if (!formData.classId.trim()) {
+    errors.classId = "Class is required";
   }
 
   // Due date
@@ -29,13 +29,7 @@ export const validateAssignment = (
     errors.dueDate = "Due date is required";
   }
 
-  // Subject
-  if (!formData.subject.trim()) {
-    errors.subject = "Subject is required";
-  } else if (!/^(?=(?:.*[A-Za-z]){3})[A-Za-z0-9\s]+$/.test(formData.subject)) {
-    errors.subject =
-      "Subject must contain at least 3 letters and only letters, numbers, and spaces";
-  }
+
 
   return errors;
 };

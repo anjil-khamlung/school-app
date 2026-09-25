@@ -20,7 +20,7 @@ export const useClasses = create<ClassesStore>((set) => ({
   //Add class
   addClass: async (newClass) => {
     const { error } = await supabase.from("classes").insert({
-      className: newClass.className,
+      class: newClass.class,
       section: newClass.section,
       students: newClass.students,
       subject: newClass.subject,
@@ -40,24 +40,22 @@ export const useClasses = create<ClassesStore>((set) => ({
 
   //Edit class
   updateClass: async (classId, updatedData) => {
-    const {  error } = await supabase
+    const { error } = await supabase
       .from("classes")
       .update({
-        className: updatedData.className,
+        class: updatedData.class,
         section: updatedData.section,
         subject: updatedData.subject,
         time: updatedData.time,
       })
-      .eq("id", classId)
-      
+      .eq("id", classId);
 
     if (error) {
       console.log("Update class error:", error);
       return false;
     }
 
-       await useClasses.getState().getClasses();
-
+    await useClasses.getState().getClasses();
 
     return true;
   },

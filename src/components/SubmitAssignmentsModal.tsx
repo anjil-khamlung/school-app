@@ -7,6 +7,7 @@ interface SubmitAssignmentModalProps {
   mode?: "submit" | "view";
 
   title?: string;
+  className?:string,
   studentName?: string;
   date?: Date | null;
 }
@@ -18,6 +19,7 @@ const SubmitAssignmentModal = ({
   onSubmit,
   mode = "submit",
   title,
+  className,
   studentName,
   date,
 }: SubmitAssignmentModalProps) => {
@@ -27,12 +29,17 @@ const SubmitAssignmentModal = ({
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">
-              {mode === "view" ? title : "Submit Assignment"}
+            <h2 className="text-xl font-bold text-slate-900">
+              {mode === "view" ? `Title: ${title}` : "Submit Assignment"}
             </h2>
 
             {mode === "view" && (
               <div className="mt-2 space-y-1 text-sm text-slate-500">
+                <p>
+                  <span className="font-medium text-slate-700">Class:</span>{" "}
+                  {className}
+                </p>
+
                 <p>
                   <span className="font-medium text-slate-700">Student:</span>{" "}
                   {studentName}

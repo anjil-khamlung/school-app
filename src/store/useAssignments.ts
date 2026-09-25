@@ -20,10 +20,9 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
   addAssignment: async (newAssignment) => {
     const { error } = await supabase.from("assignments").insert({
       title: newAssignment.title,
-      className: newAssignment.className,
+      classId: newAssignment.classId,
       description: newAssignment.description,
       dueDate: newAssignment.dueDate,
-      subject: newAssignment.subject,
       teacher: newAssignment.teacher,
       teacherId: newAssignment.teacherId,
     });
@@ -42,8 +41,7 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
     const { error } = await supabase
       .from("assignments")
       .update({
-        className: updatedData.className,
-        subject: updatedData.subject,
+        classId: updatedData.classId,
         title: updatedData.title,
         dueDate: updatedData.dueDate,
         description: updatedData.description,
@@ -78,12 +76,12 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
   },
 
   //Submit assignment
-  submitAssignment: async (assignmentId, studentId, content, title, date) => {
+  submitAssignment: async (assignmentId, studentId, content, date) => {
     const { error } = await supabase.from("assignmentsSubmitted").insert({
       assignmentId,
-      submittedBy: studentId,
+      studentId,
       content,
-      title,
+
       date,
     });
 
@@ -101,7 +99,7 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
     const { data, error } = await supabase
       .from("assignmentsSubmitted")
       .select("assignmentId")
-      .eq("submittedBy", studentId);
+      .eq("studentId", studentId);
 
     if (error) {
       console.error("Error fetching submissions:", error);
@@ -132,12 +130,12 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
     return counts;
   },
 
-  //Get submitted Assignments for students
+  //Get submitted Assignments for teachers
   getSubmittedAssignmentsForTeacher: async (teacherId: string) => {
     // Get teacher's assignments
     const { data: assignments, error: assignmentError } = await supabase
       .from("assignments")
-      .select("id")
+      .select("id, title, classId")
       .eq("teacherId", teacherId);
 
     if (assignmentError) {
@@ -167,7 +165,8 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
     }
 
     // Get student IDs
-    const studentIds = submissions.map((submission) => submission.submittedBy);
+    const studentIds = submissions.map((submission) => submission.studentId);
+
     // Get student names
     const { data: students, error: studentError } = await supabase
       .from("users")
@@ -179,15 +178,41 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       return [];
     }
 
-    // Add student name to each submission
+    // Get class IDs from assignments
+    const classIds = [
+      ...new Set(assignments.map((assignment) => assignment.classId)),
+    ];
+
+    // Get classes
+    const { data: classes, error: classError } = await supabase
+      .from("classes")
+      .select("id, className")
+      .in("id", classIds);
+
+    if (classError) {
+      console.error(classError);
+      return [];
+    }
+
+    // Add student name, assignment title, and class name
     return submissions.map((submission) => {
       const student = students.find(
-        (student) => student.id === submission.submittedBy,
+        (student) => student.id === submission.studentId,
+      );
+
+      const assignment = assignments.find(
+        (assignment) => assignment.id === submission.assignmentId,
+      );
+
+      const selectedClass = classes.find(
+        (item) => item.id === assignment?.classId,
       );
 
       return {
         ...submission,
         studentName: student?.name || "Unknown Student",
+        assignmentTitle: assignment?.title || "Unknown Assignment",
+        className: selectedClass?.className || "Unknown Class",
       };
     });
   },
