@@ -4,14 +4,20 @@ import { useSchoolStore } from "../../store/useSchoolStore";
 import { useAssignments } from "../../store/useAssignments";
 import { useClasses } from "../../store/useClasses";
 import DashboardCard from "../../components/cards/DashboardCard";
+import { useEffect } from "react";
 
 const SubmittedAssignmentClasses = () => {
   const navigate = useNavigate();
 
   const { currentUser } = useSchoolStore();
-  const { assignments } = useAssignments();
-  const { classes } = useClasses();
-
+  const { assignments, getAssignments } = useAssignments();
+  const { classes, getClasses } = useClasses();
+  
+  useEffect(() => {
+    getClasses();
+    getAssignments();
+  }, [getClasses, getAssignments]);
+  
   if (!currentUser) return null;
 
   // Only assignments created by the current teacher

@@ -1,6 +1,8 @@
 import { FiBookOpen, FiEdit2, FiTrash2, FiUser, FiUsers } from "react-icons/fi";
 import type {  User } from "../../type/type";
 import type { Class } from "../../type/classType";
+import { useUsers } from "../../store/useUsers";
+import { useEffect } from "react";
 
 interface ClassCardProps {
   item: Class;
@@ -17,11 +19,18 @@ handleDelete,
   handleJoinClass,
   user,
 }: ClassCardProps) => {
+  const { users ,getUsers} = useUsers()
+  
   const isTeacher = user.role === "teacher";
   const isStudent = user.role === "student";
 
+  useEffect(() => {
+    getUsers()
+  },[])
+
   const studentJoined = isStudent && item.students?.includes(user.id);
 
+  const teacher = users.find((user) => user.id === item.teacherId);
   return (
     <div className="group rounded-2xl border border-slate-200 bg-white p-6 xl:p-8 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-teal-200 hover:shadow-xl">
       {/* Top */}
@@ -46,7 +55,7 @@ handleDelete,
       {/* Teacher */}
       <div className="mt-3 flex items-center gap-2 text-sm text-orange-500">
         <FiUser size={16} />
-        <span>{item.teacherName || "Teacher not assigned"}</span>
+        <span>{teacher?.name || "Teacher not assigned"}</span>
       </div>
 
       {/* Time */}

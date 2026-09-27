@@ -7,12 +7,22 @@ import { useSchoolStore } from "../../store/useSchoolStore";
 
 import type { SubmittedAssignment } from "../../type/AssignmentType";
 import SubmitAssignmentModal from "../../components/SubmitAssignmentsModal";
+import { toast } from "react-toastify";
 
 const SubmittedAssignments = () => {
   const { classId } = useParams();
 
-  const { assignments, getSubmittedAssignmentsForTeacher } = useAssignments();
+  const {
+    assignments,
+    getSubmittedAssignmentsForTeacher,
+    getAssignments,
+    updateSubmittedAssignment,
+  } = useAssignments();
 
+  useEffect(() => {
+    getAssignments();
+  }, [getAssignments]);
+  
   const { currentUser } = useSchoolStore();
 
   const [selectedSubmission, setSelectedSubmission] =
@@ -26,12 +36,10 @@ const SubmittedAssignments = () => {
 
       // Get all submissions of this teacher
       const data = await getSubmittedAssignmentsForTeacher(currentUser.id);
-
       // Get assignment IDs that belong to the selected class
       const classAssignmentIds = assignments
         .filter((assignment) => assignment.classId === classId)
         .map((assignment) => assignment.id);
-
       // Only keep submissions for those assignments
       const filteredSubmissions = data.filter((submission) =>
         classAssignmentIds.includes(submission.assignmentId),
@@ -42,7 +50,6 @@ const SubmittedAssignments = () => {
     };
     loadSubmissions();
   }, [currentUser, classId, assignments, getSubmittedAssignmentsForTeacher]);
-
   return (
     <div className="p-6">
       {/* Header */}
@@ -92,7 +99,7 @@ const SubmittedAssignments = () => {
 
                     <span className="flex items-center gap-1">
                       <FiFileText />
-                      {submission.className}
+                      {submission.class}
                     </span>
 
                     <span className="flex items-center gap-1">
@@ -118,7 +125,7 @@ const SubmittedAssignments = () => {
                   onClick={() => setSelectedSubmission(submission)}
                   className="mt-3 cursor-pointer text-sm font-semibold text-teal-600 hover:text-teal-700"
                 >
-                  See more
+                  Check assignment
                 </button>
               </div>
             </div>
@@ -131,11 +138,26 @@ const SubmittedAssignments = () => {
         <SubmitAssignmentModal
           mode="view"
           title={selectedSubmission.assignmentTitle}
+          className={selectedSubmission.class}
           studentName={selectedSubmission.studentName}
-          className={selectedSubmission.className}
           date={selectedSubmission.date}
           submissionContent={selectedSubmission.content}
           onCancel={() => setSelectedSubmission(null)}
+          onGrade={async (marks, result) => {
+            const success = await updateSubmittedAssignment(
+              selectedSubmission.id,
+              marks,
+              result,
+            );
+
+            if (!success) {
+              toast.error("Failed to update marks");
+              return;
+            }
+
+            toast.success("Marks updated successfully");
+            setSelectedSubmission(null);
+          }}
         />
       )}
     </div>

@@ -49,7 +49,6 @@ const AssignmentCard = ({
   const submitted = isSubmitted;
 
 const selectedClass = classes.find((item) => item.id === assignment.classId);
-
   return (
     <>
       <div className="group rounded-2xl border border-slate-200 bg-white p-6 xl:p-8 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-teal-200 hover:shadow-xl">
@@ -152,6 +151,7 @@ const selectedClass = classes.find((item) => item.id === assignment.classId);
 
       {showSubmitForm && (
         <SubmitAssignmentModal
+          title={assignment.description}
           submissionContent={submissionContent}
           setSubmissionContent={setSubmissionContent}
           onCancel={() => {

@@ -20,6 +20,8 @@ export interface Assignment {
   dueDate: string;
   teacher: string;
   teacherId: string;
+  totalMarks: number
+  passMarks:number
 }
 export type CreateAssignment = Omit<Assignment, "id">;
 
@@ -28,7 +30,7 @@ export interface SubmittedAssignment {
   assignmentId: string;
   studentId: string;
   studentName: string,
-  className:string,
+  class:string,
   content: string;
   assignmentTitle: string;
   date: Date;
@@ -71,4 +73,7 @@ export interface AssignmentsStore {
   getSubmittedAssignmentsForTeacher: (
     teacherId: string,
   ) => Promise<SubmittedAssignment[]>;
+
+  updateSubmittedAssignment:(submissionId:string,obtainedMarks:number,result:"pass"|"fail")=>Promise<boolean>
+
 }

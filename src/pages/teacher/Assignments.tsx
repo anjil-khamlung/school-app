@@ -175,6 +175,8 @@ const Assignments = () => {
       dueDate: formData.dueDate,
       teacherId: currentUser.id,
       teacher: currentUser.name,
+      totalMarks: 100,
+      passMarks:40,
     };
 
     const success = await addAssignment(newAssignment);

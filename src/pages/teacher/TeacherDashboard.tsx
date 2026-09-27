@@ -26,7 +26,6 @@ const TeacherDashboard = () => {
   const myClasses = classes.filter(
     (item) => item.teacherId === currentUser?.id,
   );
-
   return (
     <div className="p-2 lg:p-4">
       {/* Header */}

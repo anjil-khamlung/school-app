@@ -19,7 +19,6 @@ export interface Class {
   students: string[];
   subject: string;
   teacherId: string;
-  teacherName: string;
   time: string;
 }
 export type CreateClass = Omit<Class, "id">;

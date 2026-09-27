@@ -25,6 +25,8 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       dueDate: newAssignment.dueDate,
       teacher: newAssignment.teacher,
       teacherId: newAssignment.teacherId,
+      totalMarks: newAssignment.totalMarks,
+      passMarks: newAssignment.passMarks,
     });
 
     if (error) {
@@ -142,7 +144,6 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       console.error(assignmentError);
       return [];
     }
-
     const assignmentIds = assignments.map((assignment) => assignment.id);
 
     if (assignmentIds.length === 0) {
@@ -154,7 +155,6 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       .from("assignmentsSubmitted")
       .select("*")
       .in("assignmentId", assignmentIds);
-
     if (submissionError) {
       console.error(submissionError);
       return [];
@@ -182,11 +182,10 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
     const classIds = [
       ...new Set(assignments.map((assignment) => assignment.classId)),
     ];
-
     // Get classes
     const { data: classes, error: classError } = await supabase
       .from("classes")
-      .select("id, className")
+      .select("id, class")
       .in("id", classIds);
 
     if (classError) {
@@ -207,13 +206,34 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       const selectedClass = classes.find(
         (item) => item.id === assignment?.classId,
       );
-
       return {
         ...submission,
         studentName: student?.name || "Unknown Student",
         assignmentTitle: assignment?.title || "Unknown Assignment",
-        className: selectedClass?.className || "Unknown Class",
+        class: selectedClass?.class || "Unknown Class",
       };
     });
+  },
+
+  //Update Submitted Assignment
+  updateSubmittedAssignment: async (
+    submissionId,
+    obtainedMarks,
+    result,
+  ) => {
+    const { error } = await supabase
+      .from("assignmentsSubmitted")
+      .update({
+        obtainedMarks,
+        result,
+      })
+      .eq("id", submissionId);
+
+    if (error) {
+      console.error("Error updating submission:", error);
+      return false;
+    }
+
+    return true;
   },
 }));

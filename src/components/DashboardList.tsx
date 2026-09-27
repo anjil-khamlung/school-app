@@ -26,8 +26,12 @@ const DashboardList = ({
   iconBg = "bg-teal-50",
   iconColor = "text-teal-600",
   emptyMessage = "No data available.",
-}:DashboardListProps) => {
+}: DashboardListProps) => {
   const navigate = useNavigate();
+
+
+  
+  
   return (
     <section className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden ">
       {/* Header */}

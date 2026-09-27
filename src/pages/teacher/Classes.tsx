@@ -69,8 +69,7 @@ const Classes = () => {
     return (
       item.class?.toLowerCase().includes(value) ||
       item.section?.toLowerCase().includes(value) ||
-      item.subject?.toLowerCase().includes(value) ||
-      item.teacherName?.toLowerCase().includes(value)
+      item.subject?.toLowerCase().includes(value) 
     );
   });
 
@@ -116,7 +115,6 @@ const Classes = () => {
       time: formData.time,
       students: [],
       teacherId: currentUser.id,
-      teacherName: currentUser.name,
     };
 
     const success = await addClass(newClass);

@@ -25,7 +25,6 @@ export const useClasses = create<ClassesStore>((set) => ({
       students: newClass.students,
       subject: newClass.subject,
       teacherId: newClass.teacherId,
-      teacherName: newClass.teacherName,
       time: newClass.time,
     });
 
