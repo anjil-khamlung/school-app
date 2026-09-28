@@ -1,25 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FiX } from "react-icons/fi";
 import { toast } from "react-toastify";
-import { useAssignments } from "../store/useAssignments";
 import type { SubmittedAssignment } from "../type/AssignmentType";
 
 interface SubmitAssignmentModalProps {
-  submissionContent: string;
+  submission?: SubmittedAssignment;
+  submissionContent?: string;
   setSubmissionContent?: (value: string) => void;
   onCancel: () => void;
   onSubmit?: () => void | Promise<void>;
-  onGrade?: (marks: number, result: "pass" | "fail") => void | Promise<void>;
-
+  onGrade?: (marks: number) => void | Promise<boolean>;
   mode?: "submit" | "view";
-
   title?: string;
-  className?: string;
-  studentName?: string;
-  date?: Date | string | null;
+  obtainedMarks?: number | null;
 }
 
 const SubmitAssignmentModal = ({
+  submission,
   submissionContent,
   setSubmissionContent,
   onCancel,
@@ -27,32 +24,29 @@ const SubmitAssignmentModal = ({
   onGrade,
   mode = "submit",
   title,
-  className,
-  studentName,
-  date,
+  obtainedMarks,
 }: SubmitAssignmentModalProps) => {
-  const [marks, setMarks] = useState<number | "">("");
-  const [result, setResult] = useState<"pass" | "fail" | null>(null);
+  const [marks, setMarks] = useState<number | "">(obtainedMarks ?? "");
 
+  // Check directly from the saved submission data
+  const isGraded = obtainedMarks !== null && obtainedMarks !== undefined;
 
+  useEffect(() => {
+    setMarks(obtainedMarks ?? "");
+  }, [obtainedMarks]);
 
-  const handleGrade = () => {
-    if (marks === "" || result === null) {
-        toast.error("Please enter marks")
-        return;
-      }
-
-    if (marks < 0 || marks > 100) {
-        toast.error("Please enter valid marks");  
-        return;
-    }
-    
-    if (result !== "pass" && result !== "fail") {
-        toast.error("Please choose a result");
+  const handleGrade = async () => {
+    if (marks === "") {
+      toast.error("Please enter marks");
       return;
     }
 
-    onGrade?.(marks, result);
+    if (marks < 0 || marks > (submission?.fullMarks ?? 0)) {
+      toast.error("Please enter valid marks");
+      return;
+    }
+
+    await onGrade?.(marks);
   };
 
   return (
@@ -60,29 +54,51 @@ const SubmitAssignmentModal = ({
       <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl">
         {/* Header */}
         <div className="flex items-start justify-between">
-          <div>
+          <div className="min-w-0 flex-1">
             <h2 className="text-xl font-bold text-slate-900">
-              {mode === "view" ? `Title: ${title}` : "Submit Assignment"}
+              {mode === "view"
+                ? `Title: ${submission?.assignmentTitle}`
+                : "Submit Assignment"}
             </h2>
 
             {mode === "view" && (
-              <div className="mt-2 space-y-1 text-sm text-slate-500">
-                <p>
-                  <span className="font-medium text-slate-700">Class:</span>{" "}
-                  {className}
-                </p>
+              <div className="mt-3 grid grid-cols-2 ">
+                {/* Column 1 */}
+                <div className="space-y-1 text-sm text-slate-500">
+                  <p>
+                    <span className="font-medium text-slate-700">Class:</span>{" "}
+                    {submission?.class}
+                  </p>
 
-                <p>
-                  <span className="font-medium text-slate-700">Student:</span>{" "}
-                  {studentName}
-                </p>
+                  <p>
+                    <span className="font-medium text-slate-700">Subject:</span>{" "}
+                    {submission?.subject}
+                  </p>
 
-                <p>
-                  <span className="font-medium text-slate-700">
-                    Submitted At:
-                  </span>{" "}
-                  {date ? new Date(date).toLocaleDateString() : "No date"}
-                </p>
+                  <p>
+                    <span className="font-medium text-slate-700">
+                      Description:
+                    </span>{" "}
+                    {submission?.description}
+                  </p>
+                </div>
+
+                {/* Column 2 */}
+                <div className="text-right text-sm text-slate-500">
+                  <p>
+                    <span className="font-medium text-slate-700">
+                      Full Marks:
+                    </span>{" "}
+                    {submission?.fullMarks}
+                  </p>
+
+                  <p className="mt-1">
+                    <span className="font-medium text-slate-700">
+                      Pass Marks:
+                    </span>{" "}
+                    {submission?.passMarks}
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -99,7 +115,7 @@ const SubmitAssignmentModal = ({
         {/* Content */}
         {mode === "submit" ? (
           <>
-            <p className="mt-2">Description: {title}</p>
+            <p className="mt-1">Description: {title}</p>
 
             <p className="mt-2 text-sm text-slate-500">
               Write your answer below and submit your assignment when you are
@@ -117,17 +133,17 @@ const SubmitAssignmentModal = ({
         ) : (
           <div className="mt-6 max-h-[60vh] overflow-y-auto rounded-2xl bg-slate-50 p-5">
             <p className="whitespace-pre-wrap text-sm leading-7 text-slate-700">
-              {submissionContent}
+              {submission?.content}
             </p>
           </div>
         )}
 
-        {/* Buttons */}
+        {/* Input marks */}
         <div className="mt-4 flex justify-end gap-3">
           {mode === "view" && (
             <div className="mr-auto flex flex-wrap items-center gap-3">
-              {/* Marks input */}
-              <div className="flex items-center gap-2">
+              {/* Marks */}
+              <div className="flex items-center gap-2 mr-3">
                 <label
                   htmlFor="marks"
                   className="text-sm font-medium text-gray-600"
@@ -139,41 +155,33 @@ const SubmitAssignmentModal = ({
                   id="marks"
                   type="number"
                   min={0}
+                  max={100}
                   value={marks}
+                  disabled={isGraded}
                   onChange={(e) =>
                     setMarks(
                       e.target.value === "" ? "" : Number(e.target.value),
                     )
                   }
-                  className="w-20 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  className="w-15 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 disabled:bg-gray-50 disabled:text-gray-500"
                 />
               </div>
 
-              {/* Pass button */}
-              <button
-                type="button"
-                onClick={() => setResult("pass")}
-                className={`cursor-pointer rounded-xl px-5 py-2 text-sm font-semibold transition ${
-                  result === "pass"
-                    ? "bg-green-500 text-white"
-                    : "bg-green-100 text-green-700 hover:bg-green-200"
-                }`}
-              >
-                Pass
-              </button>
+              <div className="flex gap-4 text-sm text-slate-500">
+                <p>
+                  <span className="font-medium text-slate-700">Student:</span>{" "}
+                  {submission?.studentName}
+                </p>
 
-              {/* Fail button */}
-              <button
-                type="button"
-                onClick={() => setResult("fail")}
-                className={`cursor-pointer rounded-xl px-5 py-2 text-sm font-semibold transition ${
-                  result === "fail"
-                    ? "bg-red-500 text-white"
-                    : "bg-red-100 text-red-700 hover:bg-red-200"
-                }`}
-              >
-                Fail
-              </button>
+                <p>
+                  <span className="font-medium text-slate-700">
+                    Submitted At:
+                  </span>{" "}
+                  {submission?.date
+                    ? new Date(submission.date).toLocaleDateString()
+                    : "No date"}
+                </p>
+              </div>
             </div>
           )}
 
@@ -190,7 +198,7 @@ const SubmitAssignmentModal = ({
               <button
                 type="button"
                 onClick={onSubmit}
-                disabled={!submissionContent.trim()}
+                disabled={!submissionContent?.trim()}
                 className="cursor-pointer rounded-xl bg-teal-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Submit Assignment
@@ -200,12 +208,10 @@ const SubmitAssignmentModal = ({
             <button
               type="button"
               onClick={handleGrade}
-              disabled={
-                marks === "" || result === null || marks < 0 
-              }
+              disabled={isGraded || marks === "" || marks < 0}
               className="cursor-pointer rounded-xl bg-teal-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Submit
+              {isGraded ? "Submitted" : "submit"}
             </button>
           )}
         </div>

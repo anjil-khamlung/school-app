@@ -34,6 +34,7 @@ const SubmittedAssignmentClasses = () => {
   const myClasses = classIds
     .map((classId) => classes.find((item) => item.id === classId))
     .filter(Boolean);
+  console.log(myClasses)
 
   return (
     <div className="space-y-6">
@@ -66,15 +67,15 @@ const SubmittedAssignmentClasses = () => {
           {myClasses.map((classItem) => {
             if (!classItem) return null;
 
-            const classAssignments = myAssignments.filter(
-              (assignment) => assignment.classId === classItem.id,
-            );
+            // const classAssignments = myAssignments.filter(
+            //   (assignment) => assignment.classId === classItem.id,
+            // );
 
             return (
               <DashboardCard
                 key={classItem.id}
                 title={classItem.class}
-                value={classAssignments.length}
+                subject={classItem.subject}
                 icon={FiBookOpen}
                 iconStyle="bg-teal-50 text-teal-600"
                 textStyle="text-teal-600"

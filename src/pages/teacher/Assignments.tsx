@@ -1,4 +1,4 @@
-import { useEffect, useMemo,  useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSchoolStore } from "../../store/useSchoolStore";
 import { FiCalendar, FiEdit2, FiFileText, FiPlus, FiX } from "react-icons/fi";
 import InputField from "../../components/inputs/InputField";
@@ -17,7 +17,7 @@ import { useClasses } from "../../store/useClasses";
 
 const Assignments = () => {
   const { currentUser } = useSchoolStore();
-  const{classes,getClasses}=useClasses()
+  const { classes, getClasses } = useClasses();
 
   const {
     assignments,
@@ -59,7 +59,6 @@ const Assignments = () => {
   };
   const [formData, setFormData] = useState(initial);
 
-
   const navigate = useNavigate();
 
   //fetching assignemnts and submitted assignments
@@ -90,7 +89,6 @@ const Assignments = () => {
     getSubmittedAssignments,
     getSubmissionCounts,
   ]);
-
 
   // Calculate total submissions for the current teacher
   const totalSubmissions = useMemo(() => {
@@ -126,8 +124,7 @@ const Assignments = () => {
 
     return (
       assignment.title?.toLowerCase().includes(value) ||
-      assignment.description?.toLowerCase().includes(value) ||
-      assignment.teacher?.toLowerCase().includes(value)
+      assignment.description?.toLowerCase().includes(value) 
     );
   });
 
@@ -175,8 +172,8 @@ const Assignments = () => {
       dueDate: formData.dueDate,
       teacherId: currentUser.id,
       teacher: currentUser.name,
-      totalMarks: 100,
-      passMarks:40,
+      fullMarks: 100,
+      passMarks: 40,
     };
 
     const success = await addAssignment(newAssignment);
@@ -287,12 +284,12 @@ const Assignments = () => {
   };
 
   //Class options for selecting
-const classOptions = classes
-  .filter((item) => item.teacherId === currentUser?.id)
-  .map((item) => ({
-    value: item.id,
-    label: `${item.class} - ${item.subject}`,
-  }));
+  const classOptions = classes
+    .filter((item) => item.teacherId === currentUser?.id)
+    .map((item) => ({
+      value: item.id,
+      label: `${item.class} - ${item.subject}`,
+    }));
 
   return (
     <div className="mx-auto w-full max-w-7xl p-2 lg:p-4">
@@ -319,7 +316,6 @@ const classOptions = classes
                 : "View and submit your assigned coursework."}
           </p>
         </div>
-  
 
         {/* Teacher Create /Cancel Button */}
         {isTeacher && (
@@ -498,7 +494,7 @@ const classOptions = classes
               user={currentUser}
             />
           ))}
-        </div>
+      </div>
       ) : (
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">

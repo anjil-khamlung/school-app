@@ -23,9 +23,9 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       classId: newAssignment.classId,
       description: newAssignment.description,
       dueDate: newAssignment.dueDate,
-      teacher: newAssignment.teacher,
+      // teacher: newAssignment.teacher,
       teacherId: newAssignment.teacherId,
-      totalMarks: newAssignment.totalMarks,
+      fullMarks: newAssignment.fullMarks,
       passMarks: newAssignment.passMarks,
     });
 
@@ -133,104 +133,74 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
   },
 
   //Get submitted Assignments for teachers
-  getSubmittedAssignmentsForTeacher: async (teacherId: string) => {
-    // Get teacher's assignments
-    const { data: assignments, error: assignmentError } = await supabase
-      .from("assignments")
-      .select("id, title, classId")
-      .eq("teacherId", teacherId);
+getSubmittedAssignmentsForTeacher: async (teacherId: string) => {
+  const { data, error } = await supabase
+    .from("assignmentsSubmitted")
+    .select(`
+      *,
+      assignments!inner (
+        title,
+        description,
+        fullMarks,
+        passMarks,
+        classId,
+        teacherId,
+        classes (
+          class,
+          subject
+        )
+      ),
+      users (
+        name
+      )
+    `)
+    .eq("assignments.teacherId", teacherId);
 
-    if (assignmentError) {
-      console.error(assignmentError);
-      return [];
-    }
-    const assignmentIds = assignments.map((assignment) => assignment.id);
+  if (error) {
+    console.error(error);
+    return [];
+  }
 
-    if (assignmentIds.length === 0) {
-      return [];
-    }
-
-    // Get submissions
-    const { data: submissions, error: submissionError } = await supabase
-      .from("assignmentsSubmitted")
-      .select("*")
-      .in("assignmentId", assignmentIds);
-    if (submissionError) {
-      console.error(submissionError);
-      return [];
-    }
-
-    if (submissions.length === 0) {
-      return [];
-    }
-
-    // Get student IDs
-    const studentIds = submissions.map((submission) => submission.studentId);
-
-    // Get student names
-    const { data: students, error: studentError } = await supabase
-      .from("users")
-      .select("id, name")
-      .in("id", studentIds);
-
-    if (studentError) {
-      console.error(studentError);
-      return [];
-    }
-
-    // Get class IDs from assignments
-    const classIds = [
-      ...new Set(assignments.map((assignment) => assignment.classId)),
-    ];
-    // Get classes
-    const { data: classes, error: classError } = await supabase
-      .from("classes")
-      .select("id, class")
-      .in("id", classIds);
-
-    if (classError) {
-      console.error(classError);
-      return [];
-    }
-
-    // Add student name, assignment title, and class name
-    return submissions.map((submission) => {
-      const student = students.find(
-        (student) => student.id === submission.studentId,
-      );
-
-      const assignment = assignments.find(
-        (assignment) => assignment.id === submission.assignmentId,
-      );
-
-      const selectedClass = classes.find(
-        (item) => item.id === assignment?.classId,
-      );
-      return {
-        ...submission,
-        studentName: student?.name || "Unknown Student",
-        assignmentTitle: assignment?.title || "Unknown Assignment",
-        class: selectedClass?.class || "Unknown Class",
-      };
-    });
-  },
+  return data.map((submission) => ({
+    ...submission,
+    studentName: submission.users?.name || "Unknown Student",
+    assignmentTitle: submission.assignments.title,
+    description: submission.assignments.description,
+    fullMarks: submission.assignments.fullMarks,
+    passMarks: submission.assignments.passMarks,
+    class: submission.assignments.classes?.class || "Unknown Class",
+    subject: submission.assignments.classes?.subject || "Unknown Subject",
+  }));
+},
 
   //Update Submitted Assignment
-  updateSubmittedAssignment: async (
-    submissionId,
-    obtainedMarks,
-    result,
-  ) => {
+  // updateSubmittedAssignment: async (submissionId, obtainedMarks, result) => {
+  //   const { error } = await supabase
+  //     .from("assignmentsSubmitted")
+  //     .update({
+  //       obtainedMarks,
+  //       result,
+  //     })
+  //     .eq("id", submissionId);
+
+  //   if (error) {
+  //     console.error("Error updating submission:", error);
+  //     return false;
+  //   }
+
+  //   return true;
+  // },
+
+  updateSubmittedAssignment: async (submissionId, marks) => {
     const { error } = await supabase
       .from("assignmentsSubmitted")
       .update({
-        obtainedMarks,
-        result,
+        obtainedMarks: marks,
       })
       .eq("id", submissionId);
 
     if (error) {
-      console.error("Error updating submission:", error);
+      console.error(error);
       return false;
     }
 

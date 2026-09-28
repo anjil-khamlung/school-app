@@ -3,7 +3,8 @@ import { FiArrowRight } from "react-icons/fi";
 
 interface DashboardCardProps {
   title: string;
-  value: number;
+  subject?:string,
+  value?: number;
   icon: IconType;
   iconStyle?: string;
   textStyle?: string;
@@ -13,6 +14,7 @@ interface DashboardCardProps {
 
 const DashboardCard = ({
   title,
+  subject,
   value,
   icon: Icon,
   iconStyle,
@@ -24,9 +26,14 @@ const DashboardCard = ({
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-500">{title}</p>
+          <p className="text-md font-medium text-slate-500">{title}</p>
+
+          {subject && (
+            <p className=" text-sm font-medium text-orange-500">{subject}</p>
+          )}
 
           <p className="mt-2 text-3xl font-bold text-slate-900">{value}</p>
+          
         </div>
 
         <div

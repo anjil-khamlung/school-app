@@ -42,7 +42,6 @@ const AssignmentCard = ({
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<
     string | null
   >(null);
-  
   const isTeacher = user?.role === "teacher";
   const isStudent = user?.role === "student";
 
@@ -172,7 +171,7 @@ const selectedClass = classes.find((item) => item.id === assignment.classId);
             setShowSubmitForm(false);
             setSubmissionContent("");
             setSelectedAssignmentId(null);
-          }}
+          }}  
         />
       )}
     </>

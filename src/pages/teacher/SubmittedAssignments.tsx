@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { FiCalendar, FiFileText, FiUser } from "react-icons/fi";
+import { FiBookOpen, FiCalendar, FiFileText, FiUser } from "react-icons/fi";
 
 import { useAssignments } from "../../store/useAssignments";
 import { useSchoolStore } from "../../store/useSchoolStore";
@@ -22,7 +22,7 @@ const SubmittedAssignments = () => {
   useEffect(() => {
     getAssignments();
   }, [getAssignments]);
-  
+
   const { currentUser } = useSchoolStore();
 
   const [selectedSubmission, setSelectedSubmission] =
@@ -46,10 +46,10 @@ const SubmittedAssignments = () => {
       );
 
       setSubmissions(filteredSubmissions);
-
     };
     loadSubmissions();
   }, [currentUser, classId, assignments, getSubmittedAssignmentsForTeacher]);
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -103,6 +103,11 @@ const SubmittedAssignments = () => {
                     </span>
 
                     <span className="flex items-center gap-1">
+                      <FiBookOpen />
+                      {submission.subject}
+                    </span>
+
+                    <span className="flex items-center gap-1">
                       <FiCalendar />
                       {submission.date
                         ? new Date(submission.date).toLocaleDateString()
@@ -137,27 +142,38 @@ const SubmittedAssignments = () => {
       {selectedSubmission && (
         <SubmitAssignmentModal
           mode="view"
-          title={selectedSubmission.assignmentTitle}
-          className={selectedSubmission.class}
-          studentName={selectedSubmission.studentName}
-          date={selectedSubmission.date}
-          submissionContent={selectedSubmission.content}
+          submission={selectedSubmission}
           onCancel={() => setSelectedSubmission(null)}
-          onGrade={async (marks, result) => {
+          onGrade={async (marks) => {
             const success = await updateSubmittedAssignment(
               selectedSubmission.id,
               marks,
-              result,
+              // result,
             );
 
             if (!success) {
               toast.error("Failed to update marks");
-              return;
+              return false;
             }
+
+            // Update local submissions state
+            setSubmissions((prev) =>
+              prev.map((submission) =>
+                submission.id === selectedSubmission.id
+                  ? {
+                      ...submission,
+                      obtainedMarks: marks,
+                      // result: result,
+                    }
+                  : submission,
+              ),
+            );
 
             toast.success("Marks updated successfully");
             setSelectedSubmission(null);
+            return true;
           }}
+          obtainedMarks={selectedSubmission.obtainedMarks}
         />
       )}
     </div>
