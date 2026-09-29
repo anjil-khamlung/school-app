@@ -34,6 +34,7 @@ export const useAnnouncements = create<AnnouncementsStore>((set) => ({
     return true;
   },
 
+  //Update announcment
   updateAnnouncement: async (announcementId, updatedData) => {
     const {  error } = await supabase
       .from("announcements")

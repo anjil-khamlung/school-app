@@ -1,27 +1,23 @@
 import { useEffect, useState } from "react";
 import { useSchoolStore } from "../../store/useSchoolStore";
-import { FiBookOpen, FiEdit2, FiPlus, FiX } from "react-icons/fi";
-import InputField from "../../components/inputs/InputField";
+import { FiBookOpen, FiPlus,  } from "react-icons/fi";
 import { toast } from "react-toastify";
 import SearchInput from "../../components/inputs/SearchInput";
 import ClassCard from "../../components/cards/ClassCard";
 import ConfirmModal from "../../components/ConfirmModal";
 import { useClasses } from "../../store/useClasses";
-import SelectField from "../../components/inputs/SelectField";
 import { className, section, time } from "../../data/classOptions";
-import type { ClassFormErrors, CreateClass } from "../../type/classType";
-import { validateClass } from "../../lib/utils/validateClass";
+import ClassModal from "../../components/modals/ClassModal";
 
 const Classes = () => {
   const { currentUser } = useSchoolStore();
-  const { classes, getClasses, updateClass, addClass, joinClass, deleteClass } =
+  const { classes, getClasses,  joinClass, deleteClass } =
     useClasses();
 
-  const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [editingClassId, setEditingClassId] = useState<string | null>(null);
-  const [errors, setErrors] = useState<ClassFormErrors>({});
+
   const initial = {
     class: "",
     section: "",
@@ -73,81 +69,33 @@ const Classes = () => {
     );
   });
 
-  // create class
-  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    // Validation
-    const validationErrors = validateClass(formData);
-    setErrors(validationErrors);
-    // Stop if there are errors
-    if (Object.keys(validationErrors).length > 0) {
-      return;
-    }
-
-    // EDIT
-    if (editingClassId !== null) {
-      const success = await updateClass(editingClassId, {
-        class: formData.class,
-        section: formData.section,
-        subject: formData.subject,
-        time: formData.time,
-      });
-
-      if (!success) {
-        toast.error("Failed to update class");
-        return;
-      }
-
-      toast.success("Class updated successfully");
-
-      setEditingClassId(null);
-      setFormData(initial);
-      setShowForm(false);
-      return;
-    }
-
-    // CREATE
-    const newClass: CreateClass = {
-      class: formData.class,
-      section: formData.section,
-      subject: formData.subject,
-      time: formData.time,
-      students: [],
-      teacherId: currentUser.id,
-    };
-
-    const success = await addClass(newClass);
-
-    if (!success) {
-      toast.error("Failed to create a class");
-      return;
-    }
-    toast.success("Class created successfully");
-
-    setFormData(initial);
-    setSearch("");
-
-    setShowForm(false);
-  };
 
   //Edit class
-  const handleEdit = (classId: string) => {
-    const selectedClass = classes.find((item) => item.id === classId);
+const handleEdit = (classId: string) => {
+  const selectedClass = classes.find(
+    (item) => item.id === classId,
+  );
 
-    if (!selectedClass) return;
+  if (!selectedClass) return;
 
-    setEditingClassId(classId);
+  // Fill the form with the existing class data
+  setFormData({
+    class: selectedClass.class,
+    section: selectedClass.section,
+    subject: selectedClass.subject,
+    time: selectedClass.time,
+  });
 
-    setFormData({
-      class: selectedClass.class,
-      section: selectedClass.section,
-      subject: selectedClass.subject,
-      time: selectedClass.time,
-    });
+  // Tell the modal we're editing this class
+  setEditingClassId(classId);
 
-    setShowForm(true);
-  };
+  // Open the popover
+  const modal = document.getElementById("create-class-modal");
+
+  if (modal instanceof HTMLElement) {
+    modal.showPopover();
+  }
+};
 
   // Delete class
 
@@ -185,20 +133,6 @@ const Classes = () => {
     toast.success("Class joined successfully");
   };
 
-  //Form toggle
-  const handleFormToggle = () => {
-    if (showForm) {
-      // Cancel
-      setFormData(initial);
-      setEditingClassId(null);
-      setShowForm(false);
-    } else {
-      // Open create form
-      setFormData(initial);
-      setEditingClassId(null);
-      setShowForm(true);
-    }
-  };
 
   return (
     <div className="mx-auto w-full max-w-7xl p-2 lg:p-4">
@@ -229,121 +163,30 @@ const Classes = () => {
         {/* Create / Cancel Class */}
         {isTeacher && (
           <button
-            onClick={handleFormToggle}
-            className={`flex mt-auto w-fit cursor-pointer items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white transition ${
-              showForm
-                ? "bg-red-500 hover:bg-red-600"
-                : "bg-teal-600 hover:bg-teal-700"
-            }`}
+            type="button"
+            popoverTarget="create-class-modal"
+            popoverTargetAction="show"
+            className="mt-auto flex w-fit cursor-pointer items-center gap-2 rounded-xl bg-teal-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-teal-700"
           >
-            {showForm ? (
-              <>
-                <FiX size={18} />
-                Cancel
-              </>
-            ) : (
-              <>
-                <FiPlus size={18} />
-                Create
-              </>
-            )}
+            <FiPlus size={18} />
+            Create
           </button>
         )}
       </div>
 
       {/* Create Class Form */}
-      {isTeacher && showForm && (
-        <form
-          onSubmit={handleSubmit}
-          className="mt-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-        >
-          <h2 className="text-lg font-bold text-slate-900">Create New Class</h2>
-
-          <div className="mt-5 grid gap-5 sm:grid-cols-2">
-            {/* Class Name */}
-
-            <SelectField
-              label="Class"
-              placeholder="Select Class"
-              value={formData.class}
-              options={className}
-              error={errors.class}
-              onChange={(value) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  class: value,
-                }))
-              }
-            />
-
-            {/* Section */}
-            <SelectField
-              label="Section"
-              placeholder="Select Section"
-              value={formData.section}
-              options={section}
-              error={errors.section}
-              onChange={(value) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  section: value,
-                }))
-              }
-            />
-
-            {/* Subject */}
-
-            <InputField
-              label="Subject"
-              type="text"
-              placeholder="e.g. Mathmatics"
-              setFormData={setFormData}
-              value={formData.subject}
-              name="subject"
-              error={errors.subject}
-            />
-
-            {/* Class Time */}
-            <SelectField
-              label="Time"
-              placeholder="Select Time"
-              value={formData.time}
-              options={time}
-              error={errors.time}
-              onChange={(value) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  time: value,
-                }))
-              }
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="mt-6">
-            <button
-              type="submit"
-              className={`flex  cursor-pointer items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white transition ${
-                editingClassId !== null
-                  ? "bg-orange-500 hover:bg-orange-600"
-                  : "bg-teal-600 hover:bg-teal-700"
-              }`}
-            >
-              {editingClassId !== null ? (
-                <>
-                  <FiEdit2 size={17} />
-                  Edit
-                </>
-              ) : (
-                <>
-                  <FiPlus size={17} />
-                  Create
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-      )}
+      <ClassModal
+        formData={formData}
+        setFormData={setFormData}
+        // errors={errors}
+        // handleSubmit={handleSubmit}
+        currentUser={currentUser as any}
+        editingClassId={editingClassId}
+        setEditingClassId={setEditingClassId}
+        className={className}
+        section={section}
+        time={time}
+      />
 
       {/* Search */}
       <SearchInput

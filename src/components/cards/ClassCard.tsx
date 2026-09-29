@@ -1,5 +1,5 @@
 import { FiBookOpen, FiEdit2, FiTrash2, FiUser, FiUsers } from "react-icons/fi";
-import type {  User } from "../../type/type";
+import type { User } from "../../type/type";
 import type { Class } from "../../type/classType";
 import { useUsers } from "../../store/useUsers";
 import { useEffect } from "react";
@@ -15,22 +15,28 @@ interface ClassCardProps {
 const ClassCard = ({
   item,
   handleEdit,
-handleDelete,
+  handleDelete,
   handleJoinClass,
   user,
 }: ClassCardProps) => {
-  const { users ,getUsers} = useUsers()
-  
+  const { users, getUsers } = useUsers();
+
   const isTeacher = user.role === "teacher";
   const isStudent = user.role === "student";
 
   useEffect(() => {
-    getUsers()
-  },[])
-
-  const studentJoined = isStudent && item.students?.includes(user.id);
+    getUsers();
+  }, []);
 
   const teacher = users.find((user) => user.id === item.teacherId);
+
+  //has this student joined this class
+  const studentJoined =
+    isStudent &&
+    item.classesJoined?.some((student) => student.studentId === user.id);
+
+  const totalStudents = item.classesJoined?.length ?? 0;
+
   return (
     <div className="group rounded-2xl border border-slate-200 bg-white p-6 xl:p-8 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-teal-200 hover:shadow-xl">
       {/* Top */}
@@ -45,9 +51,7 @@ handleDelete,
       </div>
 
       {/* Name */}
-      <h2 className="mt-5 text-xl font-bold text-slate-900">
-        {item.class}
-      </h2>
+      <h2 className="mt-5 text-xl font-bold text-slate-900">{item.class}</h2>
 
       {/* Subject */}
       <p className="mt-2 text-sm text-teal-500">{item.subject}</p>
@@ -66,8 +70,7 @@ handleDelete,
         <FiUsers size={16} />
 
         <span>
-          {item.students?.length || 0}{" "}
-          {item.students?.length === 1 ? "Student" : "Students"}
+          {totalStudents} {totalStudents === 1 ? "Student" : "Students"}
         </span>
       </div>
 

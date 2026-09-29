@@ -1,19 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSchoolStore } from "../../store/useSchoolStore";
-import { FiCalendar, FiEdit2, FiFileText, FiPlus, FiX } from "react-icons/fi";
-import InputField from "../../components/inputs/InputField";
-import TextArea from "../../components/inputs/TextArea";
+import { FiFileText, FiPlus,  } from "react-icons/fi";
 import DashboardCard from "../../components/cards/DashboardCard";
 import SearchInput from "../../components/inputs/SearchInput";
 import AssignmentCard from "../../components/cards/AssignmentsCard";
 import ConfirmModal from "../../components/ConfirmModal";
 import { toast } from "react-toastify";
 import { useAssignments } from "../../store/useAssignments";
-import SelectField from "../../components/inputs/SelectField";
-import type { AssignmentFormErrors } from "../../type/AssignmentType";
-import { validateAssignment } from "../../lib/utils/validateAssignment";
 import { useNavigate } from "react-router-dom";
 import { useClasses } from "../../store/useClasses";
+import AssignmentModal from "../../components/modals/AssignmentsModal";
+import type { Assignment } from "../../type/AssignmentType";
 
 const Assignments = () => {
   const { currentUser } = useSchoolStore();
@@ -22,12 +19,11 @@ const Assignments = () => {
   const {
     assignments,
     getAssignments,
-    updateAssignment,
-    addAssignment,
     deleteAssignment,
     submitAssignment,
     getSubmittedAssignments,
     getSubmissionCounts,
+    getTeacherAssignmentStats,
   } = useAssignments();
   if (!currentUser) return null;
 
@@ -35,7 +31,6 @@ const Assignments = () => {
   const isTeacher = currentUser?.role === "teacher";
   const isStudent = currentUser?.role === "student";
 
-  const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<
     null | string
@@ -50,7 +45,14 @@ const Assignments = () => {
     Record<string, number>
   >({});
 
-  const [errors, setErrors] = useState<AssignmentFormErrors>({});
+const [stats, setStats] = useState<{
+  teacherAssignments: Assignment[];
+  totalSubmissions: number;
+}>({
+  teacherAssignments: [],
+  totalSubmissions: 0,
+});
+
   const initial = {
     title: "",
     classId: "",
@@ -80,6 +82,13 @@ const Assignments = () => {
 
         setSubmissionCounts(counts);
       }
+
+      const loadStats = async () => {
+        const result = await getTeacherAssignmentStats(currentUser.id);
+        setStats(result);
+      };
+
+      loadStats();
     };
 
     loadData();
@@ -88,106 +97,29 @@ const Assignments = () => {
     getAssignments,
     getSubmittedAssignments,
     getSubmissionCounts,
+    getTeacherAssignmentStats,
   ]);
+  
 
-  // Calculate total submissions for the current teacher
-  const totalSubmissions = useMemo(() => {
-    if (!currentUser || currentUser.role !== "teacher") {
-      return 0;
-    }
 
-    const myAssignmentIds = assignments
-      .filter((assignment) => assignment.teacherId === currentUser.id)
-      .map((assignment) => assignment.id);
 
-    return myAssignmentIds.reduce(
-      (total, id) => total + (submissionCounts[id] || 0),
-      0,
-    );
-  }, [assignments, submissionCounts, currentUser]);
-
-  const teacherAssignments = assignments.filter(
-    (assignments) => assignments.teacherId === currentUser.id,
-  );
-
-  const visibleAssignments = isTeacher ? teacherAssignments : assignments;
+  const visibleAssignments = isTeacher ?stats. teacherAssignments : assignments;
 
   //Search
   const filteredAssignments = visibleAssignments.filter((assignment) => {
     // Hide the assignment currently being edited
-    if (editingAssignmentId !== null && assignment.id === editingAssignmentId) {
-      return false;
-    }
-
+    // if (editingAssignmentId !== null && assignment.id === editingAssignmentId) {
+    //   return false;
+    // }
     const value = search.trim().toLowerCase();
     if (!value) return true;
 
     return (
       assignment.title?.toLowerCase().includes(value) ||
-      assignment.description?.toLowerCase().includes(value) 
+      assignment.description?.toLowerCase().includes(value)
     );
   });
 
-  // create assignment
-  const handleCreateAssignment = async (
-    e: React.SubmitEvent<HTMLFormElement>,
-  ) => {
-    e.preventDefault();
-
-    // Validation
-    const validationErrors = validateAssignment(formData);
-    setErrors(validationErrors);
-    // Stop if there are errors
-    if (Object.keys(validationErrors).length > 0) {
-      return;
-    }
-
-    // EDIT
-    if (editingAssignmentId !== null) {
-      const success = await updateAssignment(editingAssignmentId, {
-        title: formData.title,
-        classId: formData.classId,
-        dueDate: formData.dueDate,
-        description: formData.description,
-      });
-
-      if (!success) {
-        toast.error("Failed to update class");
-        return;
-      }
-
-      toast.success("Class updated successfully");
-
-      setEditingAssignmentId(null);
-      setFormData(initial);
-      setShowForm(false);
-      return;
-    }
-
-    //CREATE
-    const newAssignment = {
-      title: formData.title,
-      classId: formData.classId,
-      description: formData.description,
-      dueDate: formData.dueDate,
-      teacherId: currentUser.id,
-      teacher: currentUser.name,
-      fullMarks: 100,
-      passMarks: 40,
-    };
-
-    const success = await addAssignment(newAssignment);
-
-    if (!success) {
-      toast.error("Failed to create assignments");
-      return;
-    }
-    toast.success("Assignments created successfully");
-
-    setSearch("");
-    setFormData(initial);
-    setShowForm(false);
-  };
 
   const handleDelete = (assignmentId: string) => {
     setSelectedAssignmentId(assignmentId);
@@ -210,7 +142,13 @@ const Assignments = () => {
       description: selectedAssignment.description,
     });
 
-    setShowForm(true);
+
+//Open popover
+  const modal = document.getElementById("create-assignment-modal");
+
+  if (modal instanceof HTMLElement) {
+    modal.showPopover();
+  }
   };
 
   //delete assignment
@@ -268,20 +206,7 @@ const Assignments = () => {
     submittedAssignmentIds.includes(assignment.id),
   ).length;
 
-  //Form toggle
-  const handleFormToggle = () => {
-    if (showForm) {
-      // Cancel
-      setFormData(initial);
-      setEditingAssignmentId(null);
-      setShowForm(false);
-    } else {
-      // Open create form
-      setFormData(initial);
-      setEditingAssignmentId(null);
-      setShowForm(true);
-    }
-  };
+
 
   //Class options for selecting
   const classOptions = classes
@@ -320,119 +245,27 @@ const Assignments = () => {
         {/* Teacher Create /Cancel Button */}
         {isTeacher && (
           <button
-            onClick={handleFormToggle}
-            className={`flex mt-auto cursor-pointer items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white transition ${
-              showForm
-                ? "bg-red-500 hover:bg-red-600"
-                : "bg-teal-600 hover:bg-teal-700"
-            }`}
+            type="button"
+            popoverTarget="create-assignment-modal"
+            popoverTargetAction="show"
+            className="mt-auto flex w-fit cursor-pointer items-center gap-2 rounded-xl bg-teal-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-teal-700"
           >
-            {showForm ? (
-              <>
-                <FiX size={17} />
-                Cancel
-              </>
-            ) : (
-              <>
-                <FiPlus size={17} />
-                Create
-              </>
-            )}
+            <FiPlus size={18} />
+            Create
           </button>
         )}
       </div>
 
       {/* Create Assignment Form */}
-      {isTeacher && showForm && (
-        <form
-          onSubmit={handleCreateAssignment}
-          className="mt-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-        >
-          <h2 className="text-lg font-bold text-slate-900">
-            Create Assignment
-          </h2>
-
-          <div className="mt-5 grid items-start gap-4 sm:grid-cols-2">
-            {/* Title */}
-            <InputField
-              label="Assignment title"
-              type="text"
-              name="title"
-              value={formData.title}
-              setFormData={setFormData}
-              placeholder="e.g. importance of education"
-              error={errors.title}
-            />
-
-            {/* Class  */}
-            <SelectField
-              label="Class"
-              placeholder="Select class"
-              value={formData.classId}
-              options={classOptions}
-              error={errors.classId}
-              onChange={(value) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  classId: value,
-                }))
-              }
-            />
-
-            {/* Due Date */}
-            <div className="relative">
-              <InputField
-                label="Date"
-                type="date"
-                name="dueDate"
-                value={formData.dueDate}
-                setFormData={setFormData}
-                error={errors.dueDate}
-              />
-
-              <FiCalendar
-                className="pointer-events-none absolute right-12 top-2/3 -translate-y-1/2 text-slate-400"
-                size={18}
-              />
-            </div>
-
-            {/* Description */}
-            <TextArea
-              label={"Description"}
-              name={"description"}
-              value={formData.description}
-              setFormData={setFormData}
-              placeholder={"Assignment description"}
-              rows={4}
-              error={errors.description}
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="mt-6">
-            <button
-              type="submit"
-              className={`flex cursor-pointer items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white transition ${
-                editingAssignmentId !== null
-                  ? "bg-orange-500 hover:bg-orange-600"
-                  : "bg-teal-600 hover:bg-teal-700"
-              }`}
-            >
-              {editingAssignmentId !== null ? (
-                <>
-                  <FiEdit2 size={17} />
-                  Edit
-                </>
-              ) : (
-                <>
-                  <FiPlus size={17} />
-                  Create
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-      )}
+      <AssignmentModal
+        formData={formData}
+        setFormData={setFormData}
+        classOptions={classOptions}
+        editingAssignmentId={editingAssignmentId}
+        // handleSubmit={handleCreateAssignment}
+        currentUser={currentUser}
+        setEditingAssignmentId={setEditingAssignmentId}
+      />
 
       {/* Statistics */}
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -441,7 +274,7 @@ const Assignments = () => {
           icon={FiFileText}
           iconStyle="bg-teal-50 text-teal-600"
           textStyle="text-teal-600 hover:text-teal-700"
-          value={isTeacher ? teacherAssignments.length : assignments.length}
+          value={isTeacher ?stats. teacherAssignments.length : assignments.length}
         />
 
         <DashboardCard
@@ -453,7 +286,7 @@ const Assignments = () => {
             isStudent
               ? submittedCount
               : isTeacher
-                ? totalSubmissions
+                ? stats.totalSubmissions
                 : assignments.length
           }
           buttonText={isTeacher ? "See assignments" : ""}
@@ -494,7 +327,7 @@ const Assignments = () => {
               user={currentUser}
             />
           ))}
-      </div>
+        </div>
       ) : (
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">

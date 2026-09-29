@@ -30,7 +30,7 @@ const SelectField = ({
     typeof selectedOption === "string" ? selectedOption : selectedOption?.label;
 
   return (
-    <div>
+    <div className="relative">
       <label className="mb-2 block text-sm font-semibold text-slate-700">
         {label}
       </label>
@@ -53,10 +53,7 @@ const SelectField = ({
             <FiChevronDown className="text-slate-400" size={18} />
           </Listbox.Button>
 
-          <Listbox.Options
-            anchor="bottom"
-            className="z-50 mt-2 w-(--button-width) rounded-xl border border-slate-200 bg-white p-1 shadow-xl outline-none"
-          >
+          <Listbox.Options className="absolute left-0 top-full z-50 mt-2 max-h-30 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl outline-none">
             {options.map((option) => {
               const optionValue =
                 typeof option === "string" ? option : option.value;

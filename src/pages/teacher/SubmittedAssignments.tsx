@@ -148,7 +148,6 @@ const SubmittedAssignments = () => {
             const success = await updateSubmittedAssignment(
               selectedSubmission.id,
               marks,
-              // result,
             );
 
             if (!success) {
@@ -163,7 +162,6 @@ const SubmittedAssignments = () => {
                   ? {
                       ...submission,
                       obtainedMarks: marks,
-                      // result: result,
                     }
                   : submission,
               ),
@@ -173,7 +171,6 @@ const SubmittedAssignments = () => {
             setSelectedSubmission(null);
             return true;
           }}
-          obtainedMarks={selectedSubmission.obtainedMarks}
         />
       )}
     </div>

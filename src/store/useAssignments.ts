@@ -7,12 +7,18 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
 
   // Fetch classes
   getAssignments: async () => {
-    const { data, error } = await supabase.from("assignments").select("*");
+    const { data, error } = await supabase.from("assignments").select(`
+      *,
+      users (
+        name
+      )
+    `);
 
     if (error) {
       console.error(error);
       return;
     }
+
     set({ assignments: data });
   },
 
@@ -23,7 +29,6 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       classId: newAssignment.classId,
       description: newAssignment.description,
       dueDate: newAssignment.dueDate,
-      // teacher: newAssignment.teacher,
       teacherId: newAssignment.teacherId,
       fullMarks: newAssignment.fullMarks,
       passMarks: newAssignment.passMarks,
@@ -83,7 +88,6 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       assignmentId,
       studentId,
       content,
-
       date,
     });
 
@@ -133,10 +137,11 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
   },
 
   //Get submitted Assignments for teachers
-getSubmittedAssignmentsForTeacher: async (teacherId: string) => {
-  const { data, error } = await supabase
-    .from("assignmentsSubmitted")
-    .select(`
+  getSubmittedAssignmentsForTeacher: async (teacherId: string) => {
+    const { data, error } = await supabase
+      .from("assignmentsSubmitted")
+      .select(
+        `
       *,
       assignments!inner (
         title,
@@ -153,43 +158,26 @@ getSubmittedAssignmentsForTeacher: async (teacherId: string) => {
       users (
         name
       )
-    `)
-    .eq("assignments.teacherId", teacherId);
+    `,
+      )
+      .eq("assignments.teacherId", teacherId);
 
-  if (error) {
-    console.error(error);
-    return [];
-  }
+    if (error) {
+      console.error(error);
+      return [];
+    }
 
-  return data.map((submission) => ({
-    ...submission,
-    studentName: submission.users?.name || "Unknown Student",
-    assignmentTitle: submission.assignments.title,
-    description: submission.assignments.description,
-    fullMarks: submission.assignments.fullMarks,
-    passMarks: submission.assignments.passMarks,
-    class: submission.assignments.classes?.class || "Unknown Class",
-    subject: submission.assignments.classes?.subject || "Unknown Subject",
-  }));
-},
-
-  //Update Submitted Assignment
-  // updateSubmittedAssignment: async (submissionId, obtainedMarks, result) => {
-  //   const { error } = await supabase
-  //     .from("assignmentsSubmitted")
-  //     .update({
-  //       obtainedMarks,
-  //       result,
-  //     })
-  //     .eq("id", submissionId);
-
-  //   if (error) {
-  //     console.error("Error updating submission:", error);
-  //     return false;
-  //   }
-
-  //   return true;
-  // },
+    return data.map((submission) => ({
+      ...submission,
+      studentName: submission.users?.name || "Unknown Student",
+      assignmentTitle: submission.assignments.title,
+      description: submission.assignments.description,
+      fullMarks: submission.assignments.fullMarks,
+      passMarks: submission.assignments.passMarks,
+      class: submission.assignments.classes?.class || "Unknown Class",
+      subject: submission.assignments.classes?.subject || "Unknown Subject",
+    }));
+  },
 
   updateSubmittedAssignment: async (submissionId, marks) => {
     const { error } = await supabase
@@ -205,5 +193,26 @@ getSubmittedAssignmentsForTeacher: async (teacherId: string) => {
     }
 
     return true;
+  },
+
+  //teacher asignments and total submissions
+  getTeacherAssignmentStats: async (teacherId: string) => {
+    const { assignments, getSubmissionCounts } = get();
+
+    const teacherAssignments = assignments.filter(
+      (assignment) => assignment.teacherId === teacherId,
+    );
+
+    const submissionCounts = await getSubmissionCounts();
+
+    const totalSubmissions = teacherAssignments.reduce(
+      (total, assignment) => total + (submissionCounts[assignment.id] || 0),
+      0,
+    );
+
+    return {
+      teacherAssignments,
+      totalSubmissions,
+    };
   },
 }));

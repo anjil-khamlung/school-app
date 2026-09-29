@@ -21,13 +21,13 @@ const Report = () => {
 
   const totalClasses = classes.length;
 
-  const classesWithStudents = classes.filter(
-    (item) =>  item.students.length > 0,
-  ).length || 0
+const classesWithStudents = classes.filter(
+  (item) => (item.classesJoined?.length ?? 0) > 0,
+).length;
 
-  const emptyClasses = classes.filter(
-    (item) =>  item.students.length === 0,
-  ).length || 0
+const emptyClasses = classes.filter(
+  (item) => (item.classesJoined?.length ?? 0) === 0,
+).length;
 
   return (
     <div className="p-2 lg:4">

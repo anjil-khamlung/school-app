@@ -21,7 +21,7 @@ const StudentDashboard = () => {
   if (!currentUser) return 
 
   const myClasses = classes.filter((item) =>
-    item.students.includes(currentUser.id),
+    item.classesJoined?.some(({ studentId }) => studentId === currentUser.id),
   );
 
   const recentAssignments = [...assignments].reverse().slice(0, 5);

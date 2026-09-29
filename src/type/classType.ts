@@ -16,11 +16,14 @@ export interface Class {
   id: string;
   class: string;
   section: string;
-  students: string[];
   subject: string;
   teacherId: string;
   time: string;
+  classesJoined?: {
+    studentId: string;
+  }[];
 }
+
 export type CreateClass = Omit<Class, "id">;
 
 export interface ClassesStore {

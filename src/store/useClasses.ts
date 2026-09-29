@@ -8,7 +8,12 @@ export const useClasses = create<ClassesStore>((set) => ({
 
   // Fetch classes
   getClasses: async () => {
-    const { data, error } = await supabase.from("classes").select("*");
+  const { data, error } = await supabase.from("classes").select(`
+    *,
+    classesJoined (
+      studentId
+    )
+  `);
 
     if (error) {
       console.error(error);
@@ -22,7 +27,6 @@ export const useClasses = create<ClassesStore>((set) => ({
     const { error } = await supabase.from("classes").insert({
       class: newClass.class,
       section: newClass.section,
-      students: newClass.students,
       subject: newClass.subject,
       teacherId: newClass.teacherId,
       time: newClass.time,
@@ -78,34 +82,13 @@ export const useClasses = create<ClassesStore>((set) => ({
 
   //Join class
   joinClass: async (studentId, classId) => {
-    // Get the current class
-    const { data: classData, error: fetchError } = await supabase
-      .from("classes")
-      .select("students")
-      .eq("id", classId)
-      .single();
-
-    if (fetchError) {
-      console.log("error=", fetchError);
-      return false;
-    }
-
-    const students = classData.students || [];
-
-    // Prevent joining twice
-    if (students.includes(studentId)) {
-      return true;
-    }
-
-    const { error } = await supabase
-      .from("classes")
-      .update({
-        students: [...students, studentId],
-      })
-      .eq("id", classId);
+    const { error } = await supabase.from("classesJoined").insert({
+      studentId,
+      classId,
+    });
 
     if (error) {
-      console.log("error=", error);
+      console.log("join class error=", error);
       return false;
     }
 

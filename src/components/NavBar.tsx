@@ -149,7 +149,11 @@ const NavBar = () => {
                   className="mt-2 w-auto rounded-lg border border-slate-300 bg-white p-2 shadow-lg"
                 >
                   {isDashboard && (
-                    <>
+                    <div className="flex flex-col  gap-1">
+                      <p className="border-b border-slate-200 px-3 pb-2 text-teal-600">
+                        {currentUser?.name}
+                      </p>
+
                       <MenuItem>
                         <NavLink
                           to="/"
@@ -158,6 +162,7 @@ const NavBar = () => {
                           Home
                         </NavLink>
                       </MenuItem>
+
                       <MenuItem>
                         <NavLink
                           to="/about"
@@ -166,6 +171,7 @@ const NavBar = () => {
                           About
                         </NavLink>
                       </MenuItem>
+
                       <MenuItem>
                         <NavLink
                           to="/contact"
@@ -174,16 +180,18 @@ const NavBar = () => {
                           Contact
                         </NavLink>
                       </MenuItem>
-                    </>
+                    </div>
                   )}
-                  <MenuItem>
-                    <NavLink
-                      to={`/${currentUser?.role}`}
-                      className="block rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-200 hover:text-teal-600"
-                    >
-                      Profile
-                    </NavLink>
-                  </MenuItem>
+                  {!isDashboard && (
+                    <MenuItem>
+                      <NavLink
+                        to={`/${currentUser?.role}`}
+                        className="block rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-200 hover:text-teal-600"
+                      >
+                        Dashboard
+                      </NavLink>
+                    </MenuItem>
+                  )}
 
                   <MenuItem>
                     <button

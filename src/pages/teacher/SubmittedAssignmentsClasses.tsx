@@ -34,7 +34,6 @@ const SubmittedAssignmentClasses = () => {
   const myClasses = classIds
     .map((classId) => classes.find((item) => item.id === classId))
     .filter(Boolean);
-  console.log(myClasses)
 
   return (
     <div className="space-y-6">

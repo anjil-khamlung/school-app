@@ -93,7 +93,7 @@ const selectedClass = classes.find((item) => item.id === assignment.classId);
         {/* Teacher */}
         <div className="mt-3 flex min-h-5 items-center gap-2 text-sm text-teal-500">
           <FiUser size={16} />
-          <span>{assignment.teacher}</span>
+          <span>{assignment.users?.name}</span>
         </div>
 
         {/* Due Date */}

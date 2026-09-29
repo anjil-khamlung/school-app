@@ -12,7 +12,6 @@ interface SubmitAssignmentModalProps {
   onGrade?: (marks: number) => void | Promise<boolean>;
   mode?: "submit" | "view";
   title?: string;
-  obtainedMarks?: number | null;
 }
 
 const SubmitAssignmentModal = ({
@@ -24,16 +23,18 @@ const SubmitAssignmentModal = ({
   onGrade,
   mode = "submit",
   title,
-  obtainedMarks,
 }: SubmitAssignmentModalProps) => {
-  const [marks, setMarks] = useState<number | "">(obtainedMarks ?? "");
+ const [marks, setMarks] = useState<number | "">(
+   submission?.obtainedMarks ?? "",
+ );
 
-  // Check directly from the saved submission data
-  const isGraded = obtainedMarks !== null && obtainedMarks !== undefined;
+ const isGraded =
+   submission?.obtainedMarks !== null &&
+   submission?.obtainedMarks !== undefined;
 
-  useEffect(() => {
-    setMarks(obtainedMarks ?? "");
-  }, [obtainedMarks]);
+ useEffect(() => {
+   setMarks(submission?.obtainedMarks ?? "");
+ }, [submission?.obtainedMarks]);
 
   const handleGrade = async () => {
     if (marks === "") {
