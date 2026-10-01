@@ -1,54 +1,74 @@
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import { FiX } from "react-icons/fi";
 import { toast } from "react-toastify";
-import type { SubmittedAssignment } from "../type/AssignmentType";
+import type { AssignmentAnswer, Question, SubmittedAssignment } from "../type/AssignmentType";
 
 interface SubmitAssignmentModalProps {
   submission?: SubmittedAssignment;
-  submissionContent?: string;
-  setSubmissionContent?: (value: string) => void;
   onCancel: () => void;
-  onSubmit?: () => void | Promise<void>;
-  onGrade?: (marks: number) => void | Promise<boolean>;
+  onSubmit?: (answers: Record<string, string>) => Promise<boolean> | void;
+  onGrade?: (
+    questionMarks: Record<string, number | string>,
+  ) => Promise<boolean>;
   mode?: "submit" | "view";
   title?: string;
+  assignmentQuestions?: Question[];
+  assignmentAnswers?: AssignmentAnswer[];
 }
 
 const SubmitAssignmentModal = ({
   submission,
-  submissionContent,
-  setSubmissionContent,
   onCancel,
   onSubmit,
   onGrade,
   mode = "submit",
   title,
+  assignmentQuestions,
+  assignmentAnswers,
 }: SubmitAssignmentModalProps) => {
- const [marks, setMarks] = useState<number | "">(
-   submission?.obtainedMarks ?? "",
- );
 
- const isGraded =
-   submission?.obtainedMarks !== null &&
-   submission?.obtainedMarks !== undefined;
+  const [answers, setAnswers] = useState<Record<string, string>>({});
 
- useEffect(() => {
-   setMarks(submission?.obtainedMarks ?? "");
- }, [submission?.obtainedMarks]);
+  const [questionMarks, setQuestionMarks] = useState<
+    Record<string, number | string>
+  >({});
 
-  const handleGrade = async () => {
-    if (marks === "") {
-      toast.error("Please enter marks");
+  const isGraded =
+    submission?.obtainedMarks !== null &&
+    submission?.obtainedMarks !== undefined;
+  
+  //Check if all marks are given
+  const isMarksComplete = assignmentQuestions?.every(
+    (item) => questionMarks[item.id ?? ""] !== "",
+  );
+
+
+
+  // Validate the entered marks and send them to the parent for grading
+const handleGrade = async () => {
+  // Make sure at least one mark is entered
+  if (Object.keys(questionMarks).length === 0) {
+    toast.error("Please enter marks");
+    return;
+  }
+
+  // Validate each question's marks
+  for (const item of assignmentQuestions ?? []) {
+    const marks = item.id === undefined ? undefined : questionMarks[item.id];
+
+    if (marks === undefined || marks === "") {
+      toast.error(`Please enter marks for question ${item.id}`);
       return;
     }
 
-    if (marks < 0 || marks > (submission?.fullMarks ?? 0)) {
-      toast.error("Please enter valid marks");
+    if (Number(marks) < 0 || Number(marks) > item.marks) {
+      toast.error(`Invalid marks for question ${item.id}`);
       return;
     }
+  }
 
-    await onGrade?.(marks);
-  };
+  await onGrade?.(questionMarks);
+};
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -119,56 +139,135 @@ const SubmitAssignmentModal = ({
             <p className="mt-1">Description: {title}</p>
 
             <p className="mt-2 text-sm text-slate-500">
-              Write your answer below and submit your assignment when you are
-              finished.
+              Answer each question below. Your answers will be submitted
+              together.
             </p>
 
-            <textarea
-              value={submissionContent}
-              onChange={(e) => setSubmissionContent?.(e.target.value)}
-              placeholder="Enter your answer..."
-              rows={9}
-              className="mt-2 w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-5 text-base text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10"
-            />
+            <div className="mt-5 max-h-[60vh] space-y-4 overflow-y-auto pr-1">
+              {assignmentQuestions?.map((item, index) => (
+                <div
+                  key={item.id}
+                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+                >
+                  {/* Question header */}
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex gap-3">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-sm font-semibold text-teal-700">
+                        {index + 1}
+                      </span>
+
+                      <div>
+                        <p className="font-medium leading-6 text-slate-800">
+                          {item.question}
+                        </p>
+                      </div>
+                    </div>
+
+                    <span className="shrink-0 rounded-lg bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                      {item.marks} marks
+                    </span>
+                  </div>
+
+                  {/* Answer */}
+                  <div className="mt-4">
+                    <label className="mb-2 block text-sm font-medium text-slate-600">
+                      Your answer
+                    </label>
+
+                    <textarea
+                      value={answers[item.id ?? ""] ?? ""}
+                      onChange={(e) =>
+                        setAnswers((prev) => ({
+                          ...prev,
+                          [item.id ?? ""]: e.target.value,
+                        }))
+                      }
+                      placeholder="Write your answer here..."
+                      rows={1}
+                      className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </>
         ) : (
-          <div className="mt-6 max-h-[60vh] overflow-y-auto rounded-2xl bg-slate-50 p-5">
-            <p className="whitespace-pre-wrap text-sm leading-7 text-slate-700">
-              {submission?.content}
-            </p>
+          // View mode: display the questions and the student's submitted answers
+          <div className="mt-6 max-h-[60vh] space-y-4 overflow-y-auto">
+            {assignmentQuestions?.map((item, index) => {
+              const answer = assignmentAnswers?.find(
+                (itemAnswer) => itemAnswer.questionId === item.id,
+              );
+
+              return (
+                <div
+                  key={item.id}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-5"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex gap-3">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-sm font-semibold text-teal-700">
+                        {index + 1}
+                      </span>
+
+                      <p className="font-medium leading-6 text-slate-800">
+                        {item.question}
+                      </p>
+                    </div>
+
+                    <span className="shrink-0 text-xs font-medium text-slate-500">
+                      {item.marks} marks
+                    </span>
+                  </div>
+
+                  {/* Student answer */}
+                  <div className="mt-2 rounded-xl bg-white px-4 py-2">
+                    <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">
+                      Answer
+                    </p>
+
+                    <p className="whitespace-pre-wrap text-sm leading-7 text-slate-700">
+                      {answer?.answer || "No answer provided"}
+                    </p>
+                  </div>
+
+                  {/* Marks input */}
+                  <div className="mt-4 flex items-center justify-between">
+                    <span className="text-sm font-medium text-slate-600">
+                      Marks obtained
+                    </span>
+
+                    {isGraded ? (
+                      <span className="rounded-lg bg-teal-50 px-3 py-2 text-sm font-semibold text-teal-700">
+                        {answer?.marksObtained ?? 0} / {item.marks}
+                      </span>
+                    ) : (
+                      <input
+                        type="number"
+                        min={0}
+                        max={item.marks}
+                        value={questionMarks[item.id ?? ""] ?? ""}
+                        onChange={(e) =>
+                          setAnswers?.((prev) => ({
+                            ...prev,
+                            [item.id ?? ""]: e.target.value,
+                          }))
+                        }
+                        className="w-20 rounded-lg border border-slate-200 bg-white px-3 py-2 text-center text-sm outline-none focus:border-teal-500"
+                      />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
 
         {/* Input marks */}
         <div className="mt-4 flex justify-end gap-3">
           {mode === "view" && (
-            <div className="mr-auto flex flex-wrap items-center gap-3">
-              {/* Marks */}
-              <div className="flex items-center gap-2 mr-3">
-                <label
-                  htmlFor="marks"
-                  className="text-sm font-medium text-gray-600"
-                >
-                  Marks:
-                </label>
-
-                <input
-                  id="marks"
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={marks}
-                  disabled={isGraded}
-                  onChange={(e) =>
-                    setMarks(
-                      e.target.value === "" ? "" : Number(e.target.value),
-                    )
-                  }
-                  className="w-15 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 disabled:bg-gray-50 disabled:text-gray-500"
-                />
-              </div>
-
-              <div className="flex gap-4 text-sm text-slate-500">
+            <div className="mr-auto flex items-center ">
+              <div className="flex gap-5 text-sm text-slate-500">
                 <p>
                   <span className="font-medium text-slate-700">Student:</span>{" "}
                   {submission?.studentName}
@@ -198,8 +297,7 @@ const SubmitAssignmentModal = ({
 
               <button
                 type="button"
-                onClick={onSubmit}
-                disabled={!submissionContent?.trim()}
+                onClick={() => onSubmit?.(answers)}
                 className="cursor-pointer rounded-xl bg-teal-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Submit Assignment
@@ -209,7 +307,7 @@ const SubmitAssignmentModal = ({
             <button
               type="button"
               onClick={handleGrade}
-              disabled={isGraded || marks === "" || marks < 0}
+              disabled={isGraded || !isMarksComplete}
               className="cursor-pointer rounded-xl bg-teal-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isGraded ? "Submitted" : "submit"}

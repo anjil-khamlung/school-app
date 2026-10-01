@@ -11,6 +11,11 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       *,
       users (
         name
+      ),
+      assignmentQuestions!assignmentQuestions_assignmentId_fkey (
+        id,
+        question,
+        marks
       )
     `);
 
@@ -24,23 +29,19 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
 
   //Add assignment
   addAssignment: async (newAssignment) => {
-    const { error } = await supabase.from("assignments").insert({
-      title: newAssignment.title,
-      classId: newAssignment.classId,
-      description: newAssignment.description,
-      dueDate: newAssignment.dueDate,
-      teacherId: newAssignment.teacherId,
-      fullMarks: newAssignment.fullMarks,
-      passMarks: newAssignment.passMarks,
-    });
+    const { data, error } = await supabase
+      .from("assignments")
+      .insert(newAssignment)
+      .select()
+      .single();
 
     if (error) {
       console.log("error=", error);
       return false;
     }
-    await useAssignments.getState().getAssignments();
+    await get().getAssignments();
 
-    return true;
+    return data;
   },
 
   //Edit class
@@ -77,24 +78,47 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       console.log("Delete assignment error:", error);
       return false;
     }
-    await useAssignments.getState().getAssignments();
+    await get().getAssignments();
 
     return true;
   },
 
   //Submit assignment
-  submitAssignment: async (assignmentId, studentId, content, date) => {
-    const { error } = await supabase.from("assignmentsSubmitted").insert({
-      assignmentId,
-      studentId,
-      content,
-      date,
-    });
+  submitAssignment: async (assignmentId, studentId, answers) => {
+    // 1. Create submission
+    const { data: submission, error } = await supabase
+      .from("assignmentsSubmitted")
+      .insert({
+        assignmentId,
+        studentId,
+      })
+      .select("id")
+      .single();
 
-    if (error) {
-      console.log("Assignment submit error=", error);
+    if (error || !submission) {
+      console.log("Assignment submit error =", error);
       return false;
     }
+
+    // 2. Prepare question answers
+    const answerRows = Object.entries(answers).map(([questionId, answer]) => ({
+      submissionId: submission.id,
+      questionId,
+      studentId,
+      answer,
+      marksObtained: null,
+    }));
+
+    // 3. Save answers
+    const { error: answerError } = await supabase
+      .from("assignmentAnswers")
+      .insert(answerRows);
+
+    if (answerError) {
+      console.log("Answer submit error =", answerError);
+      return false;
+    }
+
     await get().getAssignments();
 
     return true;
@@ -142,23 +166,35 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       .from("assignmentsSubmitted")
       .select(
         `
-      *,
-      assignments!inner (
-        title,
-        description,
-        fullMarks,
-        passMarks,
-        classId,
-        teacherId,
-        classes (
-          class,
-          subject
-        )
+    *,
+    assignments!inner (
+      title,
+      description,
+      fullMarks,
+      passMarks,
+      classId,
+      teacherId,
+      classes (
+        class,
+        subject
       ),
-      users (
-        name
+      assignmentQuestions!assignmentQuestions_assignmentId_fkey (
+        id,
+        question,
+        marks,
+        questionNumber
       )
-    `,
+    ),
+    assignmentAnswers (
+      id,
+      questionId,
+      answer,
+      marksObtained
+    ),
+    users (
+      name
+    )
+  `,
       )
       .eq("assignments.teacherId", teacherId);
 
@@ -176,20 +212,30 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       passMarks: submission.assignments.passMarks,
       class: submission.assignments.classes?.class || "Unknown Class",
       subject: submission.assignments.classes?.subject || "Unknown Subject",
+      assignmentQuestions: submission.assignments.assignmentQuestions ?? [],
+      assignmentAnswers: submission.assignmentAnswers ?? [],
     }));
   },
 
-  updateSubmittedAssignment: async (submissionId, marks) => {
-    const { error } = await supabase
-      .from("assignmentsSubmitted")
-      .update({
-        obtainedMarks: marks,
-      })
-      .eq("id", submissionId);
+  updateAnswerMarks: async (questionMarks, assignmentAnswers) => {
+    for (const answer of assignmentAnswers) {
+      const marks = questionMarks[answer.questionId];
 
-    if (error) {
-      console.error(error);
-      return false;
+      if (marks === undefined || marks === "") {
+        continue;
+      }
+
+      const { error } = await supabase
+        .from("assignmentAnswers")
+        .update({
+          marksObtained: Number(marks),
+        })
+        .eq("id", answer.id);
+
+      if (error) {
+        console.error(error);
+        return false;
+      }
     }
 
     return true;
@@ -209,10 +255,69 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       (total, assignment) => total + (submissionCounts[assignment.id] || 0),
       0,
     );
-
     return {
       teacherAssignments,
       totalSubmissions,
     };
+  },
+
+  //Add assignment questions
+  addAssignmentQuestions: async (
+    assignmentId,
+    question,
+    marks,
+    questionNumber,
+  ) => {
+    const { error } = await supabase.from("assignmentQuestions").insert({
+      assignmentId,
+      question,
+      marks,
+      questionNumber,
+    });
+
+    if (error) {
+      console.error(error);
+      return false;
+    }
+
+    return true;
+  },
+
+  getAssignmentQuestions: async (assignmentId) => {
+    const { data, error } = await supabase
+      .from("assignmentQuestions")
+      .select("*")
+      .eq("assignmentId", assignmentId)
+      .order("questionNumber");
+
+    if (error) {
+      console.error(error);
+      return [];
+    }
+
+    return data;
+  },
+
+  updateAssignmentQuestion: async (
+    questionId,
+    question,
+    marks,
+    questionNumber,
+  ) => {
+    const { error } = await supabase
+      .from("assignmentQuestions")
+      .update({
+        question,
+        marks,
+        questionNumber,
+      })
+      .eq("id", questionId);
+
+    if (error) {
+      console.error(error);
+      return false;
+    }
+
+    return true;
   },
 }));

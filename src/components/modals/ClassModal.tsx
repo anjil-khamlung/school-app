@@ -1,12 +1,16 @@
 import { FiPlus } from "react-icons/fi";
 import SelectField from "../inputs/SelectField";
 import InputField from "../inputs/InputField";
-import type { ClassFormData, ClassFormErrors, CreateClass } from "../../type/classType";
+import type {
+  ClassFormData,
+  ClassFormErrors,
+  CreateClass,
+} from "../../type/classType";
 import { validateClass } from "../../lib/utils/validateClass";
 import { useState } from "react";
 import { useClasses } from "../../store/useClasses";
 import { toast } from "react-toastify";
-import type { User } from "@supabase/supabase-js";
+import type { User } from "../../type/type";
 
 interface ClassModalProps {
   formData: ClassFormData;
@@ -17,6 +21,8 @@ interface ClassModalProps {
   editingClassId: string | null;
   currentUser: User;
   setEditingClassId: React.Dispatch<React.SetStateAction<string | null>>;
+  initial: ClassFormData;
+  setSearch: React.Dispatch<React.SetStateAction<string | "">>;
 }
 
 const ClassModal = ({
@@ -28,15 +34,12 @@ const ClassModal = ({
   editingClassId,
   currentUser,
   setEditingClassId,
+  initial,
+  setSearch,
 }: ClassModalProps) => {
   const { addClass, updateClass } = useClasses();
   const [errors, setErrors] = useState<ClassFormErrors>({});
-  const initial = {
-    class: "",
-    section: "",
-    subject: "",
-    time: "",
-  };
+
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -67,14 +70,15 @@ const ClassModal = ({
 
       setEditingClassId(null);
       setFormData(initial);
+      setSearch("")
 
       // Close popover
       const modal = document.getElementById("create-class-modal");
 
       if (modal instanceof HTMLElement) {
         modal.hidePopover();
-        }
-        
+      }
+
       return;
     }
 
@@ -94,19 +98,19 @@ const ClassModal = ({
       toast.error("Failed to create a class");
       return;
     }
- toast.success("Class updated successfully");
+    toast.success("Class updated successfully");
 
- setEditingClassId(null);
- setFormData(initial);
+    setEditingClassId(null);
+    setFormData(initial);
 
-      //Close popover
- const modal = document.getElementById("create-class-modal");
+    //Close popover
+    const modal = document.getElementById("create-class-modal");
 
- if (modal instanceof HTMLElement) {
-   modal.hidePopover();
- }
+    if (modal instanceof HTMLElement) {
+      modal.hidePopover();
+    }
 
- return;
+    return;
   };
 
   return (
@@ -178,14 +182,19 @@ const ClassModal = ({
                 type="button"
                 popoverTarget="create-class-modal"
                 popoverTargetAction="hide"
-                className="btn"
+                onClick={() => {
+                  setEditingClassId(null);
+                  setFormData(initial);
+                  setSearch("")
+                }}
+                className="btn border-none bg-red-600 rounded-xl text-white hover:bg-red-700"
               >
                 Cancel
               </button>
 
               <button
                 type="submit"
-                className="btn bg-teal-600 text-white hover:bg-teal-700"
+                className="btn border-none bg-teal-600 rounded-xl text-white hover:bg-teal-700"
               >
                 <FiPlus size={17} />
                 {editingClassId !== null ? "Save Changes" : "Create"}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSchoolStore } from "../../store/useSchoolStore";
-import { FiFileText, FiPlus,  } from "react-icons/fi";
+import { FiFileText, FiPlus } from "react-icons/fi";
 import DashboardCard from "../../components/cards/DashboardCard";
 import SearchInput from "../../components/inputs/SearchInput";
 import AssignmentCard from "../../components/cards/AssignmentsCard";
@@ -10,7 +10,7 @@ import { useAssignments } from "../../store/useAssignments";
 import { useNavigate } from "react-router-dom";
 import { useClasses } from "../../store/useClasses";
 import AssignmentModal from "../../components/modals/AssignmentsModal";
-import type { Assignment } from "../../type/AssignmentType";
+import type { Assignment,  Question,  } from "../../type/AssignmentType";
 
 const Assignments = () => {
   const { currentUser } = useSchoolStore();
@@ -24,6 +24,7 @@ const Assignments = () => {
     getSubmittedAssignments,
     getSubmissionCounts,
     getTeacherAssignmentStats,
+    getAssignmentQuestions,
   } = useAssignments();
   if (!currentUser) return null;
 
@@ -45,13 +46,20 @@ const Assignments = () => {
     Record<string, number>
   >({});
 
-const [stats, setStats] = useState<{
-  teacherAssignments: Assignment[];
-  totalSubmissions: number;
-}>({
-  teacherAssignments: [],
-  totalSubmissions: 0,
-});
+  const [stats, setStats] = useState<{
+    teacherAssignments: Assignment[];
+    totalSubmissions: number;
+  }>({
+    teacherAssignments: [],
+    totalSubmissions: 0,
+  });
+
+  const [questions, setQuestions] = useState<Question[]>([
+    {
+      question: "",
+      marks: 25,
+    },
+  ]);
 
   const initial = {
     title: "",
@@ -63,7 +71,7 @@ const [stats, setStats] = useState<{
 
   const navigate = useNavigate();
 
-  //fetching assignemnts and submitted assignments
+  //fetching assignemnts,classes and submitted assignments
   useEffect(() => {
     const loadData = async () => {
       await getAssignments();
@@ -79,16 +87,11 @@ const [stats, setStats] = useState<{
 
       if (currentUser.role === "teacher") {
         const counts = await getSubmissionCounts();
-
         setSubmissionCounts(counts);
-      }
 
-      const loadStats = async () => {
         const result = await getTeacherAssignmentStats(currentUser.id);
         setStats(result);
-      };
-
-      loadStats();
+      }
     };
 
     loadData();
@@ -99,18 +102,15 @@ const [stats, setStats] = useState<{
     getSubmissionCounts,
     getTeacherAssignmentStats,
   ]);
+
+ const visibleAssignments = isTeacher
+  ? assignments.filter(
+      (assignment) => assignment.teacherId === currentUser.id,
+    )
+    : assignments;
   
-
-
-
-  const visibleAssignments = isTeacher ?stats. teacherAssignments : assignments;
-
   //Search
   const filteredAssignments = visibleAssignments.filter((assignment) => {
-    // Hide the assignment currently being edited
-    // if (editingAssignmentId !== null && assignment.id === editingAssignmentId) {
-    //   return false;
-    // }
     const value = search.trim().toLowerCase();
     if (!value) return true;
 
@@ -121,35 +121,46 @@ const [stats, setStats] = useState<{
   });
 
 
-  const handleDelete = (assignmentId: string) => {
-    setSelectedAssignmentId(assignmentId);
-  };
 
   //Edit class
-  const handleEdit = (assignmentId: string) => {
-    const selectedAssignment = assignments.find(
-      (item) => item.id === assignmentId,
-    );
+const handleEdit = async (assignmentId: string) => {
+  const selectedAssignment = assignments.find(
+    (item) => item.id === assignmentId,
+  );
 
-    if (!selectedAssignment) return;
+  if (!selectedAssignment) return;
 
-    setEditingAssignmentId(assignmentId);
+  setEditingAssignmentId(assignmentId);
 
-    setFormData({
-      classId: selectedAssignment.classId,
-      title: selectedAssignment.title,
-      dueDate: selectedAssignment.dueDate,
-      description: selectedAssignment.description,
-    });
+  setFormData({
+    classId: selectedAssignment.classId,
+    title: selectedAssignment.title,
+    dueDate: selectedAssignment.dueDate,
+    description: selectedAssignment.description,
+  });
 
+  // Get questions from Supabase
+  const data = await getAssignmentQuestions(assignmentId);
 
-//Open popover
+  setQuestions(
+    data.map((item) => ({
+      id: item.id,
+      question: item.question,
+      marks: item.marks,
+    })),
+  );
+
+  // Open popover
   const modal = document.getElementById("create-assignment-modal");
 
   if (modal instanceof HTMLElement) {
     modal.showPopover();
   }
-  };
+};
+
+    const handleDelete = (assignmentId: string) => {
+      setSelectedAssignmentId(assignmentId);
+    };
 
   //delete assignment
   const confirmDelete = async () => {
@@ -161,7 +172,7 @@ const [stats, setStats] = useState<{
     );
 
     if (!success) {
-      toast.error("Failed to create Assignment");
+      toast.error("Failed to Delete Assignment");
       return;
     }
 
@@ -171,42 +182,39 @@ const [stats, setStats] = useState<{
   };
 
   // submit assignment
-  const handleSubmit = async (
-    assignmentId: string,
-    submissionContent: string,
-  ) => {
-    if (!currentUser) return false;
+const handleSubmit = async (
+  assignmentId: string,
+  answers: Record<string, string>,
+) => {
+  if (!currentUser) return false;
 
-    const assignment = assignments.find(
-      (assignment) => assignment.id === assignmentId,
-    );
+  const assignment = assignments.find(
+    (assignment) => assignment.id === assignmentId,
+  );
 
-    if (!assignment) return false;
+  if (!assignment) return false;
 
-    const success = await submitAssignment(
-      assignmentId,
-      currentUser.id,
-      submissionContent,
-      new Date(),
-    );
+  const success = await submitAssignment(
+    assignmentId,
+    currentUser.id,
+    answers,
+  );
 
-    if (success) {
-      toast.success("Assignment submitted successfully");
-    } else {
-      toast.error("Failed to submit assignment");
-    }
+  if (success) {
+    toast.success("Assignment submitted successfully");
+  } else {
+    toast.error("Failed to submit assignment");
+  }
 
-    setSubmittedAssignmentIds(await getSubmittedAssignments(currentUser.id));
+  setSubmittedAssignmentIds(await getSubmittedAssignments(currentUser.id));
 
-    return success;
-  };
+  return success;
+};
 
   //Total assignments submitted by a student(currentUser)
   const submittedCount = assignments.filter((assignment) =>
     submittedAssignmentIds.includes(assignment.id),
   ).length;
-
-
 
   //Class options for selecting
   const classOptions = classes
@@ -256,15 +264,18 @@ const [stats, setStats] = useState<{
         )}
       </div>
 
-      {/* Create Assignment Form */}
+      {/* Create Assignment modal */}
       <AssignmentModal
         formData={formData}
         setFormData={setFormData}
         classOptions={classOptions}
         editingAssignmentId={editingAssignmentId}
-        // handleSubmit={handleCreateAssignment}
         currentUser={currentUser}
         setEditingAssignmentId={setEditingAssignmentId}
+        initial={initial}
+        setSearch={setSearch}
+        questions={questions}
+        setQuestions={setQuestions}
       />
 
       {/* Statistics */}
@@ -274,7 +285,9 @@ const [stats, setStats] = useState<{
           icon={FiFileText}
           iconStyle="bg-teal-50 text-teal-600"
           textStyle="text-teal-600 hover:text-teal-700"
-          value={isTeacher ?stats. teacherAssignments.length : assignments.length}
+          value={
+            isTeacher ? stats.teacherAssignments.length : assignments.length
+          }
         />
 
         <DashboardCard

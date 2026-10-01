@@ -24,8 +24,22 @@ export interface Assignment {
   users?: {
     name: string;
   } | null;
+  assignmentQuestions?:Question[]
 }
 export type CreateAssignment = Omit<Assignment, "id">;
+
+export interface Question  {
+  id?: string;
+  question: string;
+  marks: number;
+};
+
+export interface AssignmentAnswer {
+  id: string;
+  questionId: string;
+  answer: string | null;
+  marksObtained: number | null;
+}
 
 export interface SubmittedAssignment {
   id: string;
@@ -33,15 +47,17 @@ export interface SubmittedAssignment {
   studentId: string;
   studentName: string;
   class: string;
-  subject:string,
+  subject: string;
   content: string;
   assignmentTitle: string;
-  description: string,
+  description: string;
   date: Date;
-  fullMarks: number,
-  passMarks:number,
+  fullMarks: number;
+  passMarks: number;
   obtainedMarks: number | null;
   result: "Pass" | "Fail" | null;
+  assignmentQuestions: Question[];
+assignmentAnswers:AssignmentAnswer[]
 }
 
 
@@ -59,7 +75,7 @@ export interface AssignmentsStore {
     },
   ) => Promise<boolean>;
 
-  addAssignment: (newAssignment: CreateAssignment) => Promise<boolean>;
+  addAssignment: (newAssignment: CreateAssignment) => Promise<Assignment>;
 
   deleteAssignment: (
     assignmentId: string,
@@ -69,8 +85,7 @@ export interface AssignmentsStore {
   submitAssignment: (
     assignmentId: string,
     studentId: string,
-    content: string,
-    date: Date,
+    answers: Record<string, string>,
   ) => Promise<boolean>;
 
   getSubmittedAssignments: (studentId: string) => Promise<string[]>;
@@ -82,13 +97,34 @@ export interface AssignmentsStore {
     teacherId: string,
   ) => Promise<SubmittedAssignment[]>;
 
-  updateSubmittedAssignment: (
-    submissionId: string,
-    obtainedMarks: number,
-  ) => Promise<boolean>;
+  // updateSubmittedAssignment: (
+  //   submissionId: string,
+  //   obtainedMarks: number,
+  // ) => Promise<boolean>;
 
   getTeacherAssignmentStats: (teacherId: string) => Promise<{
     teacherAssignments: Assignment[];
     totalSubmissions: number;
   }>;
+
+  addAssignmentQuestions: (
+    assignmentId: string,
+    question: string,
+    marks: number,
+    questionNumber: number,
+  ) => Promise<boolean>;
+
+  getAssignmentQuestions: (AssignmentId: string) => Promise<Question[]>;
+
+  updateAssignmentQuestion: (
+    questionId: string,
+    question: string,
+    marks: number,
+    questionNumber: number,
+  ) => Promise<boolean>;
+
+  updateAnswerMarks: (
+    questionMarks: Record<string, number | string>,
+    assignmentAnswers: AssignmentAnswer[],
+  ) => Promise<boolean>;
 }

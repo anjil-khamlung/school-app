@@ -1,14 +1,15 @@
-import { FiCalendar, FiEdit2, FiPlus } from "react-icons/fi";
+import { FiCalendar,  FiPlus, FiTrash2 } from "react-icons/fi";
 import InputField from "../inputs/InputField";
 import SelectField from "../inputs/SelectField";
 import TextArea from "../inputs/TextArea";
 import type {
   AssignmentFormData,
   AssignmentFormErrors,
+  Question,
 } from "../../type/AssignmentType";
 import { validateAssignment } from "../../lib/utils/validateAssignment";
 import { useAssignments } from "../../store/useAssignments";
-import { useState } from "react";
+import {  useState } from "react";
 import { toast } from "react-toastify";
 import type { User } from "../../type/type";
 
@@ -25,7 +26,13 @@ interface AssignmentModalProps {
   currentUser: User;
 
   setEditingAssignmentId: React.Dispatch<React.SetStateAction<string | null>>;
+  initial: AssignmentFormData,
+  setSearch: React.Dispatch<React.SetStateAction<string>>
+  questions:Question[]
+  setQuestions:React.Dispatch<React.SetStateAction<Question[]>>
 }
+
+
 
 const AssignmentModal = ({
   formData,
@@ -34,20 +41,55 @@ const AssignmentModal = ({
   editingAssignmentId,
   currentUser,
   setEditingAssignmentId,
+  initial,
+  setSearch,
+  questions,
+  setQuestions,
 }: AssignmentModalProps) => {
-  const { updateAssignment, addAssignment } = useAssignments();
+  const {
+    updateAssignment,
+    addAssignment,
+    addAssignmentQuestions,
+    updateAssignmentQuestion,
+  } = useAssignments();
   const [errors, setErrors] = useState<AssignmentFormErrors>({});
-  const initial = {
-    title: "",
-    classId: "",
-    description: "",
-    dueDate: "",
+
+  //Add  question
+  const addQuestion = () => {
+    setQuestions((prev) => [
+      ...prev,
+      {
+        question: "",
+        marks: 25,
+      },
+    ]);
   };
 
+  //Remove  question
+const removeQuestion = (index: number) => {
+  setQuestions((prev) => prev.filter((_, i) => i !== index));
+};
+
+  //Update question
+const updateQuestion = (
+  index: number,
+  field: "question" | "marks",
+  value: string | number,
+) => {
+  setQuestions((prev) =>
+    prev.map((item, i) =>
+      i === index
+        ? {
+            ...item,
+            [field]: value,
+          }
+        : item,
+    ),
+  );
+};
+
     //Create assignment
-  const handleCreateAssignment = async (
-    e: React.SubmitEvent<HTMLFormElement>,
-  ) => {
+  const handleCreateAssignment = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // Validation
@@ -68,39 +110,94 @@ const AssignmentModal = ({
       });
 
       if (!success) {
-        toast.error("Failed to update class");
+        toast.error("Failed to update assignment");
         return;
       }
 
-      toast.success("Class updated successfully");
+      // Update / add questions
+      for (const [index, item] of questions.entries()) {
+        if (item.id) {
+          // Existing question → update it
+          const success = await updateAssignmentQuestion(
+            item.id,
+            item.question,
+            item.marks,
+            index + 1,
+          );
+
+          if (!success) {
+            toast.error("Failed to update question");
+            return;
+          }
+        } else {
+          // New question → insert it
+          const success = await addAssignmentQuestions(
+            editingAssignmentId,
+            item.question,
+            item.marks,
+            index + 1,
+          );
+
+          if (!success) {
+            toast.error("Failed to add question");
+            return;
+          }
+        }
+      }
+
+      toast.success("Assignment updated successfully");
 
       setEditingAssignmentId(null);
       setFormData(initial);
+      setQuestions([{ question: "", marks: 1 }]);
+
+      const modal = document.getElementById("create-assignment-modal");
+
+      if (modal instanceof HTMLElement) {
+        modal.hidePopover();
+      }
 
       return;
     }
 
-    //CREATE
+    // CREATE
     const newAssignment = {
       title: formData.title,
       classId: formData.classId,
       description: formData.description,
       dueDate: formData.dueDate,
       teacherId: currentUser.id,
-      teacher: currentUser.name,
       fullMarks: 100,
       passMarks: 40,
     };
 
-    const success = await addAssignment(newAssignment);
+    const assignment = await addAssignment(newAssignment);
 
-    if (!success) {
-      toast.error("Failed to create assignments");
+    if (!assignment) {
+      toast.error("Failed to create assignment");
       return;
     }
-    toast.success("Assignments created successfully");
+
+    // Add questions
+    for (const [index, item] of questions.entries()) {
+      const success = await addAssignmentQuestions(
+        assignment.id,
+        item.question,
+        item.marks,
+        index + 1,
+      );
+
+      if (!success) {
+        toast.error("Failed to add questions");
+        return;
+      }
+    }
+
+    toast.success("Assignment created successfully");
 
     setFormData(initial);
+    setQuestions([{ question: "", marks: 1 }]);
+    setSearch("");
 
     // Close popover
     const modal = document.getElementById("create-assignment-modal");
@@ -108,11 +205,10 @@ const AssignmentModal = ({
     if (modal instanceof HTMLElement) {
       modal.hidePopover();
     }
-
-  };
+  };;
   return (
     <div id="create-assignment-modal" popover="auto" className="modal">
-      <div className="modal-box max-w-2xl overflow-visible bg-white">
+      <div className="modal-box max-h-[98vh] max-w-2xl overflow-y-auto bg-white">
         <h3 className="text-xl font-bold text-slate-900">
           {editingAssignmentId !== null
             ? "Edit Assignment"
@@ -171,9 +267,81 @@ const AssignmentModal = ({
               value={formData.description}
               setFormData={setFormData}
               placeholder="Assignment description"
-              rows={4}
+              rows={1}
               error={errors.description}
             />
+          </div>
+
+          {/* Questions */}
+          <div className="mt-6">
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <h4 className="font-semibold text-slate-900">Questions</h4>
+                <p className="text-sm text-slate-500">
+                  Add questions for this assignment.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={addQuestion}
+                className="btn btn-sm rounded-xl border-none bg-teal-600 text-white hover:bg-teal-700"
+              >
+                <FiPlus size={16} />
+                Add Question
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {questions.map((item, index) => (
+                <div
+                  key={index}
+                  className="rounded-xl border border-slate-200 bg-slate-50 p-4"
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="font-semibold text-slate-700">
+                      Question {index + 1}
+                    </span>
+
+                    {questions.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeQuestion(index)}
+                        className="rounded-lg p-2 text-red-500 hover:bg-red-50"
+                      >
+                        <FiTrash2 size={17} />
+                      </button>
+                    )}
+                  </div>
+
+                  <textarea
+                    value={item.question}
+                    onChange={(e) =>
+                      updateQuestion(index, "question", e.target.value)
+                    }
+                    placeholder="Enter your question..."
+                    rows={2}
+                    className="textarea textarea-bordered w-full min-h-10 resize-none bg-white"
+                  />
+
+                  <div className="mt-3 flex items-center gap-3">
+                    <label className="text-sm font-medium text-slate-700">
+                      Marks
+                    </label>
+
+                    <input
+                      type="number"
+                      min={1}
+                      value={item.marks}
+                      onChange={(e) =>
+                        updateQuestion(index, "marks", Number(e.target.value))
+                      }
+                      className="input input-bordered w-24 bg-white"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Actions */}
@@ -182,30 +350,22 @@ const AssignmentModal = ({
               type="button"
               popoverTarget="create-assignment-modal"
               popoverTargetAction="hide"
-              className="btn"
+              onClick={() => {
+                setEditingAssignmentId(null);
+                setFormData(initial);
+                setSearch("");
+              }}
+              className="btn border-none bg-red-600 rounded-xl text-white hover:bg-red-700"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className={`btn text-white ${
-                editingAssignmentId !== null
-                  ? "bg-orange-500 hover:bg-orange-600"
-                  : "bg-teal-600 hover:bg-teal-700"
-              }`}
+              className="btn border-none bg-teal-600 rounded-xl text-white hover:bg-teal-700"
             >
-              {editingAssignmentId !== null ? (
-                <>
-                  <FiEdit2 size={17} />
-                  Edit
-                </>
-              ) : (
-                <>
-                  <FiPlus size={17} />
-                  Create
-                </>
-              )}
+              <FiPlus size={17} />
+              {editingAssignmentId !== null ? "Save Changes" : "Create"}
             </button>
           </div>
         </form>

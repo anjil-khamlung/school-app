@@ -14,11 +14,11 @@ import type { Class } from "../../type/classType";
 
 interface AssignmentCardProps {
   assignment: Assignment;
-  classes:Class[],
+  classes: Class[];
   isSubmitted: boolean;
   handleSubmit: (
     assignmentId: string,
-    submissionContent: string,
+    answers: Record<string, string>,
   ) => Promise<boolean>;
   submittedCount: number;
   handleDelete: (assignmentId: string) => void;
@@ -38,15 +38,15 @@ const AssignmentCard = ({
 }: AssignmentCardProps) => {
 
   const [showSubmitForm, setShowSubmitForm] = useState(false);
-  const [submissionContent, setSubmissionContent] = useState("");
+  // const [submissionContent, setSubmissionContent] = useState("");
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<
     string | null
   >(null);
   const isTeacher = user?.role === "teacher";
   const isStudent = user?.role === "student";
 
+  
   const submitted = isSubmitted;
-
 const selectedClass = classes.find((item) => item.id === assignment.classId);
   return (
     <>
@@ -151,27 +151,25 @@ const selectedClass = classes.find((item) => item.id === assignment.classId);
       {showSubmitForm && (
         <SubmitAssignmentModal
           title={assignment.description}
-          submissionContent={submissionContent}
-          setSubmissionContent={setSubmissionContent}
+          assignmentQuestions={assignment.assignmentQuestions}
           onCancel={() => {
             setShowSubmitForm(false);
-            setSubmissionContent("");
+            // setSubmissionContent("");
             setSelectedAssignmentId(null);
           }}
-          onSubmit={async () => {
-            if (!selectedAssignmentId) return;
+          onSubmit={async (answers) => {
+            if (!selectedAssignmentId) return false;
 
-            const success = await handleSubmit(
-              selectedAssignmentId,
-              submissionContent,
-            );
+            const success = await handleSubmit(selectedAssignmentId, answers);
 
-            if (!success) return;
+            if (!success) return false;
 
             setShowSubmitForm(false);
-            setSubmissionContent("");
+            // setSubmissionContent("");
             setSelectedAssignmentId(null);
-          }}  
+
+            return true;
+          }}
         />
       )}
     </>

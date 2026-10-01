@@ -51,10 +51,7 @@ const Classes = () => {
 
   // Search
   const filteredClasses = visibleClasses.filter((item) => {
-    // Hide the class currently being edited
-    if (editingClassId !== null && item.id === editingClassId) {
-      return false;
-    }
+ 
 
     const value = search.trim().toLowerCase();
 
@@ -98,7 +95,6 @@ const handleEdit = (classId: string) => {
 };
 
   // Delete class
-
   const handleDelete = (classId: string) => {
     setSelectedClassId(classId);
   };
@@ -119,7 +115,6 @@ const handleEdit = (classId: string) => {
   };
 
   // Join class
-
   const handleJoinClass = async (classId: string) => {
     if (!currentUser?.id) return;
 
@@ -178,14 +173,14 @@ const handleEdit = (classId: string) => {
       <ClassModal
         formData={formData}
         setFormData={setFormData}
-        // errors={errors}
-        // handleSubmit={handleSubmit}
-        currentUser={currentUser as any}
+        currentUser={currentUser }
         editingClassId={editingClassId}
         setEditingClassId={setEditingClassId}
         className={className}
         section={section}
         time={time}
+        initial={initial}
+        setSearch={setSearch}
       />
 
       {/* Search */}

@@ -16,7 +16,7 @@ const SubmittedAssignments = () => {
     assignments,
     getSubmittedAssignmentsForTeacher,
     getAssignments,
-    updateSubmittedAssignment,
+    updateAnswerMarks,
   } = useAssignments();
 
   useEffect(() => {
@@ -49,6 +49,7 @@ const SubmittedAssignments = () => {
     };
     loadSubmissions();
   }, [currentUser, classId, assignments, getSubmittedAssignmentsForTeacher]);
+
 
   return (
     <div className="p-6">
@@ -143,11 +144,13 @@ const SubmittedAssignments = () => {
         <SubmitAssignmentModal
           mode="view"
           submission={selectedSubmission}
+          assignmentQuestions={selectedSubmission.assignmentQuestions}
+          assignmentAnswers={selectedSubmission.assignmentAnswers}
           onCancel={() => setSelectedSubmission(null)}
-          onGrade={async (marks) => {
-            const success = await updateSubmittedAssignment(
-              selectedSubmission.id,
-              marks,
+          onGrade={async (questionMarks) => {
+            const success = await updateAnswerMarks(
+              questionMarks,
+              selectedSubmission.assignmentAnswers,
             );
 
             if (!success) {
@@ -155,20 +158,9 @@ const SubmittedAssignments = () => {
               return false;
             }
 
-            // Update local submissions state
-            setSubmissions((prev) =>
-              prev.map((submission) =>
-                submission.id === selectedSubmission.id
-                  ? {
-                      ...submission,
-                      obtainedMarks: marks,
-                    }
-                  : submission,
-              ),
-            );
-
             toast.success("Marks updated successfully");
             setSelectedSubmission(null);
+
             return true;
           }}
         />

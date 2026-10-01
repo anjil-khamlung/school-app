@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { supabase } from "../lib/supabase";
 import type { ClassesStore } from "../type/classType";
 
-export const useClasses = create<ClassesStore>((set) => ({
+export const useClasses = create<ClassesStore>((set,get) => ({
   classes: [],
 
   // Fetch classes
@@ -37,7 +37,7 @@ export const useClasses = create<ClassesStore>((set) => ({
       return false;
     }
 
-    await useClasses.getState().getClasses();
+    await get().getClasses();
     return true;
   },
 
@@ -58,7 +58,7 @@ export const useClasses = create<ClassesStore>((set) => ({
       return false;
     }
 
-    await useClasses.getState().getClasses();
+    await get().getClasses();
 
     return true;
   },
@@ -75,7 +75,7 @@ export const useClasses = create<ClassesStore>((set) => ({
       console.log("error=", error);
       return false;
     }
-    await useClasses.getState().getClasses();
+    await get().getClasses();
 
     return true;
   },
@@ -92,7 +92,7 @@ export const useClasses = create<ClassesStore>((set) => ({
       return false;
     }
 
-    await useClasses.getState().getClasses();
+    await get().getClasses();
 
     return true;
   },
