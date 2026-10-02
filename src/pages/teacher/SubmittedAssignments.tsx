@@ -50,7 +50,6 @@ const SubmittedAssignments = () => {
     loadSubmissions();
   }, [currentUser, classId, assignments, getSubmittedAssignmentsForTeacher]);
 
-
   return (
     <div className="p-6">
       {/* Header */}

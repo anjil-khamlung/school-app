@@ -24,15 +24,16 @@ export interface Assignment {
   users?: {
     name: string;
   } | null;
-  assignmentQuestions?:Question[]
+  assignmentQuestions?: AssignmentQuestion[];
 }
 export type CreateAssignment = Omit<Assignment, "id">;
 
-export interface Question  {
+export interface AssignmentQuestion {
   id?: string;
   question: string;
   marks: number;
-};
+  questionNumber?:number
+}
 
 export interface AssignmentAnswer {
   id: string;
@@ -56,11 +57,9 @@ export interface SubmittedAssignment {
   passMarks: number;
   obtainedMarks: number | null;
   result: "Pass" | "Fail" | null;
-  assignmentQuestions: Question[];
-assignmentAnswers:AssignmentAnswer[]
+  assignmentQuestions: AssignmentQuestion[];
+  assignmentAnswers: AssignmentAnswer[];
 }
-
-
 
 export interface AssignmentsStore {
   assignments: Assignment[];
@@ -97,10 +96,6 @@ export interface AssignmentsStore {
     teacherId: string,
   ) => Promise<SubmittedAssignment[]>;
 
-  // updateSubmittedAssignment: (
-  //   submissionId: string,
-  //   obtainedMarks: number,
-  // ) => Promise<boolean>;
 
   getTeacherAssignmentStats: (teacherId: string) => Promise<{
     teacherAssignments: Assignment[];
@@ -114,17 +109,22 @@ export interface AssignmentsStore {
     questionNumber: number,
   ) => Promise<boolean>;
 
-  getAssignmentQuestions: (AssignmentId: string) => Promise<Question[]>;
+  getAssignmentQuestions: (
+    AssignmentId: string,
+  ) => Promise<AssignmentQuestion[]>;
 
   updateAssignmentQuestion: (
     questionId: string,
     question: string,
     marks: number,
-    questionNumber: number,
   ) => Promise<boolean>;
 
   updateAnswerMarks: (
     questionMarks: Record<string, number | string>,
     assignmentAnswers: AssignmentAnswer[],
   ) => Promise<boolean>;
+
+  checkAssignmentSubmissions: (AssignmentId: string) => Promise<boolean | null>;
+
+  deleteAssignmentQuestion:(questionId:string)=>Promise<boolean>
 }

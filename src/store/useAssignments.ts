@@ -7,7 +7,10 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
 
   // Fetch classes
   getAssignments: async () => {
-    const { data, error } = await supabase.from("assignments").select(`
+    const { data, error } = await supabase
+      .from("assignments")
+      .select(
+        `
       *,
       users (
         name
@@ -15,9 +18,16 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       assignmentQuestions!assignmentQuestions_assignmentId_fkey (
         id,
         question,
-        marks
+        marks,
+        questionNumber
       )
-    `);
+    `,
+      )
+      // sorting question number
+      .order("questionNumber", {
+        referencedTable: "assignmentQuestions",
+        ascending: true,
+      });
 
     if (error) {
       console.error(error);
@@ -217,6 +227,7 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
     }));
   },
 
+  //Update submitted assignment answer marks
   updateAnswerMarks: async (questionMarks, assignmentAnswers) => {
     for (const answer of assignmentAnswers) {
       const marks = questionMarks[answer.questionId];
@@ -238,11 +249,16 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       }
     }
 
+    await get().getAssignments();
+
     return true;
   },
 
   //teacher asignments and total submissions
   getTeacherAssignmentStats: async (teacherId: string) => {
+        await get().getAssignments();
+    await get().getSubmissionCounts();
+    
     const { assignments, getSubmissionCounts } = get();
 
     const teacherAssignments = assignments.filter(
@@ -255,6 +271,9 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       (total, assignment) => total + (submissionCounts[assignment.id] || 0),
       0,
     );
+
+
+
     return {
       teacherAssignments,
       totalSubmissions,
@@ -283,6 +302,7 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
     return true;
   },
 
+  //Get assignmnet questions
   getAssignmentQuestions: async (assignmentId) => {
     const { data, error } = await supabase
       .from("assignmentQuestions")
@@ -298,19 +318,44 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
     return data;
   },
 
-  updateAssignmentQuestion: async (
-    questionId,
-    question,
-    marks,
-    questionNumber,
-  ) => {
+  //Update assignment questions
+  updateAssignmentQuestion: async (questionId, question, marks) => {
     const { error } = await supabase
       .from("assignmentQuestions")
       .update({
         question,
         marks,
-        questionNumber,
       })
+      .eq("id", questionId);
+
+    if (error) {
+      console.error(error);
+      return false;
+    }
+
+    return true;
+  },
+
+  //Check if assignment has submissions
+  checkAssignmentSubmissions: async (assignmentId: string) => {
+    const { count, error } = await supabase
+      .from("assignmentsSubmitted")
+      .select("id", { count: "exact", head: true })
+      .eq("assignmentId", assignmentId);
+
+    if (error) {
+      console.error(error.message);
+      return null;
+    }
+
+    return (count ?? 0) > 0;
+  },
+
+  //Delete assignment questions
+  deleteAssignmentQuestion: async (questionId) => {
+    const { error } = await supabase
+      .from("assignmentQuestions")
+      .delete()
       .eq("id", questionId);
 
     if (error) {

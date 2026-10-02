@@ -10,7 +10,7 @@ import { useAssignments } from "../../store/useAssignments";
 import { useNavigate } from "react-router-dom";
 import { useClasses } from "../../store/useClasses";
 import AssignmentModal from "../../components/modals/AssignmentsModal";
-import type { Assignment,  Question,  } from "../../type/AssignmentType";
+import type { Assignment,  AssignmentQuestion,  } from "../../type/AssignmentType";
 
 const Assignments = () => {
   const { currentUser } = useSchoolStore();
@@ -25,6 +25,7 @@ const Assignments = () => {
     getSubmissionCounts,
     getTeacherAssignmentStats,
     getAssignmentQuestions,
+    checkAssignmentSubmissions,
   } = useAssignments();
   if (!currentUser) return null;
 
@@ -54,12 +55,11 @@ const Assignments = () => {
     totalSubmissions: 0,
   });
 
-  const [questions, setQuestions] = useState<Question[]>([
-    {
-      question: "",
-      marks: 25,
-    },
-  ]);
+  const initialQuestions = {
+    question: "",
+    marks: 25,
+  };
+  const [questions, setQuestions] = useState<AssignmentQuestion[]>([initialQuestions]);
 
   const initial = {
     title: "",
@@ -103,12 +103,12 @@ const Assignments = () => {
     getTeacherAssignmentStats,
   ]);
 
- const visibleAssignments = isTeacher
-  ? assignments.filter(
-      (assignment) => assignment.teacherId === currentUser.id,
-    )
+  const visibleAssignments = isTeacher
+    ? assignments.filter(
+        (assignment) => assignment.teacherId === currentUser.id,
+      )
     : assignments;
-  
+
   //Search
   const filteredAssignments = visibleAssignments.filter((assignment) => {
     const value = search.trim().toLowerCase();
@@ -120,47 +120,54 @@ const Assignments = () => {
     );
   });
 
+  //Edit assignment
+  const handleEdit = async (assignmentId: string) => {
+    const hasSubmissions = await checkAssignmentSubmissions(assignmentId);
 
+    if (hasSubmissions === null) return;
 
-  //Edit class
-const handleEdit = async (assignmentId: string) => {
-  const selectedAssignment = assignments.find(
-    (item) => item.id === assignmentId,
-  );
+    if (hasSubmissions) {
+      toast.error("Cannot edit because students have submitted.");
+      return;
+    }
 
-  if (!selectedAssignment) return;
+    const selectedAssignment = assignments.find(
+      (item) => item.id === assignmentId,
+    );
 
-  setEditingAssignmentId(assignmentId);
+    if (!selectedAssignment) return;
 
-  setFormData({
-    classId: selectedAssignment.classId,
-    title: selectedAssignment.title,
-    dueDate: selectedAssignment.dueDate,
-    description: selectedAssignment.description,
-  });
+    setEditingAssignmentId(assignmentId);
 
-  // Get questions from Supabase
-  const data = await getAssignmentQuestions(assignmentId);
+    setFormData({
+      classId: selectedAssignment.classId,
+      title: selectedAssignment.title,
+      dueDate: selectedAssignment.dueDate,
+      description: selectedAssignment.description,
+    });
 
-  setQuestions(
-    data.map((item) => ({
-      id: item.id,
-      question: item.question,
-      marks: item.marks,
-    })),
-  );
+    // Get questions from Supabase
+    const data = await getAssignmentQuestions(assignmentId);
 
-  // Open popover
-  const modal = document.getElementById("create-assignment-modal");
+    setQuestions(
+      data.map((item) => ({
+        id: item.id,
+        question: item.question,
+        marks: item.marks,
+      })),
+    );
 
-  if (modal instanceof HTMLElement) {
-    modal.showPopover();
-  }
-};
+    // Open popover modal
+    const modal = document.getElementById("create-assignment-modal");
 
-    const handleDelete = (assignmentId: string) => {
-      setSelectedAssignmentId(assignmentId);
-    };
+    if (modal instanceof HTMLElement) {
+      modal.showPopover();
+    }
+  };
+
+  const handleDelete = (assignmentId: string) => {
+    setSelectedAssignmentId(assignmentId);
+  };
 
   //delete assignment
   const confirmDelete = async () => {
@@ -182,34 +189,34 @@ const handleEdit = async (assignmentId: string) => {
   };
 
   // submit assignment
-const handleSubmit = async (
-  assignmentId: string,
-  answers: Record<string, string>,
-) => {
-  if (!currentUser) return false;
+  const handleSubmit = async (
+    assignmentId: string,
+    answers: Record<string, string>,
+  ) => {
+    if (!currentUser) return false;
 
-  const assignment = assignments.find(
-    (assignment) => assignment.id === assignmentId,
-  );
+    const assignment = assignments.find(
+      (assignment) => assignment.id === assignmentId,
+    );
 
-  if (!assignment) return false;
+    if (!assignment) return false;
 
-  const success = await submitAssignment(
-    assignmentId,
-    currentUser.id,
-    answers,
-  );
+    const success = await submitAssignment(
+      assignmentId,
+      currentUser.id,
+      answers,
+    );
 
-  if (success) {
-    toast.success("Assignment submitted successfully");
-  } else {
-    toast.error("Failed to submit assignment");
-  }
+    if (success) {
+      toast.success("Assignment submitted successfully");
+    } else {
+      toast.error("Failed to submit assignment");
+    }
 
-  setSubmittedAssignmentIds(await getSubmittedAssignments(currentUser.id));
+    setSubmittedAssignmentIds(await getSubmittedAssignments(currentUser.id));
 
-  return success;
-};
+    return success;
+  };
 
   //Total assignments submitted by a student(currentUser)
   const submittedCount = assignments.filter((assignment) =>
@@ -276,6 +283,7 @@ const handleSubmit = async (
         setSearch={setSearch}
         questions={questions}
         setQuestions={setQuestions}
+        initialQuestions={initialQuestions}
       />
 
       {/* Statistics */}

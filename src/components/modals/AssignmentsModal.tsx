@@ -5,7 +5,7 @@ import TextArea from "../inputs/TextArea";
 import type {
   AssignmentFormData,
   AssignmentFormErrors,
-  Question,
+  AssignmentQuestion,
 } from "../../type/AssignmentType";
 import { validateAssignment } from "../../lib/utils/validateAssignment";
 import { useAssignments } from "../../store/useAssignments";
@@ -26,10 +26,11 @@ interface AssignmentModalProps {
   currentUser: User;
 
   setEditingAssignmentId: React.Dispatch<React.SetStateAction<string | null>>;
-  initial: AssignmentFormData,
-  setSearch: React.Dispatch<React.SetStateAction<string>>
-  questions:Question[]
-  setQuestions:React.Dispatch<React.SetStateAction<Question[]>>
+  initial: AssignmentFormData;
+  setSearch: React.Dispatch<React.SetStateAction<string>>;
+  questions: AssignmentQuestion[];
+  setQuestions: React.Dispatch<React.SetStateAction<AssignmentQuestion[]>>;
+  initialQuestions: AssignmentQuestion
 }
 
 
@@ -45,12 +46,15 @@ const AssignmentModal = ({
   setSearch,
   questions,
   setQuestions,
+  initialQuestions,
 }: AssignmentModalProps) => {
   const {
     updateAssignment,
     addAssignment,
     addAssignmentQuestions,
     updateAssignmentQuestion,
+    getAssignmentQuestions,
+    deleteAssignmentQuestion,
   } = useAssignments();
   const [errors, setErrors] = useState<AssignmentFormErrors>({});
 
@@ -58,10 +62,7 @@ const AssignmentModal = ({
   const addQuestion = () => {
     setQuestions((prev) => [
       ...prev,
-      {
-        question: "",
-        marks: 25,
-      },
+      initialQuestions
     ]);
   };
 
@@ -114,6 +115,25 @@ const updateQuestion = (
         return;
       }
 
+      //Remove deleted questions from supabase
+      const existingQuestions = await getAssignmentQuestions(editingAssignmentId);
+
+      const remainingIds = questions.map((item) => item.id).filter(Boolean);
+
+      const deletedQuestions = existingQuestions.filter(
+        (item) => !remainingIds.includes(item.id),
+      );
+
+      for (const item of deletedQuestions) {
+          if (!item.id) continue;
+        const success = await deleteAssignmentQuestion(item.id);
+
+        if (!success) {
+          toast.error("Failed to delete question");
+          return;
+        }
+      }
+
       // Update / add questions
       for (const [index, item] of questions.entries()) {
         if (item.id) {
@@ -122,7 +142,6 @@ const updateQuestion = (
             item.id,
             item.question,
             item.marks,
-            index + 1,
           );
 
           if (!success) {
@@ -149,8 +168,9 @@ const updateQuestion = (
 
       setEditingAssignmentId(null);
       setFormData(initial);
-      setQuestions([{ question: "", marks: 1 }]);
+      setQuestions([{ question: "", marks: 25 }]);
 
+      //close popover modal
       const modal = document.getElementById("create-assignment-modal");
 
       if (modal instanceof HTMLElement) {
@@ -179,19 +199,24 @@ const updateQuestion = (
     }
 
     // Add questions
-    for (const [index, item] of questions.entries()) {
-      const success = await addAssignmentQuestions(
-        assignment.id,
-        item.question,
-        item.marks,
-        index + 1,
-      );
+ for (const [index, item] of questions.entries()) {
+   if (!item.question.trim()) {
+     toast.error(`Question ${index + 1} cannot be empty`);
+     return;
+   }
 
-      if (!success) {
-        toast.error("Failed to add questions");
-        return;
-      }
-    }
+   const success = await addAssignmentQuestions(
+     assignment.id,
+     item.question,
+     item.marks,
+     index + 1,
+   );
+
+   if (!success) {
+     toast.error(`Failed to add question ${index + 1}`);
+     return;
+   }
+ }
 
     toast.success("Assignment created successfully");
 
@@ -315,6 +340,7 @@ const updateQuestion = (
                   </div>
 
                   <textarea
+                    required
                     value={item.question}
                     onChange={(e) =>
                       updateQuestion(index, "question", e.target.value)
@@ -330,8 +356,10 @@ const updateQuestion = (
                     </label>
 
                     <input
+                      required
                       type="number"
                       min={1}
+                      max={50}
                       value={item.marks}
                       onChange={(e) =>
                         updateQuestion(index, "marks", Number(e.target.value))
@@ -354,6 +382,8 @@ const updateQuestion = (
                 setEditingAssignmentId(null);
                 setFormData(initial);
                 setSearch("");
+                setErrors({})
+                setQuestions([])
               }}
               className="btn border-none bg-red-600 rounded-xl text-white hover:bg-red-700"
             >

@@ -45,7 +45,6 @@ const AssignmentCard = ({
   const isTeacher = user?.role === "teacher";
   const isStudent = user?.role === "student";
 
-  
   const submitted = isSubmitted;
 const selectedClass = classes.find((item) => item.id === assignment.classId);
   return (

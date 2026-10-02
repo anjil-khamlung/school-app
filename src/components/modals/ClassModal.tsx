@@ -117,7 +117,7 @@ const ClassModal = ({
     <>
       {/* Modal */}
       <div id="create-class-modal" popover="auto" className="modal">
-        <div className="modal-box max-w-2xl overflow-visible bg-white">
+        <div className="modal-box  max-w-2xl overflow-visible bg-white">
           <h3 className="text-xl font-bold text-slate-900">
             {editingClassId !== null ? "Edit Class" : "Create New Class"}
           </h3>
@@ -186,6 +186,7 @@ const ClassModal = ({
                   setEditingClassId(null);
                   setFormData(initial);
                   setSearch("")
+                  setErrors({})
                 }}
                 className="btn border-none bg-red-600 rounded-xl text-white hover:bg-red-700"
               >
