@@ -5,12 +5,14 @@ import {
   FiFileText,
   FiTrash2,
   FiUser,
+  FiX,
 } from "react-icons/fi";
-import type {  User } from "../../type/type";
-import type { Assignment } from "../../type/AssignmentType";
+import type { User } from "../../type/type";
+import type { Assignment, Result } from "../../type/AssignmentType";
 import { useState } from "react";
-import SubmitAssignmentModal from "../SubmitAssignmentsModal";
+import SubmitAssignmentModal from "../modals/SubmitAssignmentsModal";
 import type { Class } from "../../type/classType";
+import ResultModal from "../modals/ResultModal";
 
 interface AssignmentCardProps {
   assignment: Assignment;
@@ -23,7 +25,9 @@ interface AssignmentCardProps {
   submittedCount: number;
   handleDelete: (assignmentId: string) => void;
   handleEdit: (assignmentId: string) => void;
-  user?: User | null;
+  user: User;
+  result: Result | undefined;
+  obtainedMarks: number | null | undefined;
 }
 
 const AssignmentCard = ({
@@ -35,18 +39,23 @@ const AssignmentCard = ({
   handleEdit,
   handleSubmit,
   user,
+  result,
+  obtainedMarks,
 }: AssignmentCardProps) => {
-
   const [showSubmitForm, setShowSubmitForm] = useState(false);
-  // const [submissionContent, setSubmissionContent] = useState("");
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<
     string | null
   >(null);
   const isTeacher = user?.role === "teacher";
   const isStudent = user?.role === "student";
 
-  const submitted = isSubmitted;
-const selectedClass = classes.find((item) => item.id === assignment.classId);
+  const today = new Date();
+  const dueDate = new Date(assignment.dueDate);
+  //check if submission date is over
+  const isPastDueDate = today > dueDate;
+
+  const selectedClass = classes.find((item) => item.id === assignment.classId);
+
   return (
     <>
       <div className="group rounded-2xl border border-slate-200 bg-white p-6 xl:p-8 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-teal-200 hover:shadow-xl">
@@ -57,7 +66,7 @@ const selectedClass = classes.find((item) => item.id === assignment.classId);
           </div>
 
           {/* Teacher Submission Count */}
-          {isTeacher && (
+          {isTeacher ? (
             <div className="rounded-xl bg-emerald-50 p-2">
               <p className="text-xs font-medium text-slate-500">Submitted</p>
 
@@ -65,7 +74,16 @@ const selectedClass = classes.find((item) => item.id === assignment.classId);
                 {submittedCount}
               </p>
             </div>
-          )}
+          ) : isSubmitted ? (
+            <button
+              type="button"
+              popoverTarget={`result-${assignment.id}`}
+              popoverTargetAction="show"
+              className="rounded-xl bg-slate-50 px-3 py-2 cursor-pointer hover:bg-slate-200"
+            >
+              <p className="text-xs font-medium text-emerald-600">See Result</p>
+            </button>
+          ) : null}
         </div>
 
         {/* Title */}
@@ -134,15 +152,21 @@ const selectedClass = classes.find((item) => item.id === assignment.classId);
               setSelectedAssignmentId(assignment.id);
               setShowSubmitForm(true);
             }}
-            disabled={submitted}
+            disabled={isSubmitted || isPastDueDate}
             className={`mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
-              submitted
+              isSubmitted
                 ? "cursor-not-allowed bg-emerald-50 text-emerald-600"
-                : "bg-teal-600 text-white hover:bg-teal-700"
+                : isPastDueDate
+                  ? "cursor-not-allowed bg-red-50 text-red-600"
+                  : "bg-teal-600 text-white hover:bg-teal-700"
             }`}
           >
-            <FiCheck size={17} />
-            {submitted ? "Submitted" : "Submit "}
+            {isPastDueDate ? <FiX size={17} /> : <FiCheck size={17} />}
+            {isPastDueDate
+              ? "Deadline Passed"
+              : isSubmitted
+                ? "Submitted"
+                : "Submit "}
           </button>
         )}
       </div>
@@ -153,7 +177,6 @@ const selectedClass = classes.find((item) => item.id === assignment.classId);
           assignmentQuestions={assignment.assignmentQuestions}
           onCancel={() => {
             setShowSubmitForm(false);
-            // setSubmissionContent("");
             setSelectedAssignmentId(null);
           }}
           onSubmit={async (answers) => {
@@ -164,13 +187,19 @@ const selectedClass = classes.find((item) => item.id === assignment.classId);
             if (!success) return false;
 
             setShowSubmitForm(false);
-            // setSubmissionContent("");
             setSelectedAssignmentId(null);
 
             return true;
           }}
         />
       )}
+
+      {/* See result  */}
+      <ResultModal
+        id={`result-${assignment.id}`}
+        obtainedMarks={obtainedMarks}
+        result={result}
+      />
     </>
   );
 };

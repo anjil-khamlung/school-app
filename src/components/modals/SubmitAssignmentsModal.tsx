@@ -1,7 +1,11 @@
-import {  useState } from "react";
+import { useState } from "react";
 import { FiX } from "react-icons/fi";
 import { toast } from "react-toastify";
-import type { AssignmentAnswer, AssignmentQuestion, SubmittedAssignment } from "../type/AssignmentType";
+import type {
+  AssignmentAnswer,
+  AssignmentQuestion,
+  SubmittedAssignment,
+} from "../../type/AssignmentType";
 
 interface SubmitAssignmentModalProps {
   submission?: SubmittedAssignment;
@@ -26,7 +30,6 @@ const SubmitAssignmentModal = ({
   assignmentQuestions,
   assignmentAnswers,
 }: SubmitAssignmentModalProps) => {
-
   const [answers, setAnswers] = useState<Record<string, string>>({});
 
   const [questionMarks, setQuestionMarks] = useState<
@@ -34,37 +37,35 @@ const SubmitAssignmentModal = ({
   >({});
 
   const isGraded =
-    submission?.obtainedMarks !== null &&
-    submission?.obtainedMarks !== 0;
-  
+    submission?.obtainedMarks !== null && submission?.obtainedMarks !== 0;
 
   // Validate the entered marks and send them to the parent for grading
-const handleGrade = async () => {
-  // Make sure at least one mark is entered
-  if (Object.keys(questionMarks).length === 0) {
-    toast.error("Please enter marks");
-    return;
-  }
-
-  // Validate each question's marks
-  for (const item of assignmentQuestions ?? []) {
-    const marks = item.id === undefined ? undefined : questionMarks[item.id];
-
-    if (marks === undefined || marks === "") {
-      toast.error(`Please enter marks for question no. ${item.questionNumber}`);
+  const handleGrade = async () => {
+    // Make sure at least one mark is entered
+    if (Object.keys(questionMarks).length === 0) {
+      toast.error("Please enter marks");
       return;
     }
 
-    if (Number(marks) < 0 || Number(marks) > item.marks) {
-      toast.error(`Invalid marks for question no. ${item.questionNumber}`);
-      return;
+    // Validate each question's marks
+    for (const item of assignmentQuestions ?? []) {
+      const marks = item.id === undefined ? undefined : questionMarks[item.id];
+
+      if (marks === undefined || marks === "") {
+        toast.error(
+          `Please enter marks for question no. ${item.questionNumber}`,
+        );
+        return;
+      }
+
+      if (Number(marks) < 0 || Number(marks) > item.marks) {
+        toast.error(`Invalid marks for question no. ${item.questionNumber}`);
+        return;
+      }
     }
 
-  }
-
-  await onGrade?.(questionMarks);
+    await onGrade?.(questionMarks);
   };
-
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -296,7 +297,20 @@ const handleGrade = async () => {
 
               <button
                 type="button"
-                onClick={() => onSubmit?.(answers)}
+                onClick={() => {
+                  //Does this question have no answer or only spaces?
+                  //Is there at least one question with no answer?
+                  const hasEmptyAnswer = assignmentQuestions?.some(
+                    (q) => !answers[q.id ?? ""]?.trim(),
+                  );
+
+                  if (hasEmptyAnswer) {
+                    toast.error("Please answer all questions");
+                    return;
+                  }
+
+                  onSubmit?.(answers);
+                }}
                 className="cursor-pointer rounded-xl bg-teal-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Submit Assignment

@@ -4,13 +4,17 @@ import { FiFileText, FiPlus } from "react-icons/fi";
 import DashboardCard from "../../components/cards/DashboardCard";
 import SearchInput from "../../components/inputs/SearchInput";
 import AssignmentCard from "../../components/cards/AssignmentsCard";
-import ConfirmModal from "../../components/ConfirmModal";
+import ConfirmModal from "../../components/modals/ConfirmModal";
 import { toast } from "react-toastify";
 import { useAssignments } from "../../store/useAssignments";
 import { useNavigate } from "react-router-dom";
 import { useClasses } from "../../store/useClasses";
 import AssignmentModal from "../../components/modals/AssignmentsModal";
-import type { Assignment,  AssignmentQuestion,  } from "../../type/AssignmentType";
+import type {
+  Result,
+  Assignment,
+  AssignmentQuestion,
+} from "../../type/AssignmentType";
 
 const Assignments = () => {
   const { currentUser } = useSchoolStore();
@@ -55,11 +59,21 @@ const Assignments = () => {
     totalSubmissions: 0,
   });
 
+  const [submittedAssignments, setSubmittedAssignments] = useState<
+    {
+      assignmentId: string;
+      obtainedMarks: number | null;
+      result: Result;
+    }[]
+  >([]);
+
   const initialQuestions = {
     question: "",
     marks: 25,
   };
-  const [questions, setQuestions] = useState<AssignmentQuestion[]>([initialQuestions]);
+  const [questions, setQuestions] = useState<AssignmentQuestion[]>([
+    initialQuestions,
+  ]);
 
   const initial = {
     title: "",
@@ -80,17 +94,20 @@ const Assignments = () => {
       if (!currentUser) return;
 
       if (currentUser.role === "student") {
-        const submittedIds = await getSubmittedAssignments(currentUser.id);
+        const data = await getSubmittedAssignments(currentUser.id);
 
-        setSubmittedAssignmentIds(submittedIds);
+        setSubmittedAssignments(data);
+        setSubmittedAssignmentIds(
+          data.map((submission) => submission.assignmentId),
+        );
       }
 
       if (currentUser.role === "teacher") {
         const counts = await getSubmissionCounts();
         setSubmissionCounts(counts);
 
-        const result = await getTeacherAssignmentStats(currentUser.id);
-        setStats(result);
+        const data = await getTeacherAssignmentStats(currentUser.id);
+        setStats(data);
       }
     };
 
@@ -213,12 +230,16 @@ const Assignments = () => {
       toast.error("Failed to submit assignment");
     }
 
-    setSubmittedAssignmentIds(await getSubmittedAssignments(currentUser.id));
+    setSubmittedAssignmentIds(
+      (await getSubmittedAssignments(currentUser.id)).map(
+        (submission) => submission.assignmentId,
+      ),
+    );
 
     return success;
   };
 
-  //Total assignments submitted by a student(currentUser)
+  //Total assignments submitted by a student
   const submittedCount = assignments.filter((assignment) =>
     submittedAssignmentIds.includes(assignment.id),
   ).length;
@@ -335,19 +356,27 @@ const Assignments = () => {
       {/* Assignment Card */}
       {filteredAssignments.length > 0 ? (
         <div className="mt-4 grid gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-          {filteredAssignments.map((assignment) => (
-            <AssignmentCard
-              key={assignment.id}
-              assignment={assignment}
-              classes={classes}
-              isSubmitted={submittedAssignmentIds.includes(assignment.id)}
-              submittedCount={submissionCounts[assignment.id] || 0}
-              handleSubmit={handleSubmit}
-              handleDelete={handleDelete}
-              handleEdit={handleEdit}
-              user={currentUser}
-            />
-          ))}
+          {filteredAssignments.map((assignment) => {
+            const submission = submittedAssignments.find(
+              (item) => item.assignmentId === assignment.id,
+            );
+
+            return (
+              <AssignmentCard
+                key={assignment.id}
+                assignment={assignment}
+                classes={classes}
+                isSubmitted={submittedAssignmentIds.includes(assignment.id)}
+                submittedCount={submissionCounts[assignment.id] || 0}
+                handleSubmit={handleSubmit}
+                handleDelete={handleDelete}
+                handleEdit={handleEdit}
+                user={currentUser}
+                result={submission?.result}
+                obtainedMarks={submission?.obtainedMarks}
+              />
+            );
+          })}
         </div>
       ) : (
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center">

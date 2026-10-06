@@ -138,7 +138,7 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
   getSubmittedAssignments: async (studentId: string) => {
     const { data, error } = await supabase
       .from("assignmentsSubmitted")
-      .select("assignmentId")
+      .select("assignmentId, obtainedMarks, result")
       .eq("studentId", studentId);
 
     if (error) {
@@ -146,7 +146,7 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       return [];
     }
 
-    return data.map((submission) => submission.assignmentId);
+    return data;
   },
 
   //Get Submission Count
@@ -256,9 +256,9 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
 
   //teacher asignments and total submissions
   getTeacherAssignmentStats: async (teacherId: string) => {
-        await get().getAssignments();
+    await get().getAssignments();
     await get().getSubmissionCounts();
-    
+
     const { assignments, getSubmissionCounts } = get();
 
     const teacherAssignments = assignments.filter(
@@ -271,8 +271,6 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       (total, assignment) => total + (submissionCounts[assignment.id] || 0),
       0,
     );
-
-
 
     return {
       teacherAssignments,

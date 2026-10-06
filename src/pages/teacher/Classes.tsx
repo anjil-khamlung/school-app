@@ -1,18 +1,17 @@
 import { useEffect, useState } from "react";
 import { useSchoolStore } from "../../store/useSchoolStore";
-import { FiBookOpen, FiPlus,  } from "react-icons/fi";
+import { FiBookOpen, FiPlus } from "react-icons/fi";
 import { toast } from "react-toastify";
 import SearchInput from "../../components/inputs/SearchInput";
 import ClassCard from "../../components/cards/ClassCard";
-import ConfirmModal from "../../components/ConfirmModal";
+import ConfirmModal from "../../components/modals/ConfirmModal";
 import { useClasses } from "../../store/useClasses";
 import { className, section, time } from "../../data/classOptions";
 import ClassModal from "../../components/modals/ClassModal";
 
 const Classes = () => {
   const { currentUser } = useSchoolStore();
-  const { classes, getClasses,  joinClass, deleteClass } =
-    useClasses();
+  const { classes, getClasses, joinClass, deleteClass } = useClasses();
 
   const [search, setSearch] = useState("");
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
@@ -51,8 +50,6 @@ const Classes = () => {
 
   // Search
   const filteredClasses = visibleClasses.filter((item) => {
- 
-
     const value = search.trim().toLowerCase();
 
     if (!value) {
@@ -62,37 +59,34 @@ const Classes = () => {
     return (
       item.class?.toLowerCase().includes(value) ||
       item.section?.toLowerCase().includes(value) ||
-      item.subject?.toLowerCase().includes(value) 
+      item.subject?.toLowerCase().includes(value)
     );
   });
 
-
   //Edit class
-const handleEdit = (classId: string) => {
-  const selectedClass = classes.find(
-    (item) => item.id === classId,
-  );
+  const handleEdit = (classId: string) => {
+    const selectedClass = classes.find((item) => item.id === classId);
 
-  if (!selectedClass) return;
+    if (!selectedClass) return;
 
-  // Fill the form with the existing class data
-  setFormData({
-    class: selectedClass.class,
-    section: selectedClass.section,
-    subject: selectedClass.subject,
-    time: selectedClass.time,
-  });
+    // Fill the form with the existing class data
+    setFormData({
+      class: selectedClass.class,
+      section: selectedClass.section,
+      subject: selectedClass.subject,
+      time: selectedClass.time,
+    });
 
-  // Tell the modal we're editing this class
-  setEditingClassId(classId);
+    // Tell the modal we're editing this class
+    setEditingClassId(classId);
 
-  // Open the popover
-  const modal = document.getElementById("create-class-modal");
+    // Open the popover
+    const modal = document.getElementById("create-class-modal");
 
-  if (modal instanceof HTMLElement) {
-    modal.showPopover();
-  }
-};
+    if (modal instanceof HTMLElement) {
+      modal.showPopover();
+    }
+  };
 
   // Delete class
   const handleDelete = (classId: string) => {
@@ -127,7 +121,6 @@ const handleEdit = (classId: string) => {
 
     toast.success("Class joined successfully");
   };
-
 
   return (
     <div className="mx-auto w-full max-w-7xl p-2 lg:p-4">
@@ -173,7 +166,7 @@ const handleEdit = (classId: string) => {
       <ClassModal
         formData={formData}
         setFormData={setFormData}
-        currentUser={currentUser }
+        currentUser={currentUser}
         editingClassId={editingClassId}
         setEditingClassId={setEditingClassId}
         className={className}

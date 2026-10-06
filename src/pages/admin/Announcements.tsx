@@ -1,13 +1,16 @@
 import { FiBell, FiEdit2, FiPlus, FiX } from "react-icons/fi";
 import InputField from "../../components/inputs/InputField";
 import TextArea from "../../components/inputs/TextArea";
-import ConfirmModal from "../../components/ConfirmModal";
+import ConfirmModal from "../../components/modals/ConfirmModal";
 import { useSchoolStore } from "../../store/useSchoolStore";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useAnnouncements } from "../../store/useAnnouncements";
 import AnnouncementCard from "../../components/cards/AnnouncementCard";
-import type { AnnouncementFormErrors, CreateAnnouncement } from "../../type/AnnouncementType";
+import type {
+  AnnouncementFormErrors,
+  CreateAnnouncement,
+} from "../../type/AnnouncementType";
 import { validateAnnouncement } from "../../lib/utils/validateAnnouncement";
 
 const Announcements = () => {
@@ -26,8 +29,8 @@ const Announcements = () => {
   >(null);
   const [editingAnnouncementId, setEditingAnnouncementId] = useState<
     string | null
-    >(null);
-  const[errors,setErrors]=useState<AnnouncementFormErrors>({})
+  >(null);
+  const [errors, setErrors] = useState<AnnouncementFormErrors>({});
 
   const isAdmin = currentUser?.role === "admin";
 
@@ -46,12 +49,12 @@ const Announcements = () => {
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-//Validation
-   const validationErrors = validateAnnouncement(formData);
-   setErrors(validationErrors);
-   if (Object.keys(validationErrors).length > 0) {
-     return;
-   }
+    //Validation
+    const validationErrors = validateAnnouncement(formData);
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
 
     // EDIT
     if (editingAnnouncementId !== null) {
@@ -293,6 +296,6 @@ const Announcements = () => {
       />
     </div>
   );
-};;
+};
 
 export default Announcements;

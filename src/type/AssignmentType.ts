@@ -1,3 +1,5 @@
+export type Result = "Pass" | "Fail" | null;
+
 export interface AssignmentFormData {
   title: string;
   classId: string;
@@ -32,7 +34,7 @@ export interface AssignmentQuestion {
   id?: string;
   question: string;
   marks: number;
-  questionNumber?:number
+  questionNumber?: number;
 }
 
 export interface AssignmentAnswer {
@@ -56,7 +58,7 @@ export interface SubmittedAssignment {
   fullMarks: number;
   passMarks: number;
   obtainedMarks: number | null;
-  result: "Pass" | "Fail" | null;
+  result: Result
   assignmentQuestions: AssignmentQuestion[];
   assignmentAnswers: AssignmentAnswer[];
 }
@@ -87,7 +89,13 @@ export interface AssignmentsStore {
     answers: Record<string, string>,
   ) => Promise<boolean>;
 
-  getSubmittedAssignments: (studentId: string) => Promise<string[]>;
+  getSubmittedAssignments: (studentId: string) => Promise<
+    {
+      assignmentId: string;
+      obtainedMarks:number
+      result: Result
+    }[]
+  >;
 
   //type= the object's key must be a string, and its value must be a number.
   getSubmissionCounts: () => Promise<Record<string, number>>;
@@ -95,7 +103,6 @@ export interface AssignmentsStore {
   getSubmittedAssignmentsForTeacher: (
     teacherId: string,
   ) => Promise<SubmittedAssignment[]>;
-
 
   getTeacherAssignmentStats: (teacherId: string) => Promise<{
     teacherAssignments: Assignment[];
@@ -126,5 +133,5 @@ export interface AssignmentsStore {
 
   checkAssignmentSubmissions: (AssignmentId: string) => Promise<boolean | null>;
 
-  deleteAssignmentQuestion:(questionId:string)=>Promise<boolean>
+  deleteAssignmentQuestion: (questionId: string) => Promise<boolean>;
 }

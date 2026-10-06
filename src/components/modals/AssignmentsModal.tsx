@@ -359,12 +359,12 @@ const updateQuestion = (
                       required
                       type="number"
                       min={1}
-                      max={50}
+                      max={100}
                       value={item.marks}
                       onChange={(e) =>
                         updateQuestion(index, "marks", Number(e.target.value))
                       }
-                      className="input input-bordered w-24 bg-white"
+                      className="input input-bordered w-24 bg-white appearance-none"
                     />
                   </div>
                 </div>

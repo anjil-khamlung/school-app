@@ -6,7 +6,7 @@ import { useAssignments } from "../../store/useAssignments";
 import { useSchoolStore } from "../../store/useSchoolStore";
 
 import type { SubmittedAssignment } from "../../type/AssignmentType";
-import SubmitAssignmentModal from "../../components/SubmitAssignmentsModal";
+import SubmitAssignmentModal from "../../components/modals/SubmitAssignmentsModal";
 import { toast } from "react-toastify";
 
 const SubmittedAssignments = () => {
