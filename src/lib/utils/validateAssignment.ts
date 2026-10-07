@@ -1,5 +1,7 @@
-import type { AssignmentFormData, AssignmentFormErrors } from "../../type/AssignmentType";
-
+import type {
+  AssignmentFormData,
+  AssignmentFormErrors,
+} from "../../type/AssignmentType";
 
 export const validateAssignment = (
   formData: AssignmentFormData,
@@ -24,12 +26,15 @@ export const validateAssignment = (
     errors.classId = "Class is required";
   }
 
+  // Subject
+  if (!formData.subjectId.trim()) {
+    errors.subjectId = "Subject is required";
+  }
+
   // Due date
   if (!formData.dueDate) {
     errors.dueDate = "Due date is required";
   }
-
-
 
   return errors;
 };

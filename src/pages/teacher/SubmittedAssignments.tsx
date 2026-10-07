@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { FiBookOpen, FiCalendar, FiFileText, FiUser } from "react-icons/fi";
 
@@ -8,6 +8,7 @@ import { useSchoolStore } from "../../store/useSchoolStore";
 import type { SubmittedAssignment } from "../../type/AssignmentType";
 import SubmitAssignmentModal from "../../components/modals/SubmitAssignmentsModal";
 import { toast } from "react-toastify";
+import { useClasses } from "../../store/useClasses";
 
 const SubmittedAssignments = () => {
   const { classId } = useParams();
@@ -19,9 +20,7 @@ const SubmittedAssignments = () => {
     updateAnswerMarks,
   } = useAssignments();
 
-  useEffect(() => {
-    getAssignments();
-  }, [getAssignments]);
+  const { classes, getClasses } = useClasses();
 
   const { currentUser } = useSchoolStore();
 
@@ -31,24 +30,47 @@ const SubmittedAssignments = () => {
   const [submissions, setSubmissions] = useState<SubmittedAssignment[]>([]);
 
   useEffect(() => {
+    getClasses()
+    getAssignments()
+  },[getClasses,getAssignments])
+
+  useEffect(() => {
+
     const loadSubmissions = async () => {
       if (!currentUser || !classId) return;
 
-      // Get all submissions of this teacher
       const data = await getSubmittedAssignmentsForTeacher(currentUser.id);
-      // Get assignment IDs that belong to the selected class
-      const classAssignmentIds = assignments
-        .filter((assignment) => assignment.classId === classId)
+
+    
+
+      const classSubjectIds = classes
+        .filter((item) => item.id === classId)
+        .map((item) => item.id);
+
+
+      const AssignmentIds = assignments
+        .filter((assignment) =>
+          classSubjectIds.includes(assignment.classSubjectId),
+        )
         .map((assignment) => assignment.id);
-      // Only keep submissions for those assignments
+
+
       const filteredSubmissions = data.filter((submission) =>
-        classAssignmentIds.includes(submission.assignmentId),
+        AssignmentIds.includes(submission.assignmentId),
       );
+
 
       setSubmissions(filteredSubmissions);
     };
+
     loadSubmissions();
-  }, [currentUser, classId, assignments, getSubmittedAssignmentsForTeacher]);
+  }, [
+    currentUser,
+    classId,
+    assignments,
+    classes,
+    getSubmittedAssignmentsForTeacher,
+  ]);
 
   return (
     <div className="p-6">

@@ -9,6 +9,7 @@ import {
 
 } from "react-icons/fi";
 
+
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useUsers } from "../../store/useUsers";
@@ -16,11 +17,13 @@ import SelectField from "../../components/inputs/SelectField";
 import type { RegisterForm, RegisterFormErrors } from "../../type/registerType";
 import { validateRegister } from "../../lib/utils/validateRegister";
 import { supabase } from "../../lib/supabase";
+import { useClasses } from "../../store/useClasses";
 
 const Register = () => {
   const navigate = useNavigate();
-  const { users, getUsers } = useUsers()
-  const [loading, setLoading] = useState(false)
+  const { getClass } = useClasses();
+  const { users, getUsers } = useUsers();
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<RegisterFormErrors>({});
   const [formData, setFormData] = useState<RegisterForm>({
     name: "",
@@ -28,72 +31,90 @@ const Register = () => {
     password: "",
     confirmPassword: "",
     role: "student",
+    classId: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-const roles = ["student", "teacher",];
-  //Fetching users
+  const roles = ["student", "teacher"];
+  const [classOptions, setClassOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+
+  //Fetching users and classes
   useEffect(() => {
-    getUsers()
-  },[getUsers])
+    const loadClass = async () => {
+      const data = await getClass();
 
- const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
-   e.preventDefault();
+      setClassOptions(
+        data.map((item) => ({
+          label: item.className,
+          value: item.id,
+        })),
+      );
+    };
 
-   // Validation
-   const validationErrors = validateRegister(formData);
-   setErrors(validationErrors);
+    loadClass();
+    getUsers();
+  }, [getUsers]);
 
-   if (Object.keys(validationErrors).length > 0) {
-     return;
-   }
-   const existingUser = users.find((user) => user.email === formData.email);
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-   if (existingUser) {
-     toast.warning("User already exists");
-     return;
-   }
+    // Validation
+    const validationErrors = validateRegister(formData);
+    setErrors(validationErrors);
 
-   setLoading(true);
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+    const existingUser = users.find((user) => user.email === formData.email);
 
-   try {
-     // 1. Create authentication user
-     const { data, error } = await supabase.auth.signUp({
-       email: formData.email,
-       password: formData.password,
-     });
-     
-     if (error) {
-       toast.error(error.message);
-       return;
-     }
+    if (existingUser) {
+      toast.warning("User already exists");
+      return;
+    }
 
-     // 2. Make sure Supabase returned a user
-     if (!data.user) {
-       toast.error("Registration failed");
-       return;
-     }
+    setLoading(true);
 
-     // 3. Insert profile/application data
-     const { error: profileError } = await supabase.from("users").insert({
-       id: data.user.id,
-       name: formData.name,
-       email: formData.email,
-       role: formData.role,
-     });
+    try {
+      // 1. Create authentication user
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+      });
 
-     if (profileError) {
-       toast.error(profileError.message);
-       return;
-     }
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
 
-     toast.success("Registration successful");
-     navigate("/login");
-   } finally {
-     setLoading(false);
-   }
- };
+      // 2. Make sure Supabase returned a user
+      if (!data.user) {
+        toast.error("Registration failed");
+        return;
+      }
+
+      // 3. Insert profile/application data
+      const { error: profileError } = await supabase.from("users").insert({
+        id: data.user.id,
+        name: formData.name,
+        email: formData.email,
+        role: formData.role,
+        classId: formData.role === "student" ? formData.classId : null,
+      });
+
+      if (profileError) {
+        toast.error(profileError.message);
+        return;
+      }
+
+      toast.success("Registration successful");
+      navigate("/login");
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#071c1a] px-4 py-8">
       {/* Background decorations */}
@@ -238,6 +259,22 @@ const roles = ["student", "teacher",];
               }
             />
 
+            {formData.role === "student" && (
+              <SelectField
+                label="Class"
+                placeholder="Select Class"
+                value={formData.classId}
+                error={errors.classId}
+                options={classOptions}
+                onChange={(value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    classId: value,
+                  }))
+                }
+              />
+            )}
+
             {/* Password */}
             <div className="relative">
               <InputField
@@ -254,8 +291,6 @@ const roles = ["student", "teacher",];
                 setShowPassword={setShowPassword}
                 showPasswordToggle
               />
-
-          
             </div>
 
             {/* Confirm password */}

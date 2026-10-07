@@ -26,14 +26,21 @@ const SubmittedAssignmentClasses = () => {
   );
 
   // Get unique class IDs
-  const classIds = [
-    ...new Set(myAssignments.map((assignment) => assignment.classId)),
-  ];
+// const classIds = [
+//   ...new Set(myAssignments.map((assignment) => assignment.classSubjectId)),
+// ];
 
   // Find the actual class objects
-  const myClasses = classIds
-    .map((classId) => classes.find((item) => item.id === classId))
-    .filter(Boolean);
+const myClasses = [
+  ...new Map(
+    myAssignments
+      .map((assignment) =>
+        classes.find((item) => item.id === assignment.classSubjectId),
+      )
+      .filter(Boolean)
+      .map((classSubject) => [classSubject!.id, classSubject]),
+  ).values(),
+];
 
   return (
     <div className="space-y-6">
@@ -66,15 +73,11 @@ const SubmittedAssignmentClasses = () => {
           {myClasses.map((classItem) => {
             if (!classItem) return null;
 
-            // const classAssignments = myAssignments.filter(
-            //   (assignment) => assignment.classId === classItem.id,
-            // );
-
             return (
               <DashboardCard
                 key={classItem.id}
-                title={classItem.class}
-                subject={classItem.subject}
+                title={classItem.class?.className ?? "No class name"}
+                subject={classItem.subject?.subjectName}
                 icon={FiBookOpen}
                 iconStyle="bg-teal-50 text-teal-600"
                 textStyle="text-teal-600"

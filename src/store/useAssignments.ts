@@ -15,6 +15,17 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       users (
         name
       ),
+      classes (
+    
+        classId,
+        subjectId,
+        class:classId (
+          className
+        ),
+        subject:subjectId (
+          subjectName
+        )
+      ),
       assignmentQuestions!assignmentQuestions_assignmentId_fkey (
         id,
         question,
@@ -23,7 +34,6 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       )
     `,
       )
-      // sorting question number
       .order("questionNumber", {
         referencedTable: "assignmentQuestions",
         ascending: true,
@@ -59,7 +69,8 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
     const { error } = await supabase
       .from("assignments")
       .update({
-        classId: updatedData.classId,
+        classSubjectId: updatedData.classSubjectId,
+        // subjectId:updatedData.subjectId,
         title: updatedData.title,
         dueDate: updatedData.dueDate,
         description: updatedData.description,
@@ -172,22 +183,32 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
 
   //Get submitted Assignments for teachers
   getSubmittedAssignmentsForTeacher: async (teacherId: string) => {
-    const { data, error } = await supabase
-      .from("assignmentsSubmitted")
-      .select(
-        `
+const { data, error } = await supabase
+  .from("assignmentsSubmitted")
+  .select(
+    `
     *,
     assignments!inner (
+      id,
       title,
       description,
+      dueDate,
       fullMarks,
       passMarks,
-      classId,
       teacherId,
-      classes (
-        class,
-        subject
+      classSubjectId,
+        classes (
+        id,
+        classId,
+        subjectId,
+        class (
+          className
+        ),
+        subjects (
+          subjectName
+        )
       ),
+
       assignmentQuestions!assignmentQuestions_assignmentId_fkey (
         id,
         question,
@@ -205,26 +226,29 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       name
     )
   `,
-      )
-      .eq("assignments.teacherId", teacherId);
+  )
+  .eq("assignments.teacherId", teacherId);
+
+  if (error) throw error;
 
     if (error) {
-      console.error(error);
+      console.error("getSubmittedAssignmentsForTeacher error:", error);
       return [];
     }
 
-    return data.map((submission) => ({
-      ...submission,
-      studentName: submission.users?.name || "Unknown Student",
-      assignmentTitle: submission.assignments.title,
-      description: submission.assignments.description,
-      fullMarks: submission.assignments.fullMarks,
-      passMarks: submission.assignments.passMarks,
-      class: submission.assignments.classes?.class || "Unknown Class",
-      subject: submission.assignments.classes?.subject || "Unknown Subject",
-      assignmentQuestions: submission.assignments.assignmentQuestions ?? [],
-      assignmentAnswers: submission.assignmentAnswers ?? [],
-    }));
+ return data.map((submission) => ({
+   ...submission,
+   studentName: submission.users?.name || "Unknown Student",
+   assignmentTitle: submission.assignments.title,
+   description: submission.assignments.description,
+   fullMarks: submission.assignments.fullMarks,
+   passMarks: submission.assignments.passMarks,
+   class: submission.assignments.classes?.class?.className || "Unknown Class",
+   subject:
+     submission.assignments.classes?.subjects?.subjectName || "Unknown Subject",
+   assignmentQuestions: submission.assignments.assignmentQuestions ?? [],
+   assignmentAnswers: submission.assignmentAnswers ?? [],
+ }));
   },
 
   //Update submitted assignment answer marks

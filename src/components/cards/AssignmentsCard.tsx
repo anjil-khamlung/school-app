@@ -54,7 +54,9 @@ const AssignmentCard = ({
   //check if submission date is over
   const isPastDueDate = today > dueDate;
 
-  const selectedClass = classes.find((item) => item.id === assignment.classId);
+  const selectedClass = classes.find((item) => item.id === assignment.classSubjectId);
+
+ 
 
   return (
     <>
@@ -93,7 +95,7 @@ const AssignmentCard = ({
 
         {/* Subject */}
         <p className="mt-1 min-h-5 text-sm font-medium text-teal-600">
-          {selectedClass?.subject || "Unknown Subject"}
+          {selectedClass?.subject?.subjectName || "Unknown Subject"}
         </p>
 
         {/* Description */}
@@ -104,7 +106,7 @@ const AssignmentCard = ({
         {/* Class */}
         <div className="mt-5 flex min-h-5 items-center gap-2 text-sm text-orange-500">
           <FiFileText size={16} />
-          <span>{selectedClass?.class || "Unknown Class"}</span>
+          <span>{selectedClass?.class?.className || "Unknown Class"}</span>
         </div>
 
         {/* Teacher */}

@@ -1,13 +1,12 @@
 import { FiPlus } from "react-icons/fi";
 import SelectField from "../inputs/SelectField";
-import InputField from "../inputs/InputField";
 import type {
   ClassFormData,
   ClassFormErrors,
   CreateClass,
 } from "../../type/classType";
 import { validateClass } from "../../lib/utils/validateClass";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useClasses } from "../../store/useClasses";
 import { toast } from "react-toastify";
 import type { User } from "../../type/type";
@@ -15,8 +14,6 @@ import type { User } from "../../type/type";
 interface ClassModalProps {
   formData: ClassFormData;
   setFormData: React.Dispatch<React.SetStateAction<ClassFormData>>;
-  className: string[];
-  section: string[];
   time: string[];
   editingClassId: string | null;
   currentUser: User;
@@ -28,8 +25,6 @@ interface ClassModalProps {
 const ClassModal = ({
   formData,
   setFormData,
-  className,
-  section,
   time,
   editingClassId,
   currentUser,
@@ -37,9 +32,47 @@ const ClassModal = ({
   initial,
   setSearch,
 }: ClassModalProps) => {
-  const { addClass, updateClass } = useClasses();
+  const { addClass, updateClass,getClass,getClasses ,getSubjects,classes,} = useClasses();
   const [errors, setErrors] = useState<ClassFormErrors>({});
+  const [classOptions, setClassOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
 
+  const [subjectOptions, setSubjectOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+
+useEffect(() => {
+  const loadOptions = async () => {
+    const classes = await getClass();
+    const subjects = await getSubjects();
+
+    setClassOptions(
+      classes.map((item) => ({
+        label: item.className,
+        value: item.id,
+      })),
+    );
+
+    setSubjectOptions(
+      subjects.map((item) => ({
+        label: item.subjectName,
+        value: item.id,
+      })),
+    );
+  };
+
+  loadOptions();
+  getClasses()
+}, [getClass, getSubjects,getClasses]);
+
+const availableSubjectOptions = subjectOptions.filter(
+  (subject) =>
+    !classes.some(
+      (item) =>
+        item.classId === formData.classId && item.subjectId === subject.value,
+    ),
+);
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -55,9 +88,8 @@ const ClassModal = ({
     // EDIT
     if (editingClassId !== null) {
       const success = await updateClass(editingClassId, {
-        class: formData.class,
-        section: formData.section,
-        subject: formData.subject,
+        classId: formData.classId,
+        subjectId: formData.subjectId,
         time: formData.time,
       });
 
@@ -84,11 +116,9 @@ const ClassModal = ({
 
     // CREATE
     const newClass: CreateClass = {
-      class: formData.class,
-      section: formData.section,
-      subject: formData.subject,
+      classId: formData.classId,
+      subjectId: formData.subjectId,
       time: formData.time,
-
       teacherId: currentUser.id,
     };
 
@@ -98,7 +128,7 @@ const ClassModal = ({
       toast.error("Failed to create a class");
       return;
     }
-    toast.success("Class updated successfully");
+    toast.success("Class created successfully");
 
     setEditingClassId(null);
     setFormData(initial);
@@ -127,39 +157,29 @@ const ClassModal = ({
               <SelectField
                 label="Class"
                 placeholder="Select Class"
-                value={formData.class}
-                options={className}
-                error={errors.class}
+                value={formData.classId}
+                options={classOptions}
+                error={errors.classId}
                 onChange={(value) =>
                   setFormData((prev) => ({
                     ...prev,
-                    class: value,
+                    classId: value,
                   }))
                 }
               />
 
               <SelectField
-                label="Section"
-                placeholder="Select Section"
-                value={formData.section}
-                options={section}
-                error={errors.section}
+                label="Subject"
+                placeholder="Select Subject"
+                value={formData.subjectId}
+                options={availableSubjectOptions}
+                error={errors.subjectId}
                 onChange={(value) =>
                   setFormData((prev) => ({
                     ...prev,
-                    section: value,
+                    subjectId: value,
                   }))
                 }
-              />
-
-              <InputField
-                label="Subject"
-                type="text"
-                placeholder="e.g. Mathematics"
-                setFormData={setFormData}
-                value={formData.subject}
-                name="subject"
-                error={errors.subject}
               />
 
               <SelectField
@@ -185,8 +205,8 @@ const ClassModal = ({
                 onClick={() => {
                   setEditingClassId(null);
                   setFormData(initial);
-                  setSearch("")
-                  setErrors({})
+                  setSearch("");
+                  setErrors({});
                 }}
                 className="btn border-none bg-red-600 rounded-xl text-white hover:bg-red-700"
               >
@@ -204,11 +224,15 @@ const ClassModal = ({
           </form>
         </div>
 
-        {/* Backdrop */}
+        {/* Backdrop close */}
         <div
           className="modal-backdrop"
-          popoverTarget="create-class-modal"
-          popoverTargetAction="hide"
+          onClick={(e) => {
+            const modal = e.currentTarget.parentElement;
+            if (modal instanceof HTMLElement) {
+              modal.hidePopover();
+            }
+          }}
         />
       </div>
     </>

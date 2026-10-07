@@ -9,17 +9,18 @@ import type {
 } from "../../type/AssignmentType";
 import { validateAssignment } from "../../lib/utils/validateAssignment";
 import { useAssignments } from "../../store/useAssignments";
-import {  useState } from "react";
+import {  useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import type { User } from "../../type/type";
+import { useClasses } from "../../store/useClasses";
 
 interface AssignmentModalProps {
   formData: AssignmentFormData;
   setFormData: React.Dispatch<React.SetStateAction<AssignmentFormData>>;
-  classOptions: {
-    value: string;
-    label: string;
-  }[];
+  // classOptions: {
+  //   value: string;
+  //   label: string;
+  // }[];
 
   editingAssignmentId: string | null;
 
@@ -38,7 +39,7 @@ interface AssignmentModalProps {
 const AssignmentModal = ({
   formData,
   setFormData,
-  classOptions,
+  // classOptions,
   editingAssignmentId,
   currentUser,
   setEditingAssignmentId,
@@ -56,7 +57,42 @@ const AssignmentModal = ({
     getAssignmentQuestions,
     deleteAssignmentQuestion,
   } = useAssignments();
+  const{getClass,getSubjects,getClasses,classes}=useClasses()
   const [errors, setErrors] = useState<AssignmentFormErrors>({});
+
+    const [classOptions, setClassOptions] = useState<
+      { label: string; value: string }[]
+    >([]);
+  
+    const [subjectOptions, setSubjectOptions] = useState<
+      { label: string; value: string }[]
+    >([]);
+  
+  
+  
+  useEffect(() => {
+    const loadOptions = async () => {
+      const classes = await getClass();
+      const subjects = await getSubjects();
+  
+      setClassOptions(
+        classes.map((item) => ({
+          label: item.className,
+          value: item.id,
+        })),
+      );
+  
+      setSubjectOptions(
+        subjects.map((item) => ({
+          label: item.subjectName,
+          value: item.id,
+        })),
+      );
+    };
+  
+    loadOptions();
+    getClasses()
+  }, [getClass, getSubjects,getClasses]);
 
   //Add  question
   const addQuestion = () => {
@@ -87,7 +123,23 @@ const updateQuestion = (
         : item,
     ),
   );
-};
+  };
+  
+  const availableClassOptions = classOptions.filter((classItem) =>
+    classes.some(
+      (item) =>
+        item.classId === classItem.value && item.teacherId === currentUser.id,
+    ),
+  );
+
+  const availableSubjectOptions = subjectOptions.filter((subject) =>
+    classes.some(
+      (item) =>
+        item.teacherId === currentUser.id &&
+        item.classId === formData.classId &&
+        item.subjectId === subject.value,
+    ),
+  );
 
     //Create assignment
   const handleCreateAssignment = async (e: React.SubmitEvent<HTMLFormElement>) => {
@@ -101,11 +153,25 @@ const updateQuestion = (
       return;
     }
 
+    //Find classSubject id
+    const selectedClass = classes.find(
+      (item) =>
+        item.classId === formData.classId &&
+        item.subjectId === formData.subjectId &&
+        item.teacherId === currentUser.id,
+    );
+
+    if (!selectedClass) {
+      toast.error("Selected class and subject not found");
+      return;
+    }
+
     // EDIT
     if (editingAssignmentId !== null) {
       const success = await updateAssignment(editingAssignmentId, {
         title: formData.title,
-        classId: formData.classId,
+        classSubjectId: selectedClass.id,
+        // subjectId: formData.subjectId,
         dueDate: formData.dueDate,
         description: formData.description,
       });
@@ -183,7 +249,8 @@ const updateQuestion = (
     // CREATE
     const newAssignment = {
       title: formData.title,
-      classId: formData.classId,
+        classSubjectId: selectedClass.id,
+      // subjectId:formData.subjectId,
       description: formData.description,
       dueDate: formData.dueDate,
       teacherId: currentUser.id,
@@ -231,6 +298,7 @@ const updateQuestion = (
       modal.hidePopover();
     }
   };;
+
   return (
     <div id="create-assignment-modal" popover="auto" className="modal">
       <div className="modal-box max-h-[98vh] max-w-2xl overflow-y-auto bg-white">
@@ -258,7 +326,7 @@ const updateQuestion = (
               label="Class"
               placeholder="Select class"
               value={formData.classId}
-              options={classOptions}
+              options={availableClassOptions}
               error={errors.classId}
               onChange={(value) =>
                 setFormData((prev) => ({
@@ -284,6 +352,21 @@ const updateQuestion = (
                 size={18}
               />
             </div>
+
+            {/* Subjects */}
+            <SelectField
+              label="Subjects"
+              placeholder="Select subject"
+              value={formData.subjectId}
+              options={availableSubjectOptions}
+              error={errors.subjectId}
+              onChange={(value) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  subjectId: value,
+                }))
+              }
+            />
 
             {/* Description */}
             <TextArea
@@ -382,8 +465,8 @@ const updateQuestion = (
                 setEditingAssignmentId(null);
                 setFormData(initial);
                 setSearch("");
-                setErrors({})
-                setQuestions([])
+                setErrors({});
+                setQuestions([]);
               }}
               className="btn border-none bg-red-600 rounded-xl text-white hover:bg-red-700"
             >
@@ -401,11 +484,15 @@ const updateQuestion = (
         </form>
       </div>
 
-      {/* Backdrop */}
+      {/* Backdrop close */}
       <div
         className="modal-backdrop"
-        popoverTarget="create-assignment-modal"
-        popoverTargetAction="hide"
+        onClick={(e) => {
+          const modal = e.currentTarget.parentElement;
+          if (modal instanceof HTMLElement) {
+            modal.hidePopover();
+          }
+        }}
       />
     </div>
   );

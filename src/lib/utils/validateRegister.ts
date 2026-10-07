@@ -23,6 +23,11 @@ export const validateRegister = (
     errors.email = "Enter a valid email address";
   }
 
+  //Class
+  if (!formData.classId.trim()) {
+    errors.classId = "Class is required";
+  }
+
   // Password
  if (!formData.password) {
    errors.password = "Password is required";

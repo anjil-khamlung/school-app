@@ -3,13 +3,20 @@ import { create } from "zustand";
 import { supabase } from "../lib/supabase";
 import type { ClassesStore } from "../type/classType";
 
-export const useClasses = create<ClassesStore>((set,get) => ({
+export const useClasses = create<ClassesStore>((set, get) => ({
   classes: [],
+  subjects: [],
 
   // Fetch classes
   getClasses: async () => {
   const { data, error } = await supabase.from("classes").select(`
     *,
+    class:classId (
+      className
+    ),
+    subject:subjectId (
+      subjectName
+    ),
     classesJoined (
       studentId
     )
@@ -22,12 +29,40 @@ export const useClasses = create<ClassesStore>((set,get) => ({
     set({ classes: data });
   },
 
+  getClass: async () => {
+    const { data, error } = await supabase
+      .from("class")
+      .select("id, className");
+
+    if (error) {
+      console.error("Error fetching classes:", error);
+      return [];
+    }
+
+    return data ?? [];
+  },
+  
+  getSubjects: async () => {
+    const { data, error } = await supabase
+      .from("subjects")
+      .select("id, subjectName")
+      .order("subjectName");
+
+    if (error) {
+      console.error("Error fetching subjects:", error);
+      return [];
+    }
+
+    set({ subjects: data ?? [] });
+
+    return data ?? [];
+  },
+
   //Add class
   addClass: async (newClass) => {
     const { error } = await supabase.from("classes").insert({
-      class: newClass.class,
-      section: newClass.section,
-      subject: newClass.subject,
+      classId: newClass.classId,
+      subjectId: newClass.subjectId,
       teacherId: newClass.teacherId,
       time: newClass.time,
     });
@@ -46,9 +81,8 @@ export const useClasses = create<ClassesStore>((set,get) => ({
     const { error } = await supabase
       .from("classes")
       .update({
-        class: updatedData.class,
-        section: updatedData.section,
-        subject: updatedData.subject,
+        classId: updatedData.classId,
+        subjectId: updatedData.subjectId,
         time: updatedData.time,
       })
       .eq("id", classId);

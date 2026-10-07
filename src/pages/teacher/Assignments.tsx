@@ -78,6 +78,7 @@ const Assignments = () => {
   const initial = {
     title: "",
     classId: "",
+    subjectId: "",
     description: "",
     dueDate: "",
   };
@@ -156,8 +157,10 @@ const Assignments = () => {
 
     setEditingAssignmentId(assignmentId);
 
+
     setFormData({
-      classId: selectedAssignment.classId,
+      classId: selectedAssignment.classes?.classId ?? "",
+      subjectId: selectedAssignment.classes?.subjectId ?? "",
       title: selectedAssignment.title,
       dueDate: selectedAssignment.dueDate,
       description: selectedAssignment.description,
@@ -244,13 +247,7 @@ const Assignments = () => {
     submittedAssignmentIds.includes(assignment.id),
   ).length;
 
-  //Class options for selecting
-  const classOptions = classes
-    .filter((item) => item.teacherId === currentUser?.id)
-    .map((item) => ({
-      value: item.id,
-      label: `${item.class} - ${item.subject}`,
-    }));
+
 
   return (
     <div className="mx-auto w-full max-w-7xl p-2 lg:p-4">
@@ -296,7 +293,7 @@ const Assignments = () => {
       <AssignmentModal
         formData={formData}
         setFormData={setFormData}
-        classOptions={classOptions}
+        // classOptions={classOptions}
         editingAssignmentId={editingAssignmentId}
         currentUser={currentUser}
         setEditingAssignmentId={setEditingAssignmentId}
@@ -360,6 +357,7 @@ const Assignments = () => {
             const submission = submittedAssignments.find(
               (item) => item.assignmentId === assignment.id,
             );
+            console.log(submission)
 
             return (
               <AssignmentCard

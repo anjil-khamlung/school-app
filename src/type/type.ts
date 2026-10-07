@@ -7,6 +7,7 @@ export interface User {
   name: string;
   email: string;
   role: Role;
+  classId:string
 }
 
 export interface SidebarLink {

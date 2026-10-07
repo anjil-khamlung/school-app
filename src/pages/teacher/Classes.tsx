@@ -6,21 +6,20 @@ import SearchInput from "../../components/inputs/SearchInput";
 import ClassCard from "../../components/cards/ClassCard";
 import ConfirmModal from "../../components/modals/ConfirmModal";
 import { useClasses } from "../../store/useClasses";
-import { className, section, time } from "../../data/classOptions";
+import { time } from "../../data/classOptions";
 import ClassModal from "../../components/modals/ClassModal";
 
 const Classes = () => {
   const { currentUser } = useSchoolStore();
-  const { classes, getClasses, joinClass, deleteClass } = useClasses();
+  const { classes, getClasses, joinClass, deleteClass, } = useClasses();
 
   const [search, setSearch] = useState("");
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [editingClassId, setEditingClassId] = useState<string | null>(null);
 
   const initial = {
-    class: "",
-    section: "",
-    subject: "",
+    classId: "",
+    subjectId: "",
     time: "",
   };
   const [formData, setFormData] = useState(initial);
@@ -33,6 +32,8 @@ const Classes = () => {
 
   useEffect(() => {
     getClasses();
+  
+
   }, [getClasses]);
 
   // Classes visible to each role
@@ -44,9 +45,11 @@ const Classes = () => {
     );
   }
 
-  if (isStudent) {
-    visibleClasses = classes;
-  }
+if (isStudent) {
+  visibleClasses = classes.filter(
+    (item) => item.classId === currentUser.classId,
+  );
+}
 
   // Search
   const filteredClasses = visibleClasses.filter((item) => {
@@ -57,9 +60,8 @@ const Classes = () => {
     }
 
     return (
-      item.class?.toLowerCase().includes(value) ||
-      item.section?.toLowerCase().includes(value) ||
-      item.subject?.toLowerCase().includes(value)
+      item.classId?.toLowerCase().includes(value) ||
+      item.subjectId?.toLowerCase().includes(value)
     );
   });
 
@@ -71,9 +73,8 @@ const Classes = () => {
 
     // Fill the form with the existing class data
     setFormData({
-      class: selectedClass.class,
-      section: selectedClass.section,
-      subject: selectedClass.subject,
+      classId: selectedClass.classId,
+      subjectId: selectedClass.subjectId,
       time: selectedClass.time,
     });
 
@@ -169,8 +170,6 @@ const Classes = () => {
         currentUser={currentUser}
         editingClassId={editingClassId}
         setEditingClassId={setEditingClassId}
-        className={className}
-        section={section}
         time={time}
         initial={initial}
         setSearch={setSearch}

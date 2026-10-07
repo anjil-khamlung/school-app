@@ -1,41 +1,53 @@
 export interface ClassFormData {
-  class: string;
-  section: string;
-  subject: string;
+  classId: string;
+  subjectId: string;
   time: string;
 }
 
 export interface ClassFormErrors {
-  class?: string;
-  section?: string;
-  subject?: string;
+  classId?: string;
+  subjectId?: string;
   time?: string;
 }
 
 export interface Class {
   id: string;
-  class: string;
-  section: string;
-  subject: string;
+  classId: string;
+  subjectId: string;
   teacherId: string;
   time: string;
+
+  class?: {
+    className: string;
+  };
+
+  subject?: {
+    subjectName: string;
+  };
+
   classesJoined?: {
     studentId: string;
   }[];
 }
-
 export type CreateClass = Omit<Class, "id">;
+
+export interface Subject{
+    id: string
+    subjectName:string
+}
 
 export interface ClassesStore {
   classes: Class[];
+  subjects: Subject[];
   getClasses: () => Promise<void>;
+  getClass: () => Promise<{ id: string; className: string }[]>;
+  getSubjects: () => Promise<{ id: string; subjectName: string }[]>;
   addClass: (newClass: CreateClass) => Promise<boolean>;
   updateClass: (
     classId: string,
     updatedData: {
-      class: string;
-      section: string;
-      subject: string;
+      classId: string;
+      subjectId: string;
       time: string;
     },
   ) => Promise<boolean>;

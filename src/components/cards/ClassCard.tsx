@@ -37,6 +37,7 @@ const ClassCard = ({
 
   const totalStudents = item.classesJoined?.length ?? 0;
 
+
   return (
     <div className="group rounded-2xl border border-slate-200 bg-white p-6 xl:p-8 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-teal-200 hover:shadow-xl">
       {/* Top */}
@@ -44,17 +45,15 @@ const ClassCard = ({
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-50 text-teal-600 transition group-hover:bg-teal-600 group-hover:text-white">
           <FiBookOpen size={23} />
         </div>
-
-        <span className="rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600">
-          {item.section}
-        </span>
       </div>
 
       {/* Name */}
-      <h2 className="mt-5 text-xl font-bold text-slate-900">{item.class}</h2>
+      <h2 className="mt-5 text-xl font-bold text-slate-900">
+        {item.class?.className}
+      </h2>
 
       {/* Subject */}
-      <p className="mt-2 text-sm text-teal-500">{item.subject}</p>
+      <p className="mt-2 text-sm text-teal-500">{item.subject?.subjectName}</p>
 
       {/* Teacher */}
       <div className="mt-3 flex items-center gap-2 text-sm text-orange-500">

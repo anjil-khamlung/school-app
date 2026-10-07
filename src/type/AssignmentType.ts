@@ -3,6 +3,7 @@ export type Result = "Pass" | "Fail" | null;
 export interface AssignmentFormData {
   title: string;
   classId: string;
+  subjectId:string
   description: string;
   dueDate: string;
 }
@@ -10,6 +11,7 @@ export interface AssignmentFormData {
 export interface AssignmentFormErrors {
   title?: string;
   classId?: string;
+  subjectId?:string
   description?: string;
   dueDate?: string;
 }
@@ -17,7 +19,8 @@ export interface AssignmentFormErrors {
 export interface Assignment {
   id: string;
   title: string;
-  classId: string;
+  classSubjectId: string;
+  subjectId?:string
   description: string;
   dueDate: string;
   teacherId: string;
@@ -27,6 +30,12 @@ export interface Assignment {
     name: string;
   } | null;
   assignmentQuestions?: AssignmentQuestion[];
+  classes?: {
+    className: string
+    classId: string
+    subjectName: string
+    subjectId:string
+  }
 }
 export type CreateAssignment = Omit<Assignment, "id">;
 
@@ -69,7 +78,8 @@ export interface AssignmentsStore {
   updateAssignment: (
     assignmentId: string,
     updatedData: {
-      classId: string;
+      classSubjectId: string;
+      // subjectId:string
       title: string;
       dueDate: string;
       description: string;

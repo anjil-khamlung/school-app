@@ -6,6 +6,7 @@ import {
   FiFileText,
   FiBarChart2,
   FiSettings,
+  // FiBook,
 } from "react-icons/fi";
 import { TfiAnnouncement } from "react-icons/tfi";
 import type { SidebarLink } from "../type/type";
@@ -62,10 +63,16 @@ export const teacherLinks:SidebarLink[] = [
     icon: FiHome,
   },
   {
-    name: "My Classes",
+    name: " Classes",
     path: "/teacher/classes",
     icon: FiBookOpen,
   },
+  // {
+  //   name: "Subjects",
+  //   path: "/teacher/subjects",
+  //   icon: FiBook,
+  // },
+
   {
     name: "Students",
     path: "/teacher/students",

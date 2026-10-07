@@ -12,6 +12,7 @@ export interface RegisterFormErrors {
   email?: string;
   password?: string;
   confirmPassword?: string;
+  classId?:string
 }
 
 export interface RegisterForm {
@@ -20,4 +21,5 @@ export interface RegisterForm {
   password: string;
   confirmPassword: string;
   role: Role;
+  classId:string
 }
