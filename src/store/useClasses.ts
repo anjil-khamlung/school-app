@@ -9,7 +9,8 @@ export const useClasses = create<ClassesStore>((set, get) => ({
 
   // Fetch classes
   getClasses: async () => {
-  const { data, error } = await supabase.from("classes").select(`
+    const { data, error } = await supabase.from("classes").select(
+      `
     *,
     class:classId (
       className
@@ -17,10 +18,14 @@ export const useClasses = create<ClassesStore>((set, get) => ({
     subject:subjectId (
       subjectName
     ),
+    teacher:teacherId (
+  name
+),
     classesJoined (
       studentId
     )
-  `);
+  `,
+    );
 
     if (error) {
       console.error(error);
@@ -41,7 +46,7 @@ export const useClasses = create<ClassesStore>((set, get) => ({
 
     return data ?? [];
   },
-  
+
   getSubjects: async () => {
     const { data, error } = await supabase
       .from("subjects")

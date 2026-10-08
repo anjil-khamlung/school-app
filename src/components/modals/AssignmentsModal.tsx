@@ -17,10 +17,6 @@ import { useClasses } from "../../store/useClasses";
 interface AssignmentModalProps {
   formData: AssignmentFormData;
   setFormData: React.Dispatch<React.SetStateAction<AssignmentFormData>>;
-  // classOptions: {
-  //   value: string;
-  //   label: string;
-  // }[];
 
   editingAssignmentId: string | null;
 
@@ -39,7 +35,6 @@ interface AssignmentModalProps {
 const AssignmentModal = ({
   formData,
   setFormData,
-  // classOptions,
   editingAssignmentId,
   currentUser,
   setEditingAssignmentId,
@@ -254,8 +249,8 @@ const updateQuestion = (
       description: formData.description,
       dueDate: formData.dueDate,
       teacherId: currentUser.id,
-      fullMarks: 100,
-      passMarks: 40,
+      // fullMarks: 100,
+      // passMarks: 40,
     };
 
     const assignment = await addAssignment(newAssignment);
@@ -466,7 +461,10 @@ const updateQuestion = (
                 setFormData(initial);
                 setSearch("");
                 setErrors({});
-                setQuestions([]);
+                setQuestions([{
+    question: "",
+    marks: 25,
+  }]);
               }}
               className="btn border-none bg-red-600 rounded-xl text-white hover:bg-red-700"
             >

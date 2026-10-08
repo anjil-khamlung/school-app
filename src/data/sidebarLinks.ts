@@ -6,6 +6,7 @@ import {
   FiFileText,
   FiBarChart2,
   FiSettings,
+  FiCheckCircle,
   // FiBook,
 } from "react-icons/fi";
 import { TfiAnnouncement } from "react-icons/tfi";
@@ -67,11 +68,6 @@ export const teacherLinks:SidebarLink[] = [
     path: "/teacher/classes",
     icon: FiBookOpen,
   },
-  // {
-  //   name: "Subjects",
-  //   path: "/teacher/subjects",
-  //   icon: FiBook,
-  // },
 
   {
     name: "Students",
@@ -83,6 +79,11 @@ export const teacherLinks:SidebarLink[] = [
     name: "Assignments",
     path: "/teacher/assignments",
     icon: FiFileText,
+  },
+  {
+    name: "Assignments Submitted",
+    path: "/teacher/submittedAssignments",
+    icon: FiCheckCircle,
   },
   {
     name: "Announcements",

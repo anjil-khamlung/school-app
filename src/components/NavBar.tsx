@@ -80,7 +80,7 @@ const NavBar = () => {
               </>
             )}
 
-            {isAuthenticated && isDashboard && (
+            {/* {isAuthenticated && isDashboard && (
               <NavLink
                 onClick={close}
                 to={
@@ -100,7 +100,7 @@ const NavBar = () => {
               >
                 Dashboard
               </NavLink>
-            )}
+            )} */}
           </div>
 
           {!isAuthenticated && (

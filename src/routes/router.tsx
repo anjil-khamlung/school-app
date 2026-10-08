@@ -137,7 +137,7 @@ const router = createBrowserRouter([
                 element: <Assignments />,
               },
               {
-                path: "submittedAssignments/:classId",
+                path: "submittedAssignments/:classSubjectId",
                 element: <SubmittedAssignments />,
               },
               {

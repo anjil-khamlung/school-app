@@ -19,7 +19,6 @@ import type {
 const Assignments = () => {
   const { currentUser } = useSchoolStore();
   const { classes, getClasses } = useClasses();
-
   const {
     assignments,
     getAssignments,
@@ -121,11 +120,21 @@ const Assignments = () => {
     getTeacherAssignmentStats,
   ]);
 
-  const visibleAssignments = isTeacher
-    ? assignments.filter(
-        (assignment) => assignment.teacherId === currentUser.id,
-      )
+
+  
+const joinedClassSubjectIds = new Set(
+  classes
+    .filter((cls) => cls.classesJoined?.some((joined) => joined.studentId === currentUser.id))
+    .map((cls) => cls.id),
+);
+
+  //Assignments according to role
+const visibleAssignments = isTeacher
+  ? assignments.filter((a) => a.teacherId === currentUser.id)
+  : isStudent
+    ? assignments.filter((a) => joinedClassSubjectIds.has(a.classSubjectId))
     : assignments;
+
 
   //Search
   const filteredAssignments = visibleAssignments.filter((assignment) => {
@@ -156,7 +165,6 @@ const Assignments = () => {
     if (!selectedAssignment) return;
 
     setEditingAssignmentId(assignmentId);
-
 
     setFormData({
       classId: selectedAssignment.classes?.classId ?? "",
@@ -247,8 +255,6 @@ const Assignments = () => {
     submittedAssignmentIds.includes(assignment.id),
   ).length;
 
-
-
   return (
     <div className="mx-auto w-full max-w-7xl p-2 lg:p-4">
       {/* Header */}
@@ -293,7 +299,6 @@ const Assignments = () => {
       <AssignmentModal
         formData={formData}
         setFormData={setFormData}
-        // classOptions={classOptions}
         editingAssignmentId={editingAssignmentId}
         currentUser={currentUser}
         setEditingAssignmentId={setEditingAssignmentId}
@@ -357,7 +362,6 @@ const Assignments = () => {
             const submission = submittedAssignments.find(
               (item) => item.assignmentId === assignment.id,
             );
-            console.log(submission)
 
             return (
               <AssignmentCard

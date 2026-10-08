@@ -70,7 +70,6 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       .from("assignments")
       .update({
         classSubjectId: updatedData.classSubjectId,
-        // subjectId:updatedData.subjectId,
         title: updatedData.title,
         dueDate: updatedData.dueDate,
         description: updatedData.description,

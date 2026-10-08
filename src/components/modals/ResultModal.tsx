@@ -4,10 +4,18 @@ import type { Result } from "../../type/AssignmentType";
 interface ResultModalProps {
   id: string;
   obtainedMarks: number | null | undefined;
-  result: Result  | undefined;
+  result: Result | undefined;
+  fullMarks: number
+  passMarks:number
 }
 
-const ResultModal = ({ id, obtainedMarks, result }: ResultModalProps) => {
+const ResultModal = ({
+  id,
+  obtainedMarks,
+  result,
+  fullMarks,
+  passMarks
+}: ResultModalProps) => {
   return (
     <div id={id} popover="auto" className="modal">
       <div className="modal-box max-w-md bg-white">
@@ -25,6 +33,11 @@ const ResultModal = ({ id, obtainedMarks, result }: ResultModalProps) => {
           >
             <FiX size={18} className="text-slate-400" />
           </button>
+        </div>
+        <div>
+          <p className="mt-1 font-bold text-md text-slate-500">Full Marks: {fullMarks}</p>
+
+          <p className="text-md font-bold text-slate-500">Pass Marks: {passMarks}</p>
         </div>
 
         {/* Marks */}

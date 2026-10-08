@@ -25,10 +25,6 @@ const SubmittedAssignmentClasses = () => {
     (assignment) => assignment.teacherId === currentUser.id,
   );
 
-  // Get unique class IDs
-// const classIds = [
-//   ...new Set(myAssignments.map((assignment) => assignment.classSubjectId)),
-// ];
 
   // Find the actual class objects
 const myClasses = [
@@ -47,7 +43,7 @@ const myClasses = [
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-teal-600">
-          Available Assignments
+          Available  Assignments
         </h1>
 
         <p className="mt-1 text-sm text-slate-500">
@@ -58,6 +54,7 @@ const myClasses = [
       {/* Classes */}
       {myClasses.length === 0 ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
+          
           <FiBookOpen size={40} className="mx-auto text-slate-300" />
 
           <h2 className="mt-4 text-lg font-semibold text-slate-700">

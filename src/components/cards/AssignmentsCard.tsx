@@ -28,6 +28,7 @@ interface AssignmentCardProps {
   user: User;
   result: Result | undefined;
   obtainedMarks: number | null | undefined;
+
 }
 
 const AssignmentCard = ({
@@ -41,6 +42,7 @@ const AssignmentCard = ({
   user,
   result,
   obtainedMarks,
+
 }: AssignmentCardProps) => {
   const [showSubmitForm, setShowSubmitForm] = useState(false);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<
@@ -201,6 +203,8 @@ const AssignmentCard = ({
         id={`result-${assignment.id}`}
         obtainedMarks={obtainedMarks}
         result={result}
+        fullMarks={assignment.fullMarks ?? 0}
+        passMarks={assignment.passMarks ?? 0}
       />
     </>
   );

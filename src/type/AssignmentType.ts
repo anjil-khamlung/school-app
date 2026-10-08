@@ -20,12 +20,12 @@ export interface Assignment {
   id: string;
   title: string;
   classSubjectId: string;
-  subjectId?:string
+  subjectId?: string
   description: string;
   dueDate: string;
   teacherId: string;
-  fullMarks: number;
-  passMarks: number;
+  fullMarks?: number;
+  passMarks?: number;
   users?: {
     name: string;
   } | null;

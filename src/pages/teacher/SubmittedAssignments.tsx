@@ -1,6 +1,6 @@
-import { use, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { FiBookOpen, FiCalendar, FiFileText, FiUser } from "react-icons/fi";
+import {  useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { FiArrowLeft, FiBookOpen, FiCalendar, FiCircle, FiFileText, FiUser } from "react-icons/fi";
 
 import { useAssignments } from "../../store/useAssignments";
 import { useSchoolStore } from "../../store/useSchoolStore";
@@ -11,7 +11,8 @@ import { toast } from "react-toastify";
 import { useClasses } from "../../store/useClasses";
 
 const SubmittedAssignments = () => {
-  const { classId } = useParams();
+  const { classSubjectId } = useParams();
+  const navigate=useNavigate()
 
   const {
     assignments,
@@ -37,14 +38,14 @@ const SubmittedAssignments = () => {
   useEffect(() => {
 
     const loadSubmissions = async () => {
-      if (!currentUser || !classId) return;
+      if (!currentUser || !classSubjectId) return;
 
       const data = await getSubmittedAssignmentsForTeacher(currentUser.id);
 
     
 
       const classSubjectIds = classes
-        .filter((item) => item.id === classId)
+        .filter((item) => item.id === classSubjectId)
         .map((item) => item.id);
 
 
@@ -66,21 +67,45 @@ const SubmittedAssignments = () => {
     loadSubmissions();
   }, [
     currentUser,
-    classId,
+    classSubjectId,
     assignments,
     classes,
     getSubmittedAssignmentsForTeacher,
   ]);
 
+  const currentClass = classes.find((cls) => cls.id === classSubjectId)
+  const className = currentClass?.class?.className
+  const subject=currentClass?.subject?.subjectName
+  
+
   return (
-    <div className="p-6">
+    <div className="p-1">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-teal-600">
-          Submitted Assignments
-        </h1>
+        <button
+          onClick={() => navigate(-1)}
+          className="mb-4 flex items-center gap-2 text-sm font-medium cursor-pointer text-slate-600 hover:text-teal-600"
+        >
+          <FiArrowLeft size={17} />
+          Go Back
+        </button>
 
-        <p className="mt-1 text-sm text-slate-500">
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-2xl font-bold text-teal-600 mr-4">
+            Submitted Assignments
+          </h1>
+          <FiCircle size={7} className="fill-orange-400 text-orange-400" />
+
+          <span className="rounded-lg  text-md font-semibold text-orange-600 mr-2">
+            {className}
+          </span>
+
+          <FiCircle size={7} className="fill-teal-400 text-teal-400" />
+
+          <span className="text-md font-medium text-teal-600">{subject}</span>
+        </div>
+
+        <p className="mt-2 text-sm text-slate-500">
           View assignments submitted by students for this class.
         </p>
       </div>
@@ -89,7 +114,7 @@ const SubmittedAssignments = () => {
       {submissions.length === 0 ? (
         <div className="flex min-h-87.5 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-teal-50">
-            <FiFileText className="text-2xl text-teal-600" />
+            <FiFileText className="text-2xl text-teal-600 " />
           </div>
 
           <h2 className="mt-5 text-lg font-semibold text-slate-900">
@@ -138,7 +163,12 @@ const SubmittedAssignments = () => {
                   </div>
                 </div>
 
-                <FiFileText className="text-xl text-teal-600" />
+                <button
+                  type="button"
+                  onClick={() => setSelectedSubmission(submission)}
+                >
+                  <FiFileText className="text-xl text-teal-600 bg-teal-50  cursor-pointer " />
+                </button>
               </div>
 
               {/* Submission preview */}

@@ -36,11 +36,13 @@ const DashboardCard = ({
           
         </div>
 
-        <div
-          className={`flex h-12 w-12 items-center justify-center rounded-xl ${iconStyle}`}
+        <button
+          type="button"
+          onClick={onClick}
+          className={`flex cursor-pointer h-12 w-12 items-center justify-center rounded-xl ${iconStyle}`}
         >
           {Icon && <Icon size={20} />}
-        </div>
+        </button>
       </div>
 
       {/* Optional button */}

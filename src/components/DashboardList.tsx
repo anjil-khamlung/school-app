@@ -31,7 +31,6 @@ const DashboardList = ({
 
 
   
-  
   return (
     <section className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden ">
       {/* Header */}
@@ -53,10 +52,11 @@ const DashboardList = ({
 
       {/* List */}
       <div className="divide-y divide-slate-100">
-        {items.slice(0, 5).map((item) => (
+        {items.slice(0, 4).map((item) => (
           <div
             key={item.id}
-            className="flex items-center gap-4 px-6 py-5 transition hover:bg-slate-50 "
+            onClick={() => navigate(viewAllPath)}
+            className="flex cursor-pointer items-center gap-4 px-6 py-5 transition hover:bg-slate-50 "
           >
             {/* Icon */}
             <div
@@ -72,18 +72,17 @@ const DashboardList = ({
                 use item.name; otherwise use item.id. */}
                 {"title" in item && ` ${item.title}`}
                 {"subject" in item
-                  ? `${item.subject} `
+                  ? `${item.subject?.subjectName}`
                   : "email" in item
                     ? item.email
                     : ""}
 
-                {"section" in item && `-${item.section}`}
+                {"class" in item && `-${item.class?.className}`}
               </h3>
 
               <p className="mt-1 text-sm  text-slate-500">
-            
-                {"teacherName" in item && `  ${item.teacherName}`}
-                {"teacher" in item && `  ${item.teacher}`}
+                {"users" in item && `${item.users?.name}`}
+                {"teacher" in item && `  ${item.teacher?.name}`}
               </p>
             </div>
           </div>
