@@ -1,4 +1,4 @@
-import { FiCalendar,  FiPlus, FiTrash2 } from "react-icons/fi";
+import { FiCalendar, FiPlus, FiTrash2 } from "react-icons/fi";
 import InputField from "../inputs/InputField";
 import SelectField from "../inputs/SelectField";
 import TextArea from "../inputs/TextArea";
@@ -9,7 +9,7 @@ import type {
 } from "../../type/AssignmentType";
 import { validateAssignment } from "../../lib/utils/validateAssignment";
 import { useAssignments } from "../../store/useAssignments";
-import {  useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import type { User } from "../../type/type";
 import { useClasses } from "../../store/useClasses";
@@ -27,10 +27,8 @@ interface AssignmentModalProps {
   setSearch: React.Dispatch<React.SetStateAction<string>>;
   questions: AssignmentQuestion[];
   setQuestions: React.Dispatch<React.SetStateAction<AssignmentQuestion[]>>;
-  initialQuestions: AssignmentQuestion
+  initialQuestions: AssignmentQuestion;
 }
-
-
 
 const AssignmentModal = ({
   formData,
@@ -52,31 +50,29 @@ const AssignmentModal = ({
     getAssignmentQuestions,
     deleteAssignmentQuestion,
   } = useAssignments();
-  const{getClass,getSubjects,getClasses,classes}=useClasses()
+  const { getClass, getSubjects, getClasses, classes } = useClasses();
   const [errors, setErrors] = useState<AssignmentFormErrors>({});
 
-    const [classOptions, setClassOptions] = useState<
-      { label: string; value: string }[]
-    >([]);
-  
-    const [subjectOptions, setSubjectOptions] = useState<
-      { label: string; value: string }[]
-    >([]);
-  
-  
-  
+  const [classOptions, setClassOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+
+  const [subjectOptions, setSubjectOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+
   useEffect(() => {
     const loadOptions = async () => {
       const classes = await getClass();
       const subjects = await getSubjects();
-  
+
       setClassOptions(
         classes.map((item) => ({
           label: item.className,
           value: item.id,
         })),
       );
-  
+
       setSubjectOptions(
         subjects.map((item) => ({
           label: item.subjectName,
@@ -84,42 +80,40 @@ const AssignmentModal = ({
         })),
       );
     };
-  
+
     loadOptions();
-    getClasses()
-  }, [getClass, getSubjects,getClasses]);
+    getClasses();
+  }, [getClass, getSubjects, getClasses]);
 
   //Add  question
   const addQuestion = () => {
-    setQuestions((prev) => [
-      ...prev,
-      initialQuestions
-    ]);
+    setQuestions((prev) => [...prev, initialQuestions]);
   };
 
   //Remove  question
-const removeQuestion = (index: number) => {
-  setQuestions((prev) => prev.filter((_, i) => i !== index));
-};
+  const removeQuestion = (index: number) => {
+    setQuestions((prev) => prev.filter((_, i) => i !== index));
+  };
 
   //Update question
-const updateQuestion = (
-  index: number,
-  field: "question" | "marks",
-  value: string | number,
-) => {
-  setQuestions((prev) =>
-    prev.map((item, i) =>
-      i === index
-        ? {
-            ...item,
-            [field]: value,
-          }
-        : item,
-    ),
-  );
+  const updateQuestion = (
+    index: number,
+    field: "question" | "marks",
+    value: string | number,
+  ) => {
+    setQuestions((prev) =>
+      prev.map((item, i) =>
+        i === index
+          ? {
+              ...item,
+              [field]: value,
+            }
+          : item,
+      ),
+    );
   };
-  
+
+  //classes that are crated by user
   const availableClassOptions = classOptions.filter((classItem) =>
     classes.some(
       (item) =>
@@ -127,6 +121,7 @@ const updateQuestion = (
     ),
   );
 
+  //subjects that are creatd by user
   const availableSubjectOptions = subjectOptions.filter((subject) =>
     classes.some(
       (item) =>
@@ -136,12 +131,14 @@ const updateQuestion = (
     ),
   );
 
-    //Create assignment
-  const handleCreateAssignment = async (e: React.SubmitEvent<HTMLFormElement>) => {
+  //Create assignment
+  const handleCreateAssignment = async (
+    e: React.SubmitEvent<HTMLFormElement>,
+  ) => {
     e.preventDefault();
 
     // Validation
-    const validationErrors = validateAssignment(formData);
+    const validationErrors = validateAssignment(formData, questions);
     setErrors(validationErrors);
     // Stop if there are errors
     if (Object.keys(validationErrors).length > 0) {
@@ -166,7 +163,6 @@ const updateQuestion = (
       const success = await updateAssignment(editingAssignmentId, {
         title: formData.title,
         classSubjectId: selectedClass.id,
-        // subjectId: formData.subjectId,
         dueDate: formData.dueDate,
         description: formData.description,
       });
@@ -177,7 +173,8 @@ const updateQuestion = (
       }
 
       //Remove deleted questions from supabase
-      const existingQuestions = await getAssignmentQuestions(editingAssignmentId);
+      const existingQuestions =
+        await getAssignmentQuestions(editingAssignmentId);
 
       const remainingIds = questions.map((item) => item.id).filter(Boolean);
 
@@ -186,7 +183,7 @@ const updateQuestion = (
       );
 
       for (const item of deletedQuestions) {
-          if (!item.id) continue;
+        if (!item.id) continue;
         const success = await deleteAssignmentQuestion(item.id);
 
         if (!success) {
@@ -202,7 +199,7 @@ const updateQuestion = (
           const success = await updateAssignmentQuestion(
             item.id,
             item.question,
-            item.marks,
+            Number(item.marks),
           );
 
           if (!success) {
@@ -214,7 +211,8 @@ const updateQuestion = (
           const success = await addAssignmentQuestions(
             editingAssignmentId,
             item.question,
-            item.marks,
+            Number(item.marks),
+
             index + 1,
           );
 
@@ -244,13 +242,10 @@ const updateQuestion = (
     // CREATE
     const newAssignment = {
       title: formData.title,
-        classSubjectId: selectedClass.id,
-      // subjectId:formData.subjectId,
+      classSubjectId: selectedClass.id,
       description: formData.description,
       dueDate: formData.dueDate,
       teacherId: currentUser.id,
-      // fullMarks: 100,
-      // passMarks: 40,
     };
 
     const assignment = await addAssignment(newAssignment);
@@ -261,29 +256,29 @@ const updateQuestion = (
     }
 
     // Add questions
- for (const [index, item] of questions.entries()) {
-   if (!item.question.trim()) {
-     toast.error(`Question ${index + 1} cannot be empty`);
-     return;
-   }
+    for (const [index, item] of questions.entries()) {
+      if (!item.question.trim()) {
+        toast.error(`Question ${index + 1} cannot be empty`);
+        return;
+      }
 
-   const success = await addAssignmentQuestions(
-     assignment.id,
-     item.question,
-     item.marks,
-     index + 1,
-   );
+      const success = await addAssignmentQuestions(
+        assignment.id,
+        item.question,
+        Number(item.marks),
+        index + 1,
+      );
 
-   if (!success) {
-     toast.error(`Failed to add question ${index + 1}`);
-     return;
-   }
- }
+      if (!success) {
+        toast.error(`Failed to add question ${index + 1}`);
+        return;
+      }
+    }
 
     toast.success("Assignment created successfully");
 
     setFormData(initial);
-    setQuestions([{ question: "", marks: 1 }]);
+    setQuestions([{ question: "", marks: 25 }]);
     setSearch("");
 
     // Close popover
@@ -292,7 +287,7 @@ const updateQuestion = (
     if (modal instanceof HTMLElement) {
       modal.hidePopover();
     }
-  };;
+  };
 
   return (
     <div id="create-assignment-modal" popover="auto" className="modal">
@@ -418,7 +413,6 @@ const updateQuestion = (
                   </div>
 
                   <textarea
-                    required
                     value={item.question}
                     onChange={(e) =>
                       updateQuestion(index, "question", e.target.value)
@@ -427,24 +421,33 @@ const updateQuestion = (
                     rows={2}
                     className="textarea textarea-bordered w-full min-h-10 resize-none bg-white"
                   />
+                  {/* questin error  */}
+                  {errors[`question-${index}`] && (
+                    <p className="text-sm text-red-500">
+                      {errors[`question-${index}`]}
+                    </p>
+                  )}
 
-                  <div className="mt-3 flex items-center gap-3">
-                    <label className="text-sm font-medium text-slate-700">
+                  <div className="mt-3 flex items-start gap-3">
+                    <label className="pt-3 text-sm font-medium text-slate-700">
                       Marks
                     </label>
 
                     <input
-                      required
-                      type="number"
-                      min={1}
-                      max={100}
+                      type="text"
                       value={item.marks}
                       onChange={(e) =>
-                        updateQuestion(index, "marks", Number(e.target.value))
+                        updateQuestion(index, "marks", (e.target.value))
                       }
-                      className="input input-bordered w-24 bg-white appearance-none"
+                      className="input input-bordered w-24 bg-white "
                     />
                   </div>
+                  {/* marks error  */}
+                  {errors[`marks-${index}`] && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors[`marks-${index}`]}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
@@ -461,10 +464,12 @@ const updateQuestion = (
                 setFormData(initial);
                 setSearch("");
                 setErrors({});
-                setQuestions([{
-    question: "",
-    marks: 25,
-  }]);
+                setQuestions([
+                  {
+                    question: "",
+                    marks: 25,
+                  },
+                ]);
               }}
               className="btn border-none bg-red-600 rounded-xl text-white hover:bg-red-700"
             >

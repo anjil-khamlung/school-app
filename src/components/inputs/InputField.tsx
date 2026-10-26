@@ -11,7 +11,6 @@ interface InputFieldProps<T> {
   style?: string;
   icon?: React.ElementType;
   error?: string;
-
   showPasswordToggle?: boolean;
   showPassword?: boolean;
   setShowPassword?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -72,7 +71,6 @@ const InputField = <T,>({
           value={value}
           name={name}
           onChange={handleChange}
-          required
           className={`w-full ${
             style || "pl-4"
           } rounded-xl border border-slate-200 bg-slate-50 py-3.5 pr-11 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10`}

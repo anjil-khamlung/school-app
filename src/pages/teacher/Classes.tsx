@@ -6,7 +6,7 @@ import SearchInput from "../../components/inputs/SearchInput";
 import ClassCard from "../../components/cards/ClassCard";
 import ConfirmModal from "../../components/modals/ConfirmModal";
 import { useClasses } from "../../store/useClasses";
-import { time } from "../../data/classOptions";
+import { time } from "../../data/classTimeOptions";
 import ClassModal from "../../components/modals/ClassModal";
 
 const Classes = () => {
@@ -52,18 +52,18 @@ if (isStudent) {
 }
 
   // Search
-  const filteredClasses = visibleClasses.filter((item) => {
-    const value = search.trim().toLowerCase();
+const filteredClasses = visibleClasses.filter((item) => {
+  const value = search.trim().toLowerCase().replace(/\s/g, "");
 
-    if (!value) {
-      return true;
-    }
+  if (!value) return true;
 
-    return (
-      item.classId?.toLowerCase().includes(value) ||
-      item.subjectId?.toLowerCase().includes(value)
-    );
-  });
+  return (
+    item.class?.className?.toLowerCase().replace(/\s/g, "").includes(value) ||
+    item.subject?.subjectName?.toLowerCase().includes(value) ||
+    item.teacher?.name?.toLowerCase().includes(value) ||
+    item.time?.toLowerCase().includes(value)
+  );
+});
 
   //Edit class
   const handleEdit = (classId: string) => {

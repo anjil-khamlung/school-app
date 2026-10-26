@@ -6,15 +6,20 @@ export const useUsers = create<UsersStore>((set) => ({
   users: [],
 
   getUsers: async () => {
-    const { data, error } = await supabase.from("users").select("*");
+    const { data, error } = await supabase.from("users").select(`
+      *,
+      class:classId (
+        className
+      )
+    `);
 
     if (error) {
-        console.log("error=", error);
-        return
-        
-      }
-      set({users:data})
+      console.log("error=", error);
+      return;
+    }
+
+    set({ users: data });
   },
 
- 
+  
 }));

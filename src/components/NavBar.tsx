@@ -1,4 +1,4 @@
-import { FiBookOpen } from "react-icons/fi";
+import {  FiHome } from "react-icons/fi";
 import { NavLink, useLocation } from "react-router-dom";
 import { useSchoolStore } from "../store/useSchoolStore";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
@@ -17,15 +17,15 @@ const NavBar = () => {
     location.pathname.startsWith("/student");
   return (
     <>
-      <div className="shadow-sm border-b border-slate-200  ">
-        <div className="navbar text-slate-600 text-sm font-semibold px-4     mx-auto">
+      <div className="sticky top-0 z-50 bg-white shadow-sm border-b border-slate-200">
+        <div className="navbar  text-slate-600 text-sm font-semibold px-4     mx-auto">
           <div className="navbar-start">
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               <NavLink
                 to="/"
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-teal-600 to-emerald-600 text-white shadow-sm"
               >
-                <FiBookOpen size={21} />
+                <FiHome size={21} />
               </NavLink>
 
               <span className="hidden truncate text-lg font-bold tracking-tight text-slate-900 sm:block lg:text-xl">
@@ -79,28 +79,6 @@ const NavBar = () => {
                 </NavLink>
               </>
             )}
-
-            {/* {isAuthenticated && isDashboard && (
-              <NavLink
-                onClick={close}
-                to={
-                  currentUser?.role === "admin"
-                    ? "/admin"
-                    : currentUser?.role === "teacher"
-                      ? "/teacher"
-                      : "/student"
-                }
-                className={({ isActive }) =>
-                  `text-sm font-semibold px-3 py-2 ${
-                    isActive
-                      ? "border-b-2 border-teal-600 text-teal-600"
-                      : "hover:text-teal-700"
-                  }`
-                }
-              >
-                Dashboard
-              </NavLink>
-            )} */}
           </div>
 
           {!isAuthenticated && (
@@ -146,7 +124,7 @@ const NavBar = () => {
 
                 <MenuItems
                   anchor="bottom end"
-                  className="mt-2 w-auto rounded-lg border border-slate-300 bg-white p-2 shadow-lg"
+                  className="mt-2 z-50 w-auto rounded-lg border border-slate-300 bg-white p-2 shadow-lg"
                 >
                   {isDashboard && (
                     <div className="flex flex-col  gap-1">

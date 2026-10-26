@@ -48,7 +48,6 @@ const SubmittedAssignments = () => {
         .filter((item) => item.id === classSubjectId)
         .map((item) => item.id);
 
-
       const AssignmentIds = assignments
         .filter((assignment) =>
           classSubjectIds.includes(assignment.classSubjectId),

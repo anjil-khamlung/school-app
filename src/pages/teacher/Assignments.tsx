@@ -24,7 +24,7 @@ const Assignments = () => {
     getAssignments,
     deleteAssignment,
     submitAssignment,
-    getSubmittedAssignments,
+    getSubmittedAssignmentsForStudent,
     getSubmissionCounts,
     getTeacherAssignmentStats,
     getAssignmentQuestions,
@@ -68,7 +68,7 @@ const Assignments = () => {
 
   const initialQuestions = {
     question: "",
-    marks: 25,
+    marks: "25",
   };
   const [questions, setQuestions] = useState<AssignmentQuestion[]>([
     initialQuestions,
@@ -94,7 +94,7 @@ const Assignments = () => {
       if (!currentUser) return;
 
       if (currentUser.role === "student") {
-        const data = await getSubmittedAssignments(currentUser.id);
+        const data = await getSubmittedAssignmentsForStudent(currentUser.id);
 
         setSubmittedAssignments(data);
         setSubmittedAssignmentIds(
@@ -115,13 +115,23 @@ const Assignments = () => {
   }, [
     currentUser,
     getAssignments,
-    getSubmittedAssignments,
+    getSubmittedAssignmentsForStudent,
     getSubmissionCounts,
     getTeacherAssignmentStats,
   ]);
 
+  //Students class joined assignments
+  const studentAssignments = assignments.filter((assignment) =>
+    classes.some(
+      (item) =>
+        item.id === assignment.classSubjectId &&
+        item.classesJoined?.some(
+          (joined) => joined.studentId === currentUser?.id,
+        ),
+    ),
+  );
 
-  
+
 const joinedClassSubjectIds = new Set(
   classes
     .filter((cls) => cls.classesJoined?.some((joined) => joined.studentId === currentUser.id))
@@ -130,22 +140,28 @@ const joinedClassSubjectIds = new Set(
 
   //Assignments according to role
 const visibleAssignments = isTeacher
-  ? assignments.filter((a) => a.teacherId === currentUser.id)
+  ? assignments.filter((assignment) => assignment.teacherId === currentUser.id)
   : isStudent
-    ? assignments.filter((a) => joinedClassSubjectIds.has(a.classSubjectId))
+    ? assignments.filter((assignment) => joinedClassSubjectIds.has(assignment.classSubjectId))
     : assignments;
 
-
   //Search
-  const filteredAssignments = visibleAssignments.filter((assignment) => {
-    const value = search.trim().toLowerCase();
-    if (!value) return true;
+ const filteredAssignments = visibleAssignments.filter((assignment) => {
+   const value = search.trim().toLowerCase().replace(/\s/g, "");
 
-    return (
-      assignment.title?.toLowerCase().includes(value) ||
-      assignment.description?.toLowerCase().includes(value)
-    );
-  });
+   if (!value) return true;
+
+   return (
+     assignment.classes?.class?.className
+       ?.toLowerCase()
+       .replace(/\s/g, "")
+       .includes(value) ||
+     assignment.classes?.subject?.subjectName?.toLowerCase().includes(value) ||
+     assignment.title?.toLowerCase().includes(value) ||
+     assignment.description?.toLowerCase().includes(value) ||
+     assignment.users?.name?.toLowerCase().includes(value)
+   );
+ });
 
   //Edit assignment
   const handleEdit = async (assignmentId: string) => {
@@ -242,13 +258,14 @@ const visibleAssignments = isTeacher
     }
 
     setSubmittedAssignmentIds(
-      (await getSubmittedAssignments(currentUser.id)).map(
+      (await getSubmittedAssignmentsForStudent(currentUser.id)).map(
         (submission) => submission.assignmentId,
       ),
     );
 
     return success;
   };
+
 
   //Total assignments submitted by a student
   const submittedCount = assignments.filter((assignment) =>
@@ -317,7 +334,11 @@ const visibleAssignments = isTeacher
           iconStyle="bg-teal-50 text-teal-600"
           textStyle="text-teal-600 hover:text-teal-700"
           value={
-            isTeacher ? stats.teacherAssignments.length : assignments.length
+            isTeacher
+              ? stats.teacherAssignments.length
+              : isStudent
+                ? studentAssignments.length
+                : assignments.length
           }
         />
 

@@ -4,20 +4,35 @@ import { useSchoolStore } from "../../store/useSchoolStore";
 import { useAssignments } from "../../store/useAssignments";
 import { useClasses } from "../../store/useClasses";
 import DashboardCard from "../../components/cards/DashboardCard";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import type { SubmittedAssignment } from "../../type/AssignmentType";
 
 const SubmittedAssignmentClasses = () => {
   const navigate = useNavigate();
 
   const { currentUser } = useSchoolStore();
-  const { assignments, getAssignments } = useAssignments();
+  const { assignments, getAssignments, getSubmittedAssignmentsForTeacher } =
+    useAssignments();
   const { classes, getClasses } = useClasses();
-  
+  const [submissions, setSubmissions] = useState<SubmittedAssignment[]>([]);
+
+  //fetch classes, assignments and submitedAssignments of teacher
   useEffect(() => {
     getClasses();
     getAssignments();
-  }, [getClasses, getAssignments]);
-  
+
+    if (currentUser) {
+      getSubmittedAssignmentsForTeacher(currentUser.id)
+        .then(setSubmissions)
+        .catch(console.error);
+    }
+  }, [
+    currentUser,
+    getClasses,
+    getAssignments,
+    getSubmittedAssignmentsForTeacher,
+  ]);
+
   if (!currentUser) return null;
 
   // Only assignments created by the current teacher
@@ -25,25 +40,24 @@ const SubmittedAssignmentClasses = () => {
     (assignment) => assignment.teacherId === currentUser.id,
   );
 
-
   // Find the actual class objects
-const myClasses = [
-  ...new Map(
-    myAssignments
-      .map((assignment) =>
-        classes.find((item) => item.id === assignment.classSubjectId),
-      )
-      .filter(Boolean)
-      .map((classSubject) => [classSubject!.id, classSubject]),
-  ).values(),
-];
+  const myClasses = [
+    ...new Map(
+      myAssignments
+        .map((assignment) =>
+          classes.find((item) => item.id === assignment.classSubjectId),
+        )
+        .filter(Boolean)
+        .map((classSubject) => [classSubject!.id, classSubject]),
+    ).values(),
+  ];
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-teal-600">
-          Available  Assignments
+          Available Assignments
         </h1>
 
         <p className="mt-1 text-sm text-slate-500">
@@ -54,7 +68,6 @@ const myClasses = [
       {/* Classes */}
       {myClasses.length === 0 ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
-          
           <FiBookOpen size={40} className="mx-auto text-slate-300" />
 
           <h2 className="mt-4 text-lg font-semibold text-slate-700">
@@ -70,11 +83,20 @@ const myClasses = [
           {myClasses.map((classItem) => {
             if (!classItem) return null;
 
+            const totalSubmissions = submissions.filter((submission) =>
+              assignments.some(
+                (assignment) =>
+                  assignment.id === submission.assignmentId &&
+                  assignment.classSubjectId === classItem.id &&
+                  assignment.teacherId === currentUser.id,
+              ),
+            ).length;
             return (
               <DashboardCard
                 key={classItem.id}
                 title={classItem.class?.className ?? "No class name"}
                 subject={classItem.subject?.subjectName}
+                value={totalSubmissions}
                 icon={FiBookOpen}
                 iconStyle="bg-teal-50 text-teal-600"
                 textStyle="text-teal-600"

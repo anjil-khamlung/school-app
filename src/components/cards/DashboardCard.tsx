@@ -33,7 +33,6 @@ const DashboardCard = ({
           )}
 
           <p className="mt-2 text-3xl font-bold text-slate-900">{value}</p>
-          
         </div>
 
         <button

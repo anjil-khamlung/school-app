@@ -4,9 +4,10 @@ import type { User } from "../type/type";
 interface UsersTableProps {
   users: User[];
   totalUsers: number;
+  role?: string;
 }
 
-const UsersTable = ({ users, totalUsers }: UsersTableProps) => {
+const UsersTable = ({ users, totalUsers,role }: UsersTableProps) => {
   return (
     <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       {users.length === 0 ? (
@@ -43,7 +44,7 @@ const UsersTable = ({ users, totalUsers }: UsersTableProps) => {
                   </th>
 
                   <th className="pl-10 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                    ID
+                   {role==="student" ? "Class":"ID"}
                   </th>
                 </tr>
               </thead>
@@ -54,7 +55,7 @@ const UsersTable = ({ users, totalUsers }: UsersTableProps) => {
                     {/* User */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-teal-600 to-emerald-600 font-semibold text-white">
+                        <div className="flex h-10 min-w-10 items-center justify-center rounded-full bg-linear-to-br from-teal-600 to-emerald-600 font-semibold text-white">
                           {user.name?.charAt(0).toUpperCase() || "U"}
                         </div>
 
@@ -62,13 +63,12 @@ const UsersTable = ({ users, totalUsers }: UsersTableProps) => {
                           <p className="font-semibold text-slate-800">
                             {user.name}
                           </p>
-
                         </div>
                       </div>
                     </td>
 
                     {/* Email */}
-                    <td className="px-6 py-4">
+                    <td className="  py-4">
                       <div className="flex items-center gap-2 text-sm text-slate-500">
                         <FiMail size={15} />
                         {user.email}
@@ -82,17 +82,15 @@ const UsersTable = ({ users, totalUsers }: UsersTableProps) => {
                       </span>
                     </td>
 
-                    {/* ID */}
+                    {/* class / Id */}
                     <td className="px-6 py-4 text-sm text-slate-500">
-                      {user.id}
+                      {user.class ? user.class.className : user.id}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-
-     
         </>
       )}
     </div>

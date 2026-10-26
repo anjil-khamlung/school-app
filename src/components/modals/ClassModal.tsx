@@ -66,6 +66,7 @@ useEffect(() => {
   getClasses()
 }, [getClass, getSubjects,getClasses]);
 
+  // filter subjects 
 const availableSubjectOptions = subjectOptions.filter(
   (subject) =>
     !classes.some(
@@ -74,6 +75,14 @@ const availableSubjectOptions = subjectOptions.filter(
     ),
 );
 
+  // Filter time 
+const availableTimeOptions = time.filter(
+  (time) =>
+    !classes.some(
+      (item) => item.classId === formData.classId && item.time === time,
+    ),
+);
+  
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -186,7 +195,7 @@ const availableSubjectOptions = subjectOptions.filter(
                 label="Time"
                 placeholder="Select Time"
                 value={formData.time}
-                options={time}
+                options={availableTimeOptions}
                 error={errors.time}
                 onChange={(value) =>
                   setFormData((prev) => ({

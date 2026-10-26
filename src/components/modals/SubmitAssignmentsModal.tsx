@@ -58,7 +58,7 @@ const SubmitAssignmentModal = ({
         return;
       }
 
-      if (Number(marks) < 0 || Number(marks) > item.marks) {
+      if (Number(marks) < 0 || Number(marks) > Number(item.marks)) {
         toast.error(`Invalid marks for question no. ${item.questionNumber}`);
         return;
       }

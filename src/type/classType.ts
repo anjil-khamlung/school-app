@@ -42,7 +42,6 @@ export interface Subject{
 
 export interface ClassesStore {
   classes: Class[];
-  subjects: Subject[];
   getClasses: (classId?:string) => Promise<void>;
   getClass: () => Promise<{ id: string; className: string }[]>;
   getSubjects: () => Promise<{ id: string; subjectName: string }[]>;

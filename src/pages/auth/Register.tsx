@@ -41,7 +41,7 @@ const Register = () => {
     { label: string; value: string }[]
   >([]);
 
-  //Fetching users and classes
+  //Fetching classes and class options
   useEffect(() => {
     const loadClass = async () => {
       const data = await getClass();
@@ -65,6 +65,7 @@ const Register = () => {
     const validationErrors = validateRegister(formData);
     setErrors(validationErrors);
 
+    //object.keys returns keys of object
     if (Object.keys(validationErrors).length > 0) {
       return;
     }
@@ -115,6 +116,7 @@ const Register = () => {
       setLoading(false);
     }
   };
+  
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#071c1a] px-4 py-8">
       {/* Background decorations */}

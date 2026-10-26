@@ -11,38 +11,48 @@ export interface AssignmentFormData {
 export interface AssignmentFormErrors {
   title?: string;
   classId?: string;
-  subjectId?:string
+  subjectId?: string;
   description?: string;
   dueDate?: string;
+  [key: string]: string | undefined;
 }
 
 export interface Assignment {
   id: string;
   title: string;
   classSubjectId: string;
-  subjectId?: string
+  subjectId?: string;
   description: string;
   dueDate: string;
   teacherId: string;
   fullMarks?: number;
   passMarks?: number;
+
   users?: {
     name: string;
   } | null;
+
   assignmentQuestions?: AssignmentQuestion[];
+
   classes?: {
-    className: string
-    classId: string
-    subjectName: string
-    subjectId:string
-  }
+    classId: string;
+    subjectId: string;
+
+    class?: {
+      className: string;
+    };
+
+    subject?: {
+      subjectName: string;
+    };
+  } | null;
 }
 export type CreateAssignment = Omit<Assignment, "id">;
 
 export interface AssignmentQuestion {
   id?: string;
   question: string;
-  marks: number;
+  marks: number|string;
   questionNumber?: number;
 }
 
@@ -99,7 +109,7 @@ export interface AssignmentsStore {
     answers: Record<string, string>,
   ) => Promise<boolean>;
 
-  getSubmittedAssignments: (studentId: string) => Promise<
+  getSubmittedAssignmentsForStudent: (studentId: string) => Promise<
     {
       assignmentId: string;
       obtainedMarks:number

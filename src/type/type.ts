@@ -7,7 +7,10 @@ export interface User {
   name: string;
   email: string;
   role: Role;
-  classId:string
+  classId: string | null;
+  class: {
+    className: string;
+  } | null;
 }
 
 export interface SidebarLink {

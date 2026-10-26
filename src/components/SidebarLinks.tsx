@@ -11,7 +11,7 @@ interface SidebarLinksProps{
 
 const SidebarLinks = ({ links, user, setOpen }:SidebarLinksProps) => {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-3">
       {links.map((link) => {
         const Icon = link.icon;
 

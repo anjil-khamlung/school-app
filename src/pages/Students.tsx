@@ -19,9 +19,11 @@ const Students = () => {
     const students = users.filter((user) => {
       return user.role==="student"
     })
+  
     const filteredStudents = students.filter((student) =>
       student.name.toLowerCase().includes(search.toLowerCase())
-    )
+  )
+  
   return (
     <div className="mx-auto w-full max-w-7xl p-2 lg:p-4">
       {/* Header */}
@@ -62,7 +64,7 @@ const Students = () => {
       />
 
       {/* Students */}
-      <UsersTable users={filteredStudents} totalUsers={students.length} />
+      <UsersTable role="student" users={filteredStudents} totalUsers={students.length} />
     </div>
   );
 }

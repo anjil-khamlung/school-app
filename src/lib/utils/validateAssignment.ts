@@ -1,10 +1,12 @@
 import type {
   AssignmentFormData,
   AssignmentFormErrors,
+  AssignmentQuestion,
 } from "../../type/AssignmentType";
 
 export const validateAssignment = (
   formData: AssignmentFormData,
+  questions: AssignmentQuestion[],
 ): AssignmentFormErrors => {
   const errors: AssignmentFormErrors = {};
 
@@ -35,6 +37,21 @@ export const validateAssignment = (
   if (!formData.dueDate) {
     errors.dueDate = "Due date is required";
   }
+
+  // Questions
+questions.forEach((item, index) => {
+  if (!item.question.trim()) {
+    errors[`question-${index}`] = `Question ${index + 1} is required`;
+  }
+
+const marks = Number(item.marks);
+
+if (String(item.marks).trim() === "" || Number.isNaN(marks)) {
+  errors[`marks-${index}`] = "Marks must contain numbers only";
+} else if (!Number.isInteger(marks) || marks <= 0 || marks > 100) {
+  errors[`marks-${index}`] = "Marks must be a whole number between 1 and 100";
+}
+});
 
   return errors;
 };

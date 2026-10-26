@@ -5,35 +5,31 @@ import type { ClassesStore } from "../type/classType";
 
 export const useClasses = create<ClassesStore>((set, get) => ({
   classes: [],
-  subjects: [],
 
-  // Fetch classes
+  // Fetch classes subjects
   getClasses: async () => {
-    const { data, error } = await supabase.from("classes").select(
-      `
-    *,
-    class:classId (
-      className
-    ),
-    subject:subjectId (
-      subjectName
-    ),
-    teacher:teacherId (
-  name
-),
-    classesJoined (
-      studentId
-    )
-  `,
-    );
+    const { data, error } = await supabase
+      .from("classes")
+      .select(
+        `
+      *,
+      class:classId(className),
+      subject:subjectId(subjectName),
+      teacher:teacherId(name),
+      classesJoined(studentId)
+    `,
+      )
+      .order("classId", { ascending: true });
 
     if (error) {
       console.error(error);
       return;
     }
+
     set({ classes: data });
   },
 
+  // Fetch Classes
   getClass: async () => {
     const { data, error } = await supabase
       .from("class")
@@ -47,6 +43,7 @@ export const useClasses = create<ClassesStore>((set, get) => ({
     return data ?? [];
   },
 
+  // Fetch Subjects
   getSubjects: async () => {
     const { data, error } = await supabase
       .from("subjects")
@@ -57,8 +54,6 @@ export const useClasses = create<ClassesStore>((set, get) => ({
       console.error("Error fetching subjects:", error);
       return [];
     }
-
-    set({ subjects: data ?? [] });
 
     return data ?? [];
   },

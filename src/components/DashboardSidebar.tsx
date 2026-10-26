@@ -38,9 +38,9 @@ const DashboardSidebar = ({ open, setOpen }: DashboardSidebarProps) => {
     overflow-y-auto
     border-r border-slate-200 bg-white shadow-xl
     transition-transform duration-300
-    lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:shadow-none
-     ${open ? "translate-x-0" : "-translate-x-full"}
-    `}
+    lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:translate-x-0 lg:shadow-none
+    ${open ? "translate-x-0" : "-translate-x-full"}
+  `}
     >
       {/* Close button */}
       <button

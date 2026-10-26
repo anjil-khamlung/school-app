@@ -5,7 +5,7 @@ import { supabase } from "../lib/supabase";
 export const useAssignments = create<AssignmentsStore>((set, get) => ({
   assignments: [],
 
-  // Fetch classes
+  // Fetch assignments
   getAssignments: async () => {
     const { data, error } = await supabase
       .from("assignments")
@@ -64,7 +64,7 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
     return data;
   },
 
-  //Edit class
+  //Edit assignment
   updateAssignment: async (assignmentId, updatedData) => {
     const { error } = await supabase
       .from("assignments")
@@ -145,7 +145,7 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
   },
 
   //Get submitted Assignments for students
-  getSubmittedAssignments: async (studentId: string) => {
+  getSubmittedAssignmentsForStudent: async (studentId: string) => {
     const { data, error } = await supabase
       .from("assignmentsSubmitted")
       .select("assignmentId, obtainedMarks, result")
@@ -181,74 +181,74 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
   },
 
   //Get submitted Assignments for teachers
-  getSubmittedAssignmentsForTeacher: async (teacherId: string) => {
-const { data, error } = await supabase
-  .from("assignmentsSubmitted")
-  .select(
-    `
-    *,
-    assignments!inner (
-      id,
-      title,
-      description,
-      dueDate,
-      fullMarks,
-      passMarks,
-      teacherId,
-      classSubjectId,
-        classes (
+    getSubmittedAssignmentsForTeacher: async (teacherId: string) => {
+  const { data, error } = await supabase
+    .from("assignmentsSubmitted")
+    .select(
+      `
+      *,
+      assignments!inner (
         id,
-        classId,
-        subjectId,
-        class (
-          className
+        title,
+        description,
+        dueDate,
+        fullMarks,
+        passMarks,
+        teacherId,
+        classSubjectId,
+          classes (
+          id,
+          classId,
+          subjectId,
+          class (
+            className
+          ),
+          subjects (
+            subjectName
+          )
         ),
-        subjects (
-          subjectName
+
+        assignmentQuestions!assignmentQuestions_assignmentId_fkey (
+          id,
+          question,
+          marks,
+          questionNumber
         )
       ),
-
-      assignmentQuestions!assignmentQuestions_assignmentId_fkey (
+      assignmentAnswers (
         id,
-        question,
-        marks,
-        questionNumber
+        questionId,
+        answer,
+        marksObtained
+      ),
+      users (
+        name
       )
-    ),
-    assignmentAnswers (
-      id,
-      questionId,
-      answer,
-      marksObtained
-    ),
-    users (
-      name
+    `,
     )
-  `,
-  )
-  .eq("assignments.teacherId", teacherId);
+    .eq("assignments.teacherId", teacherId);
 
-  if (error) throw error;
+    if (error) throw error;
 
-    if (error) {
-      console.error("getSubmittedAssignmentsForTeacher error:", error);
-      return [];
-    }
+      if (error) {
+        console.error("getSubmittedAssignmentsForTeacher error:", error);
+        return [];
+      }
 
- return data.map((submission) => ({
-   ...submission,
-   studentName: submission.users?.name || "Unknown Student",
-   assignmentTitle: submission.assignments.title,
-   description: submission.assignments.description,
-   fullMarks: submission.assignments.fullMarks,
-   passMarks: submission.assignments.passMarks,
-   class: submission.assignments.classes?.class?.className || "Unknown Class",
-   subject:
-     submission.assignments.classes?.subjects?.subjectName || "Unknown Subject",
-   assignmentQuestions: submission.assignments.assignmentQuestions ?? [],
-   assignmentAnswers: submission.assignmentAnswers ?? [],
- }));
-  },
+  return data.map((submission) => ({
+    ...submission,
+    studentName: submission.users?.name || "Unknown Student",
+    assignmentTitle: submission.assignments.title,
+    description: submission.assignments.description,
+    fullMarks: submission.assignments.fullMarks,
+    passMarks: submission.assignments.passMarks,
+    class: submission.assignments.classes?.class?.className || "Unknown Class",
+    subject:
+      submission.assignments.classes?.subjects?.subjectName || "Unknown Subject",
+    assignmentQuestions: submission.assignments.assignmentQuestions ?? [],
+    assignmentAnswers: submission.assignmentAnswers ?? [],
+  }));
+    },
 
   //Update submitted assignment answer marks
   updateAnswerMarks: async (questionMarks, assignmentAnswers) => {

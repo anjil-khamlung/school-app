@@ -18,13 +18,24 @@ const StudentDashboard = () => {
     getAssignments();
   }, [getClasses, getAssignments]);
 
-  if (!currentUser) return 
+  if (!currentUser) return;
+
+  //Students class joined assignments
+  const studentAssignments = assignments.filter((assignment) =>
+    classes.some(
+      (item) =>
+        item.id === assignment.classSubjectId &&
+        item.classesJoined?.some(
+          (joined) => joined.studentId === currentUser?.id,
+        ),
+    ),
+  );
 
   const myClasses = classes.filter((item) =>
     item.classesJoined?.some(({ studentId }) => studentId === currentUser.id),
   );
 
-  const recentAssignments = [...assignments].reverse().slice(0, 5);
+  const recentAssignments = [...studentAssignments].reverse().slice(0, 5);
 
   return (
     <div className="p-2 lg:p-4">
@@ -54,8 +65,8 @@ const StudentDashboard = () => {
         />
 
         <DashboardCard
-          title="Assignments"
-          value={assignments.length}
+          title="My Assignments"
+          value={studentAssignments.length}
           icon={FiFileText}
           iconStyle="bg-orange-50 text-orange-500"
           textStyle="text-orange-500 hover:text-orange-600"
@@ -88,6 +99,6 @@ const StudentDashboard = () => {
       </div>
     </div>
   );
-};
+};;
 
 export default StudentDashboard;

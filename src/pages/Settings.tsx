@@ -1,37 +1,66 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FiUser, FiMail, FiSave } from "react-icons/fi";
 import { useSchoolStore } from "../store/useSchoolStore";
 import { toast } from "react-toastify";
 import type { User } from "../type/type";
+import { useClasses } from "../store/useClasses";
 
 const Settings = () => {
-  const { currentUser, updateUser } = useSchoolStore()
 
+  const { currentUser, updateUser, } = useSchoolStore();
+  const {getClass}=useClasses()
   const [name, setName] = useState(currentUser?.name || "");
 
-  const handleSubmit = async(e:React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
 
-    if (!currentUser) return;
+  const [className, setClassName] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [originalName, setOriginalName] = useState(currentUser?.name || "");
 
-    if (!name.trim()) {
-      toast.warning("Name cannot be empty");
+  // fetching class 
+useEffect(() => {
+  const fetchClass = async () => {
+    if (!currentUser?.classId) {
+      setClassName("");
       return;
     }
 
-    const updatedUser:User = {
-      ...currentUser,
-      name: name.trim(),
-    };
+    const classes = await getClass();
 
-    const success=await updateUser(updatedUser);
-     if(!success)
-     {
-       toast.error("Name update failed")
-     }
+    const userClass = classes.find((item) => item.id === currentUser.classId);
 
-    toast.success("Name updated successfully");
+    setClassName(userClass?.className ?? "");
   };
+
+  fetchClass();
+}, [currentUser?.classId, getClass]);
+  
+// Handle submit 
+ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+   e.preventDefault();
+
+   if (!currentUser) return;
+
+   if (!name.trim()) {
+     toast.warning("Name cannot be empty");
+     return;
+   }
+
+   const updatedUser: User = {
+     ...currentUser,
+     name: name.trim(),
+   };
+
+   const success = await updateUser(updatedUser);
+
+   if (!success) {
+     toast.error("Name update failed");
+     return;
+   }
+
+   setIsEditing(false);
+   toast.success("Name updated successfully");
+  };
+  
   return (
     <div className="mx-auto w-full max-w-3xl p-2 lg:p-4">
       {/* Header */}
@@ -66,9 +95,25 @@ const Settings = () => {
         <form onSubmit={handleSubmit} className="space-y-5 p-6">
           {/* Name */}
           <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">
-              Full Name
-            </label>
+            <div className="mb-2 flex items-center justify-between">
+              <label className="block text-sm font-semibold text-slate-700">
+                Full Name
+              </label>
+
+              {!isEditing && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOriginalName(currentUser?.name || "");
+                    setName(currentUser?.name || "");
+                    setIsEditing(true);
+                  }}
+                  className="cursor-pointer text-sm font-semibold text-orange-600 hover:text-orange-500"
+                >
+                  Edit Name
+                </button>
+              )}
+            </div>
 
             <div className="relative">
               <FiUser
@@ -79,8 +124,13 @@ const Settings = () => {
               <input
                 type="text"
                 value={name}
+                readOnly={!isEditing}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10"
+                className={`w-full rounded-xl border border-slate-200 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition ${
+                  isEditing
+                    ? "bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10"
+                    : "cursor-default bg-slate-100"
+                }`}
               />
             </div>
           </div>
@@ -117,14 +167,42 @@ const Settings = () => {
             </div>
           </div>
 
-          {/* Save */}
-          <button
-            type="submit"
-            className="flex cursor-pointer items-center gap-2 rounded-xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700"
-          >
-            <FiSave size={17} />
-            Save Changes
-          </button>
+          {/* Class  */}
+          {currentUser?.classId && (
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-700">
+                Class
+              </label>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-medium text-slate-500">
+                {className || "Class not found"}
+              </div>
+            </div>
+          )}
+
+          {/* Save edit */}
+          {isEditing && (
+            <div className="flex justify-between gap-3">
+              <button
+                type="submit"
+                className="flex cursor-pointer items-center gap-2 rounded-xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700"
+              >
+                <FiSave size={17} />
+                Save Changes
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setName(originalName);
+                  setIsEditing(false);
+                }}
+                className="cursor-pointer rounded-xl bg-red-600  px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
         </form>
       </section>
     </div>
