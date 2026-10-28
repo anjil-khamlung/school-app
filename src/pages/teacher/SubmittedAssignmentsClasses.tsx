@@ -91,6 +91,7 @@ const SubmittedAssignmentClasses = () => {
                   assignment.teacherId === currentUser.id,
               ),
             ).length;
+            
             return (
               <DashboardCard
                 key={classItem.id}

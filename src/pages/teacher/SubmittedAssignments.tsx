@@ -1,6 +1,13 @@
-import {  useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { FiArrowLeft, FiBookOpen, FiCalendar, FiCircle, FiFileText, FiUser } from "react-icons/fi";
+import {
+  FiArrowLeft,
+  FiBookOpen,
+  FiCalendar,
+  FiCircle,
+  FiFileText,
+  FiUser,
+} from "react-icons/fi";
 
 import { useAssignments } from "../../store/useAssignments";
 import { useSchoolStore } from "../../store/useSchoolStore";
@@ -12,7 +19,7 @@ import { useClasses } from "../../store/useClasses";
 
 const SubmittedAssignments = () => {
   const { classSubjectId } = useParams();
-  const navigate=useNavigate()
+  const navigate = useNavigate();
 
   const {
     assignments,
@@ -30,19 +37,18 @@ const SubmittedAssignments = () => {
 
   const [submissions, setSubmissions] = useState<SubmittedAssignment[]>([]);
 
+  // fetch classes,assignments
   useEffect(() => {
-    getClasses()
-    getAssignments()
-  },[getClasses,getAssignments])
+    getClasses();
+    getAssignments();
+  }, [getClasses, getAssignments]);
 
+  // filter submissions 
   useEffect(() => {
-
     const loadSubmissions = async () => {
       if (!currentUser || !classSubjectId) return;
 
       const data = await getSubmittedAssignmentsForTeacher(currentUser.id);
-
-    
 
       const classSubjectIds = classes
         .filter((item) => item.id === classSubjectId)
@@ -54,11 +60,9 @@ const SubmittedAssignments = () => {
         )
         .map((assignment) => assignment.id);
 
-
       const filteredSubmissions = data.filter((submission) =>
         AssignmentIds.includes(submission.assignmentId),
       );
-
 
       setSubmissions(filteredSubmissions);
     };
@@ -72,10 +76,9 @@ const SubmittedAssignments = () => {
     getSubmittedAssignmentsForTeacher,
   ]);
 
-  const currentClass = classes.find((cls) => cls.id === classSubjectId)
-  const className = currentClass?.class?.className
-  const subject=currentClass?.subject?.subjectName
-  
+  const currentClass = classes.find((cls) => cls.id === classSubjectId);
+  const className = currentClass?.class?.className;
+  const subject = currentClass?.subject?.subjectName;
 
   return (
     <div className="p-1">

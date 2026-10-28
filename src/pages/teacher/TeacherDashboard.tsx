@@ -15,6 +15,7 @@ const TeacherDashboard = () => {
   const { users, getUsers } = useUsers();
   const navigate = useNavigate();
 
+  // fetch classes, assignments, users 
   useEffect(() => {
     getClasses();
     getAssignments();

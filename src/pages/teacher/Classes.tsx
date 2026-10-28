@@ -11,7 +11,7 @@ import ClassModal from "../../components/modals/ClassModal";
 
 const Classes = () => {
   const { currentUser } = useSchoolStore();
-  const { classes, getClasses, joinClass, deleteClass, } = useClasses();
+  const { classes, getClasses, joinClass, deleteClass } = useClasses();
 
   const [search, setSearch] = useState("");
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
@@ -30,10 +30,9 @@ const Classes = () => {
   const isTeacher = currentUser?.role === "teacher";
   const isStudent = currentUser?.role === "student";
 
+  //fetch classes
   useEffect(() => {
     getClasses();
-  
-
   }, [getClasses]);
 
   // Classes visible to each role
@@ -41,29 +40,29 @@ const Classes = () => {
 
   if (isTeacher) {
     visibleClasses = classes.filter(
-      (item) => String(item.teacherId) === String(currentUser?.id),
+      (item) => item.teacherId === currentUser?.id,
     );
   }
 
-if (isStudent) {
-  visibleClasses = classes.filter(
-    (item) => item.classId === currentUser.classId,
-  );
-}
+  if (isStudent) {
+    visibleClasses = classes.filter(
+      (item) => item.classId === currentUser.classId,
+    );
+  }
 
   // Search
-const filteredClasses = visibleClasses.filter((item) => {
-  const value = search.trim().toLowerCase().replace(/\s/g, "");
+  const filteredClasses = visibleClasses.filter((item) => {
+    const value = search.trim().toLowerCase().replace(/\s/g, "");
 
-  if (!value) return true;
+    if (!value) return true;
 
-  return (
-    item.class?.className?.toLowerCase().replace(/\s/g, "").includes(value) ||
-    item.subject?.subjectName?.toLowerCase().includes(value) ||
-    item.teacher?.name?.toLowerCase().includes(value) ||
-    item.time?.toLowerCase().includes(value)
-  );
-});
+    return (
+      item.class?.className?.toLowerCase().replace(/\s/g, "").includes(value) ||
+      item.subject?.subjectName?.toLowerCase().includes(value) ||
+      item.teacher?.name?.toLowerCase().includes(value) ||
+      item.time?.toLowerCase().includes(value)
+    );
+  });
 
   //Edit class
   const handleEdit = (classId: string) => {

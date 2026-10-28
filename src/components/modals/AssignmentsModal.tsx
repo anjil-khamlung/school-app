@@ -17,11 +17,9 @@ import { useClasses } from "../../store/useClasses";
 interface AssignmentModalProps {
   formData: AssignmentFormData;
   setFormData: React.Dispatch<React.SetStateAction<AssignmentFormData>>;
-
+  loadData: () => Promise<void>;
   editingAssignmentId: string | null;
-
   currentUser: User;
-
   setEditingAssignmentId: React.Dispatch<React.SetStateAction<string | null>>;
   initial: AssignmentFormData;
   setSearch: React.Dispatch<React.SetStateAction<string>>;
@@ -33,6 +31,7 @@ interface AssignmentModalProps {
 const AssignmentModal = ({
   formData,
   setFormData,
+  loadData,
   editingAssignmentId,
   currentUser,
   setEditingAssignmentId,
@@ -280,6 +279,7 @@ const AssignmentModal = ({
     setFormData(initial);
     setQuestions([{ question: "", marks: 25 }]);
     setSearch("");
+    loadData()
 
     // Close popover
     const modal = document.getElementById("create-assignment-modal");
@@ -437,7 +437,7 @@ const AssignmentModal = ({
                       type="text"
                       value={item.marks}
                       onChange={(e) =>
-                        updateQuestion(index, "marks", (e.target.value))
+                        updateQuestion(index, "marks", e.target.value)
                       }
                       className="input input-bordered w-24 bg-white "
                     />

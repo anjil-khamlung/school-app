@@ -6,24 +6,25 @@ import UsersTable from "../components/UsersTable";
 import { useUsers } from "../store/useUsers";
 
 const Students = () => {
-  const { currentUser,  } = useSchoolStore()
-  const {users,getUsers}=useUsers()
-    const [search,setSearch]=useState("")
-  const isAdmin = currentUser?.role === "admin"
-  
+  const { currentUser } = useSchoolStore();
+  const { users, getUsers } = useUsers();
+  const [search, setSearch] = useState("");
+  const isAdmin = currentUser?.role === "admin";
+
   //Fetch users
   useEffect(() => {
-    getUsers()
-  },[getUsers])
+    getUsers();
+  }, [getUsers]);
 
-    const students = users.filter((user) => {
-      return user.role==="student"
-    })
-  
-    const filteredStudents = students.filter((student) =>
-      student.name.toLowerCase().includes(search.toLowerCase())
-  )
-  
+  const students = users.filter((user) => {
+    return user.role === "student";
+  });
+
+  //search 
+  const filteredStudents = students.filter((student) =>
+    student.name.toLowerCase().includes(search.toLowerCase()),
+  );
+
   return (
     <div className="mx-auto w-full max-w-7xl p-2 lg:p-4">
       {/* Header */}
@@ -64,9 +65,13 @@ const Students = () => {
       />
 
       {/* Students */}
-      <UsersTable role="student" users={filteredStudents} totalUsers={students.length} />
+      <UsersTable
+        role="student"
+        users={filteredStudents}
+        totalUsers={students.length}
+      />
     </div>
   );
-}
+};
 
-export default Students
+export default Students;

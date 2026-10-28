@@ -6,14 +6,14 @@ import { useUsers } from "../../store/useUsers";
 import { useEffect } from "react";
 
 const Report = () => {
-  const {  classes,getClasses } = useClasses();
-  const { users, getUsers } = useUsers()
-  
-    //fetching users
-    useEffect(() => {
-      getUsers()
-      getClasses()
-    },[getUsers,getClasses])
+  const { classes, getClasses } = useClasses();
+  const { users, getUsers } = useUsers();
+
+  //fetching users and classes
+  useEffect(() => {
+    getUsers();
+    getClasses();
+  }, [getUsers, getClasses]);
 
   const students = users.filter((user) => user.role === "student").length;
 
@@ -21,13 +21,13 @@ const Report = () => {
 
   const totalClasses = classes.length;
 
-const classesWithStudents = classes.filter(
-  (item) => (item.classesJoined?.length ?? 0) > 0,
-).length;
+  const classesWithStudents = classes.filter(
+    (item) => (item.classesJoined?.length ?? 0) > 0,
+  ).length;
 
-const emptyClasses = classes.filter(
-  (item) => (item.classesJoined?.length ?? 0) === 0,
-).length;
+  const emptyClasses = classes.filter(
+    (item) => (item.classesJoined?.length ?? 0) === 0,
+  ).length;
 
   return (
     <div className="p-2 lg:4">

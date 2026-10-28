@@ -32,7 +32,8 @@ const ClassModal = ({
   initial,
   setSearch,
 }: ClassModalProps) => {
-  const { addClass, updateClass,getClass,getClasses ,getSubjects,classes,} = useClasses();
+  const { addClass, updateClass, getClass, getClasses, getSubjects, classes } =
+    useClasses();
   const [errors, setErrors] = useState<ClassFormErrors>({});
   const [classOptions, setClassOptions] = useState<
     { label: string; value: string }[]
@@ -42,47 +43,48 @@ const ClassModal = ({
     { label: string; value: string }[]
   >([]);
 
-useEffect(() => {
-  const loadOptions = async () => {
-    const classes = await getClass();
-    const subjects = await getSubjects();
+  //fetch classes and subjects
+  useEffect(() => {
+    const loadOptions = async () => {
+      const classes = await getClass();
+      const subjects = await getSubjects();
 
-    setClassOptions(
-      classes.map((item) => ({
-        label: item.className,
-        value: item.id,
-      })),
-    );
+      setClassOptions(
+        classes.map((item) => ({
+          label: item.className,
+          value: item.id,
+        })),
+      );
 
-    setSubjectOptions(
-      subjects.map((item) => ({
-        label: item.subjectName,
-        value: item.id,
-      })),
-    );
-  };
+      setSubjectOptions(
+        subjects.map((item) => ({
+          label: item.subjectName,
+          value: item.id,
+        })),
+      );
+    };
 
-  loadOptions();
-  getClasses()
-}, [getClass, getSubjects,getClasses]);
+    loadOptions();
+    getClasses();
+  }, [getClass, getSubjects, getClasses]);
 
-  // filter subjects 
-const availableSubjectOptions = subjectOptions.filter(
-  (subject) =>
-    !classes.some(
-      (item) =>
-        item.classId === formData.classId && item.subjectId === subject.value,
-    ),
-);
+  // filter subjects
+  const availableSubjectOptions = subjectOptions.filter(
+    (subject) =>
+      !classes.some(
+        (item) =>
+          item.classId === formData.classId && item.subjectId === subject.value,
+      ),
+  );
 
-  // Filter time 
-const availableTimeOptions = time.filter(
-  (time) =>
-    !classes.some(
-      (item) => item.classId === formData.classId && item.time === time,
-    ),
-);
-  
+  // Filter time
+  const availableTimeOptions = time.filter(
+    (time) =>
+      !classes.some(
+        (item) => item.classId === formData.classId && item.time === time,
+      ),
+  );
+
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -111,7 +113,7 @@ const availableTimeOptions = time.filter(
 
       setEditingClassId(null);
       setFormData(initial);
-      setSearch("")
+      setSearch("");
 
       // Close popover
       const modal = document.getElementById("create-class-modal");

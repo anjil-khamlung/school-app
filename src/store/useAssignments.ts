@@ -278,28 +278,28 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
   },
 
   //teacher asignments and total submissions
-  getTeacherAssignmentStats: async (teacherId: string) => {
-    await get().getAssignments();
-    await get().getSubmissionCounts();
+    getTeacherAssignmentStats: async (teacherId: string) => {
+      await get().getAssignments();
+      await get().getSubmissionCounts();
 
-    const { assignments, getSubmissionCounts } = get();
+      const { assignments, getSubmissionCounts } = get();
 
-    const teacherAssignments = assignments.filter(
-      (assignment) => assignment.teacherId === teacherId,
-    );
+      const teacherAssignments = assignments.filter(
+        (assignment) => assignment.teacherId === teacherId,
+      );
 
-    const submissionCounts = await getSubmissionCounts();
+      const submissionCounts = await getSubmissionCounts();
 
-    const totalSubmissions = teacherAssignments.reduce(
-      (total, assignment) => total + (submissionCounts[assignment.id] || 0),
-      0,
-    );
+      const totalSubmissions = teacherAssignments.reduce(
+        (total, assignment) => total + (submissionCounts[assignment.id] || 0),
+        0,
+      );
 
-    return {
-      teacherAssignments,
-      totalSubmissions,
-    };
-  },
+      return {
+        teacherAssignments,
+        totalSubmissions,
+      };
+    },
 
   //Add assignment questions
   addAssignmentQuestions: async (
@@ -335,6 +335,7 @@ export const useAssignments = create<AssignmentsStore>((set, get) => ({
       console.error(error);
       return [];
     }
+
 
     return data;
   },

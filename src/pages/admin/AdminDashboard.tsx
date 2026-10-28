@@ -9,34 +9,27 @@ import { useAssignments } from "../../store/useAssignments";
 import { useEffect } from "react";
 
 const AdminDashboard = () => {
-  const navigate=useNavigate()
-  const { currentUser, } = useSchoolStore()
-    const {users,getUsers}=useUsers()
-    const {classes,getClasses}=useClasses()
-  const { assignments, getAssignments } = useAssignments()
-  
-   useEffect(
-     () => {
-       getUsers();
-       getClasses();
-       getAssignments();
-     },
-     [getUsers, getAssignments,getClasses],
-     
-   );
-  
-  const students = users.filter((user) => 
-  user.role==="student"
-  ).length
-  
-  const teachers = users.filter((user) => 
-  user.role==="teacher"
-).length
+  const navigate = useNavigate();
+  const { currentUser } = useSchoolStore();
+  const { users, getUsers } = useUsers();
+  const { classes, getClasses } = useClasses();
+  const { assignments, getAssignments } = useAssignments();
 
-  const totalClasses=classes.length
-  const totalAssignments = assignments.length
-  
-  const recentUsers=[...users].reverse().slice(0,5)
+  //Fetch users, classes and assignments
+  useEffect(() => {
+    getUsers();
+    getClasses();
+    getAssignments();
+  }, [getUsers, getAssignments, getClasses]);
+
+  const students = users.filter((user) => user.role === "student").length;
+
+  const teachers = users.filter((user) => user.role === "teacher").length;
+
+  const totalClasses = classes.length;
+  const totalAssignments = assignments.length;
+
+  const recentUsers = [...users].reverse().slice(0, 5);
 
   return (
     <div className="p-2 lg:p-4">
@@ -95,7 +88,6 @@ const AdminDashboard = () => {
           onClick={() => navigate("/admin/assignments")}
         />
       </div>
-      
 
       {/* Recently Registered Users */}
       <DashboardList
@@ -107,6 +99,6 @@ const AdminDashboard = () => {
       />
     </div>
   );
-}
+};
 
-export default AdminDashboard
+export default AdminDashboard;

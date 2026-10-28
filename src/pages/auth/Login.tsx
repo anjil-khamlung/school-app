@@ -77,7 +77,9 @@ const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
   } finally {
     setLoading(false);
   }
-};
+  };
+  
+  
   return (
     <div className="relative flex h-[calc(100vh-4rem)] items-center justify-center overflow-hidden bg-[#071c1a] px-4">
       {/* Background decorations */}

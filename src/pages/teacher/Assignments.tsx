@@ -86,39 +86,41 @@ const Assignments = () => {
   const navigate = useNavigate();
 
   //fetching assignemnts,classes and submitted assignments
-  useEffect(() => {
-    const loadData = async () => {
-      await getAssignments();
-      await getClasses();
+const loadData = async () => {
+  await getAssignments();
+  await getClasses();
 
-      if (!currentUser) return;
+  if (!currentUser) return;
 
-      if (currentUser.role === "student") {
-        const data = await getSubmittedAssignmentsForStudent(currentUser.id);
+  if (currentUser.role === "student") {
+    const data = await getSubmittedAssignmentsForStudent(currentUser.id);
 
-        setSubmittedAssignments(data);
-        setSubmittedAssignmentIds(
-          data.map((submission) => submission.assignmentId),
-        );
-      }
+    setSubmittedAssignments(data);
+    setSubmittedAssignmentIds(
+      data.map((submission) => submission.assignmentId),
+    );
+  }
 
-      if (currentUser.role === "teacher") {
-        const counts = await getSubmissionCounts();
-        setSubmissionCounts(counts);
+  if (currentUser.role === "teacher") {
+    const counts = await getSubmissionCounts();
+    setSubmissionCounts(counts);
 
-        const data = await getTeacherAssignmentStats(currentUser.id);
-        setStats(data);
-      }
-    };
+    const data = await getTeacherAssignmentStats(currentUser.id);
+    setStats(data);
+  }
+};
 
-    loadData();
-  }, [
-    currentUser,
-    getAssignments,
-    getSubmittedAssignmentsForStudent,
-    getSubmissionCounts,
-    getTeacherAssignmentStats,
-  ]);
+useEffect(() => {
+  loadData();
+}, [
+  currentUser,
+  getAssignments,
+  getClasses,
+  getSubmittedAssignmentsForStudent,
+  getSubmissionCounts,
+  getTeacherAssignmentStats,
+]);
+
 
   //Students class joined assignments
   const studentAssignments = assignments.filter((assignment) =>
@@ -131,37 +133,45 @@ const Assignments = () => {
     ),
   );
 
-
-const joinedClassSubjectIds = new Set(
-  classes
-    .filter((cls) => cls.classesJoined?.some((joined) => joined.studentId === currentUser.id))
-    .map((cls) => cls.id),
-);
+  //current student joined class ids
+  const joinedClassSubjectIds = new Set(
+    classes
+      .filter((cls) =>
+        cls.classesJoined?.some(
+          (joined) => joined.studentId === currentUser.id,
+        ),
+      )
+      .map((cls) => cls.id),
+  );
 
   //Assignments according to role
-const visibleAssignments = isTeacher
-  ? assignments.filter((assignment) => assignment.teacherId === currentUser.id)
-  : isStudent
-    ? assignments.filter((assignment) => joinedClassSubjectIds.has(assignment.classSubjectId))
-    : assignments;
+  const visibleAssignments = isTeacher
+    ? assignments.filter(
+        (assignment) => assignment.teacherId === currentUser.id,
+      )
+    : isStudent
+      ? assignments.filter((assignment) =>
+          joinedClassSubjectIds.has(assignment.classSubjectId),
+        )
+      : assignments;
 
   //Search
- const filteredAssignments = visibleAssignments.filter((assignment) => {
-   const value = search.trim().toLowerCase().replace(/\s/g, "");
+  const filteredAssignments = visibleAssignments.filter((assignment) => {
+    const value = search.trim().toLowerCase().replace(/\s/g, "");
 
-   if (!value) return true;
+    if (!value) return true;
 
-   return (
-     assignment.classes?.class?.className
-       ?.toLowerCase()
-       .replace(/\s/g, "")
-       .includes(value) ||
-     assignment.classes?.subject?.subjectName?.toLowerCase().includes(value) ||
-     assignment.title?.toLowerCase().includes(value) ||
-     assignment.description?.toLowerCase().includes(value) ||
-     assignment.users?.name?.toLowerCase().includes(value)
-   );
- });
+    return (
+      assignment.classes?.class?.className
+        ?.toLowerCase()
+        .replace(/\s/g, "")
+        .includes(value) ||
+      assignment.classes?.subject?.subjectName?.toLowerCase().includes(value) ||
+      assignment.title?.toLowerCase().includes(value) ||
+      assignment.description?.toLowerCase().includes(value) ||
+      assignment.users?.name?.toLowerCase().includes(value)
+    );
+  });
 
   //Edit assignment
   const handleEdit = async (assignmentId: string) => {
@@ -170,7 +180,7 @@ const visibleAssignments = isTeacher
     if (hasSubmissions === null) return;
 
     if (hasSubmissions) {
-      toast.error("Cannot edit because students have submitted.");
+      toast.error("Cannot edit because students have submitted assignments.");
       return;
     }
 
@@ -228,6 +238,7 @@ const visibleAssignments = isTeacher
     }
 
     setSelectedAssignmentId(null);
+    loadData()
 
     toast.success("Assignment deleted successfully");
   };
@@ -265,7 +276,6 @@ const visibleAssignments = isTeacher
 
     return success;
   };
-
 
   //Total assignments submitted by a student
   const submittedCount = assignments.filter((assignment) =>
@@ -319,6 +329,7 @@ const visibleAssignments = isTeacher
         editingAssignmentId={editingAssignmentId}
         currentUser={currentUser}
         setEditingAssignmentId={setEditingAssignmentId}
+        loadData={loadData}
         initial={initial}
         setSearch={setSearch}
         questions={questions}

@@ -165,12 +165,19 @@ const AssignmentCard = ({
                   : "bg-teal-600 text-white hover:bg-teal-700"
             }`}
           >
-            {isPastDueDate ? <FiX size={17} /> : <FiCheck size={17} />}
-            {isPastDueDate
-              ? "Deadline Passed"
-              : isSubmitted
-                ? "Submitted"
-                : "Submit "}
+            {isSubmitted ? (
+              <FiCheck size={17} />
+            ) : isPastDueDate ? (
+              <FiX size={17} />
+            ) : (
+              <FiCheck size={17} />
+            )}
+
+            {isSubmitted
+              ? "Submitted"
+              : isPastDueDate
+                ? "Deadline Passed"
+                : "Submit"}
           </button>
         )}
       </div>

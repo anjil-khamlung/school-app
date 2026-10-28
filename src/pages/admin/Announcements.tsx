@@ -12,6 +12,7 @@ import type {
   CreateAnnouncement,
 } from "../../type/AnnouncementType";
 import { validateAnnouncement } from "../../lib/utils/validateAnnouncement";
+import AnnouncementModal from "../../components/modals/AnnouncementModal";
 
 const Announcements = () => {
   const { currentUser } = useSchoolStore();
@@ -45,6 +46,7 @@ const Announcements = () => {
   useEffect(() => {
     getAnnouncements();
   }, [getAnnouncements]);
+
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -103,6 +105,7 @@ const Announcements = () => {
     toast.success("Announcement created successfully");
   };
 
+  // edit announcement 
   const handleEdit = (announcementId: string) => {
     const announcement = announcements.find(
       (item) => item.id === announcementId,
@@ -120,6 +123,7 @@ const Announcements = () => {
     setShowForm(true);
   };
 
+  // delete announcement 
   const confirmDelete = async () => {
     if (!selectedAnnouncementId) return;
 
@@ -196,62 +200,19 @@ const Announcements = () => {
       </div>
 
       {/* Create Form - Admin only */}
-      {isAdmin && showForm && (
-        <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-900">
-            Create Announcement
-          </h2>
-
-          <p className="mt-1 text-sm text-slate-500">
-            Share an important update with students and teachers.
-          </p>
-
-          <form onSubmit={handleSubmit} className="mt-6 space-y-5">
-            {/* Title */}
-            <InputField
-              label="Title"
-              type={"text"}
-              name={"title"}
-              value={formData.title}
-              setFormData={setFormData}
-              placeholder={"Enter announcement title"}
-              error={errors.title}
-            />
-
-            {/* Message */}
-            <TextArea
-              label={"Message"}
-              name={"message"}
-              value={formData.message}
-              setFormData={setFormData}
-              placeholder={"Write your announcement..."}
-              rows={5}
-              error={errors.message}
-            />
-
-            {/* Actions  */}
-            <button
-              type="submit"
-              className={`flex cursor-pointer items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white ${
-                editingAnnouncementId !== null
-                  ? "bg-orange-500 hover:bg-orange-600"
-                  : "bg-teal-600 hover:bg-teal-700"
-              }`}
-            >
-              {editingAnnouncementId !== null ? (
-                <>
-                  <FiEdit2 size={17} />
-                  Update Announcement
-                </>
-              ) : (
-                <>
-                  <FiPlus size={17} />
-                  Publish Announcement
-                </>
-              )}
-            </button>
-          </form>
-        </div>
+      {isAdmin && (
+        <AnnouncementModal
+          isOpen={showForm}
+          onClose={() => {
+            setShowForm(false);
+            setEditingAnnouncementId(null);
+          }}
+          formData={formData}
+          setFormData={setFormData}
+          errors={errors}
+          handleSubmit={handleSubmit}
+          editingAnnouncementId={editingAnnouncementId}
+        />
       )}
 
       {/* Announcements */}

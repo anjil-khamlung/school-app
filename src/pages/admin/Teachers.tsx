@@ -1,25 +1,25 @@
 import { FiUsers } from "react-icons/fi";
 import { useSchoolStore } from "../../store/useSchoolStore";
 import SearchInput from "../../components/inputs/SearchInput";
-import {  useState } from "react";
+import { useState } from "react";
 import UsersTable from "../../components/UsersTable";
 import { useUsers } from "../../store/useUsers";
 
 const Teachers = () => {
-  const { currentUser, } = useSchoolStore()
-  const {users,}=useUsers()
+  const { currentUser } = useSchoolStore();
+  const { users } = useUsers();
 
-    const [search,setSearch]=useState("")
-    
-  const isAdmin = currentUser?.role === "admin"
-  
+  const [search, setSearch] = useState("");
 
+  const isAdmin = currentUser?.role === "admin";
 
-    const teachers = users.filter((user) => user.role === "teacher")
+  const teachers = users.filter((user) => user.role === "teacher");
 
-    const filteredTeachers = teachers.filter((teacher) =>
-      teacher.name.toLowerCase().includes(search.toLowerCase())
-    )
+  // search  
+  const filteredTeachers = teachers.filter((teacher) =>
+    teacher.name.toLowerCase().includes(search.toLowerCase()),
+  );
+
   return (
     <div className="p-2 lg:p-4 ">
       {/* Header */}
@@ -44,7 +44,7 @@ const Teachers = () => {
           <FiUsers size={18} className="text-teal-600" />
 
           <span className="text-sm font-semibold text-teal-700">
-            {teachers.length} {teachers.length===1?"Teacher":"Teachers"}
+            {teachers.length} {teachers.length === 1 ? "Teacher" : "Teachers"}
           </span>
         </div>
       </div>
@@ -60,6 +60,6 @@ const Teachers = () => {
       <UsersTable users={filteredTeachers} totalUsers={teachers.length} />
     </div>
   );
-}
+};
 
-export default Teachers
+export default Teachers;

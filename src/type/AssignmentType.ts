@@ -84,12 +84,13 @@ export interface SubmittedAssignment {
 
 export interface AssignmentsStore {
   assignments: Assignment[];
+  
   getAssignments: () => Promise<void>;
+
   updateAssignment: (
     assignmentId: string,
     updatedData: {
       classSubjectId: string;
-      // subjectId:string
       title: string;
       dueDate: string;
       description: string;
@@ -112,8 +113,8 @@ export interface AssignmentsStore {
   getSubmittedAssignmentsForStudent: (studentId: string) => Promise<
     {
       assignmentId: string;
-      obtainedMarks:number
-      result: Result
+      obtainedMarks: number;
+      result: Result;
     }[]
   >;
 

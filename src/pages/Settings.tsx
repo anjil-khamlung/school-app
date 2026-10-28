@@ -11,7 +11,6 @@ const Settings = () => {
   const {getClass}=useClasses()
   const [name, setName] = useState(currentUser?.name || "");
 
-
   const [className, setClassName] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [originalName, setOriginalName] = useState(currentUser?.name || "");
